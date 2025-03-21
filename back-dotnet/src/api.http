@@ -35,7 +35,7 @@ Authorization: Bearer {{token}}
 
 ###
 # Obtém funcionários por departamento
-GET {{baseUrl}}/api/Employees/department/TI
+GET {{baseUrl}}/api/Employees/department/Marketing
 Authorization: Bearer {{token}}
 
 ###

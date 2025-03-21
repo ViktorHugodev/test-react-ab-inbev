@@ -13,7 +13,7 @@ out/
 *.jfm
 *.pfx
 *.publishsettings
-
+CLAUDE.md
 # Environment variables
 .env
 
