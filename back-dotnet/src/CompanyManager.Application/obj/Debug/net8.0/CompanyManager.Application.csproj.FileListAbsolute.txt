@@ -1,0 +1,16 @@
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Application/obj/Debug/net8.0/CompanyManager.Application.csproj.AssemblyReference.cache
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Application/obj/Debug/net8.0/CompanyManager.Application.GeneratedMSBuildEditorConfig.editorconfig
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Application/obj/Debug/net8.0/CompanyManager.Application.AssemblyInfoInputs.cache
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Application/obj/Debug/net8.0/CompanyManager.Application.AssemblyInfo.cs
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Application/obj/Debug/net8.0/CompanyManager.Application.csproj.CoreCompileInputs.cache
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Application/obj/Debug/net8.0/CompanyManager.Application.sourcelink.json
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Application/bin/Debug/net8.0/CompanyManager.Application.deps.json
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Application/bin/Debug/net8.0/CompanyManager.Application.dll
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Application/bin/Debug/net8.0/CompanyManager.Application.pdb
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Application/bin/Debug/net8.0/CompanyManager.Domain.dll
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Application/bin/Debug/net8.0/CompanyManager.Domain.pdb
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Application/obj/Debug/net8.0/CompanyM.4ACF848B.Up2Date
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Application/obj/Debug/net8.0/CompanyManager.Application.dll
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Application/obj/Debug/net8.0/refint/CompanyManager.Application.dll
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Application/obj/Debug/net8.0/CompanyManager.Application.pdb
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Application/obj/Debug/net8.0/ref/CompanyManager.Application.dll

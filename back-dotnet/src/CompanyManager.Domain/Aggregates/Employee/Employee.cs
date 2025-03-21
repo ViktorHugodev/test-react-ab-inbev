@@ -23,8 +23,8 @@ namespace CompanyManager.Domain.Aggregates.Employee
         public Guid? ManagerId { get; private set; }
         public Employee Manager { get; private set; }
         public IReadOnlyCollection<PhoneNumber> PhoneNumbers => _phoneNumbers.AsReadOnly();
-        public DateTime CreatedAt { get; private set; }
-        public DateTime? UpdatedAt { get; private set; }
+  public DateTime CreatedAt { get; internal set; }
+     public DateTime? UpdatedAt { get; internal set; }
 
         // Construtor privado para EF Core
         private Employee() { }

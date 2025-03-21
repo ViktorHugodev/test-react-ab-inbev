@@ -1,0 +1,13 @@
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Domain/bin/Debug/net8.0/CompanyManager.Domain.deps.json
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Domain/bin/Debug/net8.0/CompanyManager.Domain.dll
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Domain/bin/Debug/net8.0/CompanyManager.Domain.pdb
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Domain/obj/Debug/net8.0/CompanyManager.Domain.csproj.AssemblyReference.cache
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Domain/obj/Debug/net8.0/CompanyManager.Domain.GeneratedMSBuildEditorConfig.editorconfig
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Domain/obj/Debug/net8.0/CompanyManager.Domain.AssemblyInfoInputs.cache
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Domain/obj/Debug/net8.0/CompanyManager.Domain.AssemblyInfo.cs
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Domain/obj/Debug/net8.0/CompanyManager.Domain.csproj.CoreCompileInputs.cache
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Domain/obj/Debug/net8.0/CompanyManager.Domain.sourcelink.json
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Domain/obj/Debug/net8.0/CompanyManager.Domain.dll
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Domain/obj/Debug/net8.0/refint/CompanyManager.Domain.dll
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Domain/obj/Debug/net8.0/CompanyManager.Domain.pdb
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Domain/obj/Debug/net8.0/ref/CompanyManager.Domain.dll

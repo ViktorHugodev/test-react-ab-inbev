@@ -1,0 +1,6 @@
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Infrastructure/obj/Debug/net8.0/CompanyManager.Infrastructure.csproj.AssemblyReference.cache
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Infrastructure/obj/Debug/net8.0/CompanyManager.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Infrastructure/obj/Debug/net8.0/CompanyManager.Infrastructure.AssemblyInfoInputs.cache
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Infrastructure/obj/Debug/net8.0/CompanyManager.Infrastructure.AssemblyInfo.cs
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Infrastructure/obj/Debug/net8.0/CompanyManager.Infrastructure.csproj.CoreCompileInputs.cache
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Infrastructure/obj/Debug/net8.0/CompanyManager.Infrastructure.sourcelink.json

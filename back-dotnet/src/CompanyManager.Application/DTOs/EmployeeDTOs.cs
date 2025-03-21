@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CompanyManager.Domain.Enums;
+using CompanyManager.Domain.ValueObjects;
 
 namespace CompanyManager.Application.DTOs
 {
