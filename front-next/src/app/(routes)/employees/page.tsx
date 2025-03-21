@@ -4,12 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, PlusCircle, Pencil, Trash2, Eye } from "lucide-react";
-import { useGetEmployees } from "@/services/api/employee/queries";
-import { useGetDepartments } from "@/services/api/department/queries";
-import { useGetManagers } from "@/services/api/employee/queries";
-import { useDeleteEmployee } from "@/services/api/employee/queries";
+
 import { useAuth } from "@/hooks/use-auth";
-import { EmployeeFilters } from "@/services/api/employee";
+import { EmployeeFilters } from "@/services/employee";
 import { Employee, EmployeeRole } from "@/types/employee";
 
 import {
@@ -44,13 +41,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { useDeleteEmployee, useGetEmployees, useGetManagers } from '@/services/employee/queries';
+import { useGetDepartments } from '@/services/department/queries';
 
 export default function EmployeesPage() {
   const router = useRouter();
   const { user } = useAuth();
+  
   const [filters, setFilters] = useState<EmployeeFilters>({
     pageNumber: 1,
     pageSize: 10,
@@ -65,15 +64,16 @@ export default function EmployeesPage() {
   const { data: managers } = useGetManagers();
   const deleteEmployee = useDeleteEmployee();
 
-  // Check permissions
-  const isDirector = user?.role === EmployeeRole.Director;
-  const isLeaderOrDirector = user?.role === EmployeeRole.Leader || user?.role === EmployeeRole.Director;
+  // Check permissions - assume default to Employee if user role is null
+  const userRole = user?.role || EmployeeRole.Employee;
+  const isDirector = userRole === EmployeeRole.Director;
+  const isLeaderOrDirector = userRole === EmployeeRole.Leader || userRole === EmployeeRole.Director;
 
   // Handle department filter
   const handleDepartmentChange = (value: string) => {
     setFilters((prev) => ({
       ...prev,
-      department: value || undefined,
+      department: value === "all" ? undefined : value,
       pageNumber: 1,
     }));
   };
@@ -82,7 +82,7 @@ export default function EmployeesPage() {
   const handleManagerChange = (value: string) => {
     setFilters((prev) => ({
       ...prev,
-      managerId: value || undefined,
+      managerId: value === "all" ? undefined : value,
       pageNumber: 1,
     }));
   };
@@ -149,6 +149,12 @@ export default function EmployeesPage() {
     }
   };
 
+  // Função para obter o nome completo do funcionário
+  const getFullName = (employee: Employee): string => {
+    if (employee.fullName) return employee.fullName;
+    return `${employee.firstName || ''} ${employee.lastName || ''}`.trim();
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto py-6">
@@ -209,12 +215,14 @@ export default function EmployeesPage() {
     <div className="container mx-auto py-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Funcionários</h1>
-        <Link href="/employees/create">
-          <Button>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Adicionar Funcionário
-          </Button>
-        </Link>
+        {isLeaderOrDirector && (
+          <Link href="/employees/create">
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Adicionar Funcionário
+            </Button>
+          </Link>
+        )}
       </div>
       
       <Card className="mb-6">
@@ -230,7 +238,7 @@ export default function EmployeesPage() {
               <label className="text-sm font-medium">Departamento</label>
               <Select
                 onValueChange={handleDepartmentChange}
-                value={filters.department}
+                value={filters.department || "all"}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todos os departamentos" />
@@ -238,7 +246,7 @@ export default function EmployeesPage() {
                 <SelectContent>
                   <SelectItem value="all">Todos os departamentos</SelectItem>
                   {departments?.map((department) => (
-                    <SelectItem key={department.id} value={department.id}>
+                    <SelectItem key={department.id} value={department.name}>
                       {department.name}
                     </SelectItem>
                   ))}
@@ -250,7 +258,7 @@ export default function EmployeesPage() {
               <label className="text-sm font-medium">Gerente</label>
               <Select
                 onValueChange={handleManagerChange}
-                value={filters.managerId}
+                value={filters.managerId || "all"}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todos os gerentes" />
@@ -258,8 +266,8 @@ export default function EmployeesPage() {
                 <SelectContent>
                   <SelectItem value="all">Todos os gerentes</SelectItem>
                   {managers?.map((manager) => (
-                    <SelectItem key={manager.id} value={manager.id}>
-                      {manager.name}
+                    <SelectItem key={manager.id} value={manager.id || ''}>
+                      {getFullName(manager)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -300,54 +308,54 @@ export default function EmployeesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {employeesData?.items?.map((employee) => (
-                <TableRow key={employee.id}>
-                  <TableCell className="font-medium">
-                    {employee.firstName} {employee.lastName}
-                  </TableCell>
-                  <TableCell>{employee.email}</TableCell>
-                  <TableCell>
-                    <Badge variant={getRoleBadgeVariant(employee.role)}>
-                      {getRoleDisplay(employee.role)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{employee.department}</TableCell>
-                  <TableCell>{employee.managerName || "-"}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end space-x-1">
-                      <Button size="sm" variant="ghost" asChild>
-                        <Link href={`/employees/${employee.id}`}>
-                          <Eye className="h-4 w-4" />
-                          <span className="sr-only">Ver</span>
-                        </Link>
-                      </Button>
-                      
-                      {isLeaderOrDirector && (
+              {employeesData?.items && employeesData.items.length > 0 ? (
+                employeesData.items.map((employee) => (
+                  <TableRow key={employee.id}>
+                    <TableCell className="font-medium">
+                      {getFullName(employee)}
+                    </TableCell>
+                    <TableCell>{employee.email}</TableCell>
+                    <TableCell>
+                      <Badge variant={getRoleBadgeVariant(employee.role)}>
+                        {getRoleDisplay(employee.role)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{employee.department}</TableCell>
+                    <TableCell>{employee.managerName || "-"}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end space-x-1">
                         <Button size="sm" variant="ghost" asChild>
-                          <Link href={`/employees/${employee.id}/edit`}>
-                            <Pencil className="h-4 w-4" />
-                            <span className="sr-only">Editar</span>
+                          <Link href={`/employees/${employee.id}`}>
+                            <Eye className="h-4 w-4" />
+                            <span className="sr-only">Ver</span>
                           </Link>
                         </Button>
-                      )}
-                      
-                      {isDirector && (
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => handleDelete(employee.id!)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          <span className="sr-only">Excluir</span>
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-              
-              {employeesData?.items?.length === 0 && (
+                        
+                        {isLeaderOrDirector && (
+                          <Button size="sm" variant="ghost" asChild>
+                            <Link href={`/employees/${employee.id}/edit`}>
+                              <Pencil className="h-4 w-4" />
+                              <span className="sr-only">Editar</span>
+                            </Link>
+                          </Button>
+                        )}
+                        
+                        {isDirector && (
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => handleDelete(employee.id!)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            <span className="sr-only">Excluir</span>
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-6">
                     <p className="text-muted-foreground">Nenhum funcionário encontrado.</p>
@@ -360,15 +368,15 @@ export default function EmployeesPage() {
       </Card>
       
       {/* Pagination */}
-      {employeesData && (
+      {employeesData && employeesData.totalPages > 1 && (
         <div className="flex justify-between items-center mt-4">
           <div>
-            Mostrando {employeesData?.items?.length} de {employeesData?.totalCount} resultados
+            Mostrando {employeesData.items?.length || 0} de {employeesData.totalCount} resultados
           </div>
           <div className="flex space-x-1">
             <Button
-              disabled={!employeesData?.hasPreviousPage}
-              onClick={() => handlePageChange(employeesData?.pageNumber - 1)}
+              disabled={!employeesData.hasPreviousPage}
+              onClick={() => handlePageChange(employeesData.pageNumber - 1)}
               className="px-3 py-1 rounded border disabled:opacity-50"
               size="sm"
               variant="outline"

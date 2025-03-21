@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { departmentService, Department, CreateDepartmentDTO, UpdateDepartmentDTO } from "./index";
 import { ApiError } from "../index";
+import { CreateDepartmentDto, Department, UpdateDepartmentDto } from '@/types/deparment';
+import { departmentService } from '.';
 
 // Error handler utility
 const handleApiError = (error: unknown, defaultMessage: string) => {
@@ -42,7 +43,7 @@ export const useGetDepartment = (id: string) => {
 export const useCreateDepartment = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<Department, ApiError, CreateDepartmentDTO>({
+  return useMutation<Department, ApiError, CreateDepartmentDto>({
     mutationFn: (data) => departmentService.create(data),
     onSuccess: () => {
       toast.success("Departamento criado com sucesso!");
@@ -60,7 +61,7 @@ export const useCreateDepartment = () => {
 export const useUpdateDepartment = (id: string) => {
   const queryClient = useQueryClient();
 
-  return useMutation<Department, ApiError, UpdateDepartmentDTO>({
+  return useMutation<Department, ApiError, UpdateDepartmentDto>({
     mutationFn: (data) => departmentService.update(id, data),
     onSuccess: (updatedDepartment) => {
       toast.success("Departamento atualizado com sucesso!");
@@ -94,5 +95,14 @@ export const useDeleteDepartment = () => {
     onError: (error) => {
       handleApiError(error, "Erro ao excluir departamento.");
     },
+  });
+};
+
+export const useGetEmployeesByDepartment = (departmentId: string) => {
+  return useQuery<Employee[], ApiError>({
+    queryKey: ["employees", "department", departmentId],
+    queryFn: () => employeeService.getByDepartment(departmentId),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    enabled: !!departmentId, // Only run if departmentId is provided
   });
 };

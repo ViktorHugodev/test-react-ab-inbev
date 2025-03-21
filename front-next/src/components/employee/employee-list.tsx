@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useGetEmployees } from "@/services/api/employee/queries";
-import { EmployeeFilters } from "@/services/api/employee";
+import { useGetEmployees } from "@/services/employee/queries";
+import { EmployeeFilters } from "@/services/employee";
 import { Employee, EmployeeRole } from "@/types/employee";
 
 interface EmployeeListProps {

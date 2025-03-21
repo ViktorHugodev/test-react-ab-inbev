@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmployeeRole } from "@/types/employee";
-import { useGetEmployees } from "@/services/api/employee/queries";
+import { useGetEmployees } from "@/services/employee/queries";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 

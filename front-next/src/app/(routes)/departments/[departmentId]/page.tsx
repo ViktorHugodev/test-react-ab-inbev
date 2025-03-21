@@ -4,8 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { ChevronLeft, Search, Users, UserPlus, PenSquare, Trash2 } from "lucide-react";
-import { useGetDepartment } from "@/services/api/department/queries";
-import { useGetEmployeesByDepartment } from "@/services/api/employee/queries";
+import { useGetDepartment } from "@/services/department/queries";
+
 import { useAuth } from "@/hooks/use-auth";
 import { EmployeeRole } from "@/types/employee";
 
@@ -36,6 +36,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useGetEmployeesByDepartment } from '@/services/employee/queries';
 
 export default function DepartmentDetailPage() {
   const params = useParams();

@@ -1,7 +1,8 @@
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useGetEmployees } from "@/services/api/employee/queries";
+import { useGetEmployees } from '@/services/employee/queries';
+
 
 interface DepartmentCount {
   name: string;

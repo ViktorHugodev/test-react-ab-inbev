@@ -59,10 +59,10 @@ export interface UpdateEmployeeDTO {
   firstName: string;
   lastName: string;
   email: string;
-  birthDate: string; // ISO string format for API
   role: EmployeeRole;
   department: string;
   managerId?: string;
+  birthDate: string | Date
   phoneNumbers: {
     id?: string;
     number: string;

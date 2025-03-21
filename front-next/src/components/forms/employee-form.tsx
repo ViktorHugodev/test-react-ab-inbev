@@ -291,7 +291,7 @@ export function EmployeeForm() {
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione um departamento" />
+                      <SelectValue  placeholder="Selecione um departamento" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -324,7 +324,7 @@ export function EmployeeForm() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">Nenhum</SelectItem>
+                    <SelectItem value="none">Nenhum</SelectItem>
                     {managers.map((manager) => (
                       <SelectItem key={manager.id} value={manager.id}>
                         {manager.name}

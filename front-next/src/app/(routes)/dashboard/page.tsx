@@ -7,9 +7,11 @@ import { RecentEmployees } from "@/components/dashboard/recent-employees";
 import { DepartmentChart } from "@/components/dashboard/department-chart";
 import { RoleDistribution } from "@/components/dashboard/role-distribution";
 import { TopManagers } from "@/components/dashboard/top-managers";
-import { useGetEmployees } from "@/services/api/employee/queries";
-import { useGetDepartments } from "@/services/api/department/queries";
+
+
 import { EmployeeRole } from "@/types/employee";
+import { useGetEmployees } from '@/services/employee/queries';
+import { useGetDepartments } from '@/services/department/queries';
 
 export default function DashboardPage() {
   const { data: employeesData, isLoading: isLoadingEmployees } = useGetEmployees({

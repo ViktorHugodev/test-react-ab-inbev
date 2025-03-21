@@ -1,22 +1,8 @@
+import { CreateDepartmentDto, Department, UpdateDepartmentDto } from '@/types/deparment';
 import { api } from "../index";
+import { Employee } from '@/types/employee';
 
-export interface Department {
-  id: string;
-  name: string;
-  description?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
 
-export interface CreateDepartmentDTO {
-  name: string;
-  description?: string;
-}
-
-export interface UpdateDepartmentDTO {
-  name: string;
-  description?: string;
-}
 
 export const departmentService = {
   /**
@@ -36,14 +22,14 @@ export const departmentService = {
   /**
    * Create a new department
    */
-  create: async (data: CreateDepartmentDTO): Promise<Department> => {
+  create: async (data: CreateDepartmentDto): Promise<Department> => {
     return api.post<Department>("/Departments", data);
   },
   
   /**
    * Update an existing department
    */
-  update: async (id: string, data: UpdateDepartmentDTO): Promise<Department> => {
+  update: async (id: string, data: UpdateDepartmentDto): Promise<Department> => {
     return api.put<Department>(`/Departments/${id}`, data);
   },
   
@@ -53,4 +39,5 @@ export const departmentService = {
   delete: async (id: string): Promise<void> => {
     return api.delete<void>(`/Departments/${id}`);
   },
+ 
 };

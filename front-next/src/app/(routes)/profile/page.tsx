@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { CalendarIcon, Pencil } from "lucide-react";
@@ -8,8 +8,6 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import * as z from "zod";
 
-import { useCurrentUser } from "@/services/api/auth/queries";
-import { useUpdateEmployee, useUpdateEmployeePassword } from "@/services/api/employee/queries";
 import { EmployeeRole, PhoneType } from "@/types/employee";
 
 import {
@@ -44,6 +42,15 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { useCurrentUser } from '@/services/auth/queries';
+import { useUpdateEmployeeProfile, useUpdateEmployeePassword } from '@/services/employee/queries';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 
 // Personal information form schema
 const personalInfoSchema = z.object({
@@ -110,8 +117,8 @@ export default function ProfilePage() {
   const [isEditingPersonalInfo, setIsEditingPersonalInfo] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
   
-  const updateEmployee = useUpdateEmployee(user?.id || "");
-  const updatePassword = useUpdateEmployeePassword(user?.id || "");
+  const updateProfile = useUpdateEmployeeProfile();
+  const updatePassword = useUpdateEmployeePassword();
 
   // Form for personal information
   const personalInfoForm = useForm<PersonalInfoFormValues>({
@@ -136,43 +143,35 @@ export default function ProfilePage() {
   });
 
   // Set form values when user data is loaded
-  useState(() => {
+  useEffect(() => {
     if (user) {
       personalInfoForm.reset({
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        birthDate: new Date(user.birthDate),
-        phoneNumbers: user.phoneNumbers,
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        email: user.email || "",
+        birthDate: user.birthDate ? new Date(user.birthDate) : new Date(),
+        phoneNumbers: user.phoneNumbers || [],
       });
     }
-  });
+  }, [user, personalInfoForm]);
 
   const onPersonalInfoSubmit = async (data: PersonalInfoFormValues) => {
     if (!user || !user.id) return;
 
     try {
-      await updateEmployee.mutateAsync({
+      await updateProfile.mutateAsync({
         id: user.id,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        birthDate: data.birthDate.toISOString(),
-        // Keep existing role, department, manager
-        role: user.role,
-        department: user.department,
-        managerId: user.managerId,
-        phoneNumbers: data.phoneNumbers.map(phone => ({
-          id: phone.id,
-          number: phone.number,
-          type: phone.type
-        })),
+        data: {
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: data.email,
+          birthDate: data.birthDate.toISOString(),
+          phoneNumbers: data.phoneNumbers
+        }
       });
 
       setIsEditingPersonalInfo(false);
-      toast.success("Informações pessoais atualizadas com sucesso!");
     } catch (error) {
-      toast.error("Erro ao atualizar informações pessoais");
       console.error(error);
     }
   };
@@ -194,11 +193,21 @@ export default function ProfilePage() {
         newPassword: "",
         confirmNewPassword: "",
       });
-      
-      toast.success("Senha atualizada com sucesso!");
     } catch (error) {
-      toast.error("Erro ao atualizar senha");
       console.error(error);
+    }
+  };
+
+  const getPhoneTypeLabel = (type: PhoneType): string => {
+    switch (type) {
+      case PhoneType.Mobile:
+        return "Celular";
+      case PhoneType.Home:
+        return "Residencial";
+      case PhoneType.Work:
+        return "Trabalho";
+      default:
+        return "Outro";
     }
   };
 
@@ -285,7 +294,9 @@ export default function ProfilePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-muted-foreground">Nome Completo</p>
-                    <p>{user.firstName} {user.lastName}</p>
+                    <p>
+                      {user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Não informado'}
+                    </p>
                   </div>
                   
                   <div className="space-y-1">
@@ -312,30 +323,24 @@ export default function ProfilePage() {
                   
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-muted-foreground">Data de Nascimento</p>
-                    <p>{format(new Date(user.birthDate), "dd/MM/yyyy", { locale: ptBR })}</p>
+                    <p>{user.birthDate ? format(new Date(user.birthDate), "dd/MM/yyyy", { locale: ptBR }) : "Não informada"}</p>
                   </div>
                   
                   <div className="space-y-1 md:col-span-2">
                     <p className="text-sm font-medium text-muted-foreground">Telefones</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {user.phoneNumbers.map((phone, index) => (
-                        <div key={index} className="flex items-center space-x-2 p-2 border rounded">
-                          <div className="flex-1">
-                            <p className="text-sm font-medium">{phone.number}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {phone.type === PhoneType.Mobile 
-                                ? "Celular" 
-                                : phone.type === PhoneType.Home 
-                                ? "Residencial" 
-                                : phone.type === PhoneType.Work 
-                                ? "Trabalho" 
-                                : "Outro"}
-                            </p>
+                      {user.phoneNumbers && user.phoneNumbers.length > 0 ? (
+                        user.phoneNumbers.map((phone, index) => (
+                          <div key={index} className="flex items-center space-x-2 p-2 border rounded">
+                            <div className="flex-1">
+                              <p className="text-sm font-medium">{phone.number}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {getPhoneTypeLabel(phone.type)}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                      
-                      {user.phoneNumbers.length === 0 && (
+                        ))
+                      ) : (
                         <p className="text-sm text-muted-foreground">Nenhum telefone cadastrado</p>
                       )}
                     </div>
@@ -473,24 +478,25 @@ export default function ProfilePage() {
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel>Tipo</FormLabel>
-                                  <FormControl>
-                                    <select
-                                      className="w-full p-2 border rounded"
-                                      value={field.value}
-                                      onChange={(e) => field.onChange(parseInt(e.target.value))}
-                                    >
-                                      <option value={PhoneType.Mobile}>Celular</option>
-                                      <option value={PhoneType.Home}>Residencial</option>
-                                      <option value={PhoneType.Work}>Trabalho</option>
-                                      <option value={PhoneType.Other}>Outro</option>
-                                    </select>
-                                  </FormControl>
+                                  <Select
+                                    value={field.value.toString()}
+                                    onValueChange={(value) => field.onChange(parseInt(value))}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Selecione o tipo" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value={PhoneType.Mobile.toString()}>Celular</SelectItem>
+                                      <SelectItem value={PhoneType.Home.toString()}>Residencial</SelectItem>
+                                      <SelectItem value={PhoneType.Work.toString()}>Trabalho</SelectItem>
+                                      <SelectItem value={PhoneType.Other.toString()}>Outro</SelectItem>
+                                    </SelectContent>
+                                  </Select>
                                   <FormMessage />
                                 </FormItem>
                               )}
                             />
                           </div>
-                          
                           <Button
                             type="button"
                             variant="destructive"
@@ -528,8 +534,8 @@ export default function ProfilePage() {
                       >
                         Cancelar
                       </Button>
-                      <Button type="submit" disabled={updateEmployee.isPending}>
-                        {updateEmployee.isPending ? "Salvando..." : "Salvar Alterações"}
+                      <Button type="submit" disabled={updateProfile.isPending}>
+                        {updateProfile.isPending ? "Salvando..." : "Salvar Alterações"}
                       </Button>
                     </div>
                   </form>
