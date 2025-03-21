@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CompanyManager.Domain.Aggregates.Employee;
+using CompanyManager.Domain.Enums;
 using CompanyManager.Domain.Interfaces.Repositories;
 using CompanyManager.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -66,6 +67,17 @@ namespace CompanyManager.Infrastructure.Repositories
                 .Include(e => e.Manager)
                 .Include(e => e.PhoneNumbers)
                 .Where(e => e.ManagerId == managerId)
+                .ToListAsync(cancellationToken);
+        }
+        
+        public async Task<IEnumerable<Employee>> GetByRolesAsync(IEnumerable<Role> roles, CancellationToken cancellationToken = default)
+        {
+            return await _context.Employees
+                .Include(e => e.Manager)
+                .Include(e => e.PhoneNumbers)
+                .Where(e => roles.Contains(e.Role))
+                .OrderBy(e => e.LastName)
+                .ThenBy(e => e.FirstName)
                 .ToListAsync(cancellationToken);
         }
 

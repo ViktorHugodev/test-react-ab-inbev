@@ -8,6 +8,7 @@ namespace CompanyManager.Domain.Interfaces
     public interface IUnitOfWork : IDisposable
     {
         IEmployeeRepository Employees { get; }
+        IDepartmentRepository Departments { get; }
         
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
         Task BeginTransactionAsync(CancellationToken cancellationToken = default);

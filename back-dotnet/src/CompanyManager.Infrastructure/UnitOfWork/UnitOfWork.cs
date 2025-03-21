@@ -20,6 +20,7 @@ namespace CompanyManager.Infrastructure.UnitOfWork
 
         // Repositórios
         private IEmployeeRepository _employeeRepository;
+        private IDepartmentRepository _departmentRepository;
 
         public UnitOfWork(
             ApplicationDbContext context,
@@ -32,6 +33,9 @@ namespace CompanyManager.Infrastructure.UnitOfWork
         // Implementação de propriedades lazy para repositórios
         public IEmployeeRepository Employees => 
             _employeeRepository ??= new EmployeeRepository(_context);
+            
+        public IDepartmentRepository Departments => 
+            _departmentRepository ??= new DepartmentRepository(_context);
 
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {

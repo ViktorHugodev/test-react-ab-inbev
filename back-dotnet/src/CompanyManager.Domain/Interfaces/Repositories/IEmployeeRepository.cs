@@ -15,6 +15,7 @@ namespace CompanyManager.Domain.Interfaces.Repositories
         Task<Employee> GetByDocumentNumberAsync(string documentNumber, CancellationToken cancellationToken = default);
         Task<IEnumerable<Employee>> GetByDepartmentAsync(string department, CancellationToken cancellationToken = default);
         Task<IEnumerable<Employee>> GetByManagerIdAsync(Guid managerId, CancellationToken cancellationToken = default);
+        Task<IEnumerable<Employee>> GetByRolesAsync(IEnumerable<Enums.Role> roles, CancellationToken cancellationToken = default);
         
         // Paginação
         Task<(IEnumerable<Employee> Employees, int Total)> GetPagedAsync(

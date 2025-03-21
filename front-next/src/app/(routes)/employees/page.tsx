@@ -236,7 +236,7 @@ export default function EmployeesPage() {
                   <SelectValue placeholder="Todos os departamentos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os departamentos</SelectItem>
+                  <SelectItem value="all">Todos os departamentos</SelectItem>
                   {departments?.map((department) => (
                     <SelectItem key={department.id} value={department.id}>
                       {department.name}
@@ -256,7 +256,7 @@ export default function EmployeesPage() {
                   <SelectValue placeholder="Todos os gerentes" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os gerentes</SelectItem>
+                  <SelectItem value="all">Todos os gerentes</SelectItem>
                   {managers?.map((manager) => (
                     <SelectItem key={manager.id} value={manager.id}>
                       {manager.name}
@@ -363,12 +363,12 @@ export default function EmployeesPage() {
       {employeesData && (
         <div className="flex justify-between items-center mt-4">
           <div>
-            Mostrando {employeesData.items.length} de {employeesData.totalCount} resultados
+            Mostrando {employeesData?.items?.length} de {employeesData?.totalCount} resultados
           </div>
           <div className="flex space-x-1">
             <Button
-              disabled={!employeesData.hasPreviousPage}
-              onClick={() => handlePageChange(employeesData.pageNumber - 1)}
+              disabled={!employeesData?.hasPreviousPage}
+              onClick={() => handlePageChange(employeesData?.pageNumber - 1)}
               className="px-3 py-1 rounded border disabled:opacity-50"
               size="sm"
               variant="outline"

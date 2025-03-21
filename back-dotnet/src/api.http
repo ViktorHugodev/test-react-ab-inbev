@@ -1,5 +1,5 @@
 @baseUrl = http://localhost:5244
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4YjY3ODI0OC1mZDQyLTRlN2MtYjRhZS04ZmMwY2U1YmUxY2IiLCJlbWFpbCI6ImFkbWluQGNvbXBhbnltYW5hZ2VyLmNvbSIsImp0aSI6IjU3NGM0YzYzLWYxYmQtNDhmMS1iYTAwLWFiNjg1YmQxMDdiMiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJBZG1pbiBTaXN0ZW1hIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiRGlyZWN0b3IiLCJleHAiOjE3NDI1ODQzMjMsImlzcyI6IkNvbXBhbnlNYW5hZ2VyIiwiYXVkIjoiQ29tcGFueU1hbmFnZXJBcGkifQ.qfaYcA7GkT3iTxdNeRIPd-QBg2NCmYqBfmlR1qeL1zE
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4YjY3ODI0OC1mZDQyLTRlN2MtYjRhZS04ZmMwY2U1YmUxY2IiLCJlbWFpbCI6ImFkbWluQGNvbXBhbnltYW5hZ2VyLmNvbSIsImp0aSI6ImU0NGQ4N2RlLTRhNDAtNGEzNi1hY2E3LWQ1MGM4ZjFhNWZiOSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJBZG1pbiBTaXN0ZW1hIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiRGlyZWN0b3IiLCJleHAiOjE3NDI1OTIxOTYsImlzcyI6IkNvbXBhbnlNYW5hZ2VyIiwiYXVkIjoiQ29tcGFueU1hbmFnZXJBcGkifQ.V3RUOI4IRT6kHKMi245Ng5WRVS71N4o-9pE0SOtipnM
 
 ###
 # @name login
@@ -110,4 +110,76 @@ Authorization: Bearer {{token}}
 ###
 # Exclui um funcionário (requer permissão de Diretor)
 DELETE {{baseUrl}}/api/Employees/3fa85f64-5717-4562-b3fc-2c963f66afa6
+Authorization: Bearer {{token}}
+
+### 
+# @name getLeadersAndDirectors
+# Obtém todos os líderes e diretores
+GET {{baseUrl}}/api/Employees/leaders-directors
+Authorization: Bearer {{token}}
+
+###
+# @name getHealth
+# Verifica o status da API (não requer autenticação)
+GET {{baseUrl}}/api/Health
+
+###
+# @name getAllDepartments
+# Obtém todos os departamentos
+GET {{baseUrl}}/api/Departments
+Authorization: Bearer {{token}}
+
+###
+# @name getActiveDepartments
+# Obtém departamentos ativos
+GET {{baseUrl}}/api/Departments/active
+Authorization: Bearer {{token}}
+
+###
+# @name getDepartmentById
+# Obtém um departamento pelo ID
+GET {{baseUrl}}/api/Departments/3fa85f64-5717-4562-b3fc-2c963f66afa6
+Authorization: Bearer {{token}}
+
+###
+# @name createDepartment
+# Cria um novo departamento (requer permissão de Diretor)
+POST {{baseUrl}}/api/Departments
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Tecnologia",
+  "description": "Departamento de Tecnologia da Informação"
+}
+
+###
+# @name updateDepartment
+# Atualiza um departamento existente (requer permissão de Diretor)
+PUT {{baseUrl}}/api/Departments/3fa85f64-5717-4562-b3fc-2c963f66afa6
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "name": "TI",
+  "description": "Departamento de Tecnologia da Informação"
+}
+
+###
+# @name activateDepartment
+# Ativa um departamento (requer permissão de Diretor)
+PATCH {{baseUrl}}/api/Departments/3fa85f64-5717-4562-b3fc-2c963f66afa6/activate
+Authorization: Bearer {{token}}
+
+###
+# @name deactivateDepartment
+# Desativa um departamento (requer permissão de Diretor)
+PATCH {{baseUrl}}/api/Departments/3fa85f64-5717-4562-b3fc-2c963f66afa6/deactivate
+Authorization: Bearer {{token}}
+
+###
+# @name deleteDepartment
+# Exclui um departamento (requer permissão de Diretor)
+DELETE {{baseUrl}}/api/Departments/3fa85f64-5717-4562-b3fc-2c963f66afa6
 Authorization: Bearer {{token}}

@@ -99,6 +99,15 @@ namespace CompanyManager.API.Controllers
             var employees = await _employeeService.GetByManagerIdAsync(managerId, cancellationToken);
             return Ok(employees);
         }
+        
+        [HttpGet("leaders-directors")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ActionResult<IEnumerable<EmployeeListItemDto>>> GetLeadersAndDirectors(
+            CancellationToken cancellationToken)
+        {
+            var employees = await _employeeService.GetLeadersAndDirectorsAsync(cancellationToken);
+            return Ok(employees);
+        }
 
         [HttpPost]
         [Authorize(Roles = "Leader,Director")]

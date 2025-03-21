@@ -87,6 +87,14 @@ namespace CompanyManager.Application.Services
             var employees = await _unitOfWork.Employees.GetByManagerIdAsync(managerId, cancellationToken);
             return employees.Select(MapToEmployeeListItemDto).ToList();
         }
+        
+        public async Task<IEnumerable<EmployeeListItemDto>> GetLeadersAndDirectorsAsync(
+            CancellationToken cancellationToken = default)
+        {
+            var roles = new List<Role> { Role.Leader, Role.Director };
+            var employees = await _unitOfWork.Employees.GetByRolesAsync(roles, cancellationToken);
+            return employees.Select(MapToEmployeeListItemDto).ToList();
+        }
 
         public async Task<EmployeeDto> CreateAsync(
             CreateEmployeeDto createEmployeeDto,

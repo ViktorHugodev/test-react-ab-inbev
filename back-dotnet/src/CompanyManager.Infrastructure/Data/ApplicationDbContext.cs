@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using CompanyManager.Domain.Aggregates.Department;
 using CompanyManager.Domain.Aggregates.Employee;
 using CompanyManager.Domain.Interfaces;
 using CompanyManager.Domain.ValueObjects;
@@ -12,6 +13,7 @@ namespace CompanyManager.Infrastructure.Data
   public class ApplicationDbContext : DbContext
   {
     public DbSet<Employee> Employees { get; set; }
+    public DbSet<Department> Departments { get; set; }
 
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
@@ -94,6 +96,32 @@ namespace CompanyManager.Infrastructure.Data
     .WithOne()
     .HasForeignKey("EmployeeId")
     .OnDelete(DeleteBehavior.Cascade);
+      
+      // Configuração da entidade Department
+      modelBuilder.Entity<Department>(entity =>
+      {
+        entity.ToTable("Departments");
+
+        entity.HasKey(d => d.Id);
+
+        entity.Property(d => d.Name)
+              .IsRequired()
+              .HasMaxLength(50);
+
+        entity.Property(d => d.Description)
+              .HasMaxLength(200);
+
+        entity.Property(d => d.IsActive)
+              .IsRequired();
+
+        entity.Property(d => d.CreatedAt)
+              .IsRequired();
+
+        entity.Property(d => d.UpdatedAt);
+
+        entity.HasIndex(d => d.Name)
+              .IsUnique();
+      });
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

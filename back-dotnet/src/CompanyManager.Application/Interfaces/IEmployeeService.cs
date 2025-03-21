@@ -26,6 +26,9 @@ namespace CompanyManager.Application.Interfaces
         Task<IEnumerable<EmployeeListItemDto>> GetByManagerIdAsync(
             Guid managerId, 
             CancellationToken cancellationToken = default);
+            
+        Task<IEnumerable<EmployeeListItemDto>> GetLeadersAndDirectorsAsync(
+            CancellationToken cancellationToken = default);
         
         // Operações de escrita
         Task<EmployeeDto> CreateAsync(

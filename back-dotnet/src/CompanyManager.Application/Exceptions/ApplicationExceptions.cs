@@ -49,4 +49,13 @@ namespace CompanyManager.Application.Exceptions
         {
         }
     }
+    
+    // Exceção para entidade não encontrada para o Departamento
+    public class DepartmentNotFoundException : ApplicationException
+    {
+        public DepartmentNotFoundException(Guid id) 
+            : base($"Departamento com ID {id} não encontrado.")
+        {
+        }
+    }
 }
