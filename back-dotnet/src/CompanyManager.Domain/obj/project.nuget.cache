@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "NWktTiU889o=",
+  "success": true,
+  "projectFilePath": "/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Domain/CompanyManager.Domain.csproj",
+  "expectedPackageFiles": [
+    "/home/victor/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/9.0.3/microsoft.extensions.dependencyinjection.abstractions.9.0.3.nupkg.sha512",
+    "/home/victor/.nuget/packages/microsoft.extensions.logging.abstractions/9.0.3/microsoft.extensions.logging.abstractions.9.0.3.nupkg.sha512",
+    "/home/victor/.nuget/packages/system.diagnostics.diagnosticsource/9.0.3/system.diagnostics.diagnosticsource.9.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}
