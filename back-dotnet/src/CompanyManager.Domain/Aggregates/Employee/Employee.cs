@@ -24,8 +24,13 @@ namespace CompanyManager.Domain.Aggregates.Employee
         public Guid? ManagerId { get; private set; }
         public Employee Manager { get; private set; }
         public IReadOnlyCollection<PhoneNumber> PhoneNumbers => _phoneNumbers.AsReadOnly();
+
+        // Propriedades de timestamps
         public DateTime CreatedAt { get; private set; }
         public DateTime? UpdatedAt { get; private set; }
+
+        // Propriedades de navegação para funcionários subordinados
+        public ICollection<Employee> Subordinates { get; private set; } = new List<Employee>();
 
         // Construtor privado para EF Core
         private Employee() { }
@@ -42,7 +47,6 @@ namespace CompanyManager.Domain.Aggregates.Employee
             string department,
             Guid? managerId = null)
         {
-            // Validações
             ValidateName(firstName, lastName);
             ValidateEmail(email);
             ValidateDocumentNumber(documentNumber);
@@ -56,7 +60,7 @@ namespace CompanyManager.Domain.Aggregates.Employee
                 Email = email.ToLower(),
                 DocumentNumber = documentNumber,
                 BirthDate = birthDate,
-                PasswordHash = password, // Será tratado no serviço de aplicação
+                PasswordHash = password, // Gerado/criptografado no Application Service
                 Role = role,
                 Department = department,
                 ManagerId = managerId,
@@ -117,15 +121,15 @@ namespace CompanyManager.Domain.Aggregates.Employee
             UpdatedAt = DateTime.UtcNow;
         }
 
-        // Métodos para manipulação de timestamps (para uso interno/infraestrutura)
-        public void SetCreatedAt(DateTime createdAt)
+        // Implementações da interface IHasTimestamps
+        public void SetCreatedAt(DateTime dateTime)
         {
-            CreatedAt = createdAt;
+            CreatedAt = dateTime;
         }
 
-        public void SetUpdatedAt(DateTime updatedAt)
+        public void SetUpdatedAt(DateTime? dateTime)
         {
-            UpdatedAt = updatedAt;
+            UpdatedAt = dateTime;
         }
 
         // Validações de domínio
@@ -143,7 +147,7 @@ namespace CompanyManager.Domain.Aggregates.Employee
             if (string.IsNullOrWhiteSpace(email))
                 throw new DomainException("O email é obrigatório.");
 
-            // Uma validação básica, pode ser melhorada
+            // Uma validação simples, pode ser aprimorada
             if (!email.Contains('@') || !email.Contains('.'))
                 throw new DomainException("O email informado não é válido.");
         }
@@ -157,14 +161,12 @@ namespace CompanyManager.Domain.Aggregates.Employee
         private static void ValidateAge(DateTime birthDate)
         {
             var age = DateTime.UtcNow.Year - birthDate.Year;
-            if (birthDate.Date > DateTime.UtcNow.AddYears(-age)) age--;
+            if (birthDate.Date > DateTime.UtcNow.AddYears(-age)) 
+                age--;
 
             if (age < 18)
                 throw new DomainException("O funcionário deve ter pelo menos 18 anos.");
         }
-
-        // Propriedades de navegação para funcionários subordinados (caso necessário)
-        public ICollection<Employee> Subordinates { get; private set; } = new List<Employee>();
 
         // Métodos de domínio para verificações de permissão
         public bool CanManage(Role subordinateRole)
@@ -173,15 +175,15 @@ namespace CompanyManager.Domain.Aggregates.Employee
             if (Role == Role.Director)
                 return true;
 
-            // Líderes podem gerenciar apenas funcionários
+            // Líderes só gerenciam funcionários regulares
             if (Role == Role.Leader && subordinateRole == Role.Employee)
                 return true;
 
-            // Funcionários não podem gerenciar ninguém
+            // Funcionários comuns não gerenciam ninguém
             return false;
         }
 
-        // Nome completo (propriedade calculada)
+        // Propriedade calculada
         public string FullName => $"{FirstName} {LastName}";
     }
 }

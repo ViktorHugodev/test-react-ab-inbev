@@ -10,7 +10,7 @@ namespace CompanyManager.Domain.Interfaces
         DateTime CreatedAt { get; }
         DateTime? UpdatedAt { get; }
         
-        void SetCreatedAt(DateTime createdAt);
-        void SetUpdatedAt(DateTime updatedAt);
+        void SetCreatedAt(DateTime dateTime);
+        void SetUpdatedAt(DateTime? dateTime);
     }
 }

@@ -35,17 +35,17 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 });
 
 // Configuração de CORS
+// Configuração de CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", policy =>
     {
-        policy.WithOrigins(builder.Configuration["AllowedHosts"] ?? "*")
+        policy.WithOrigins("http://localhost:3000", "http://localhost:5000")
             .AllowAnyMethod()
-            .AllowAnyHeader()
-            .AllowCredentials();
+            .AllowAnyHeader();
+        // Remova o .AllowCredentials() OU especifique origens específicas em vez de usar "*"
     });
 });
-
 // Configuração do JWT
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 builder.Services.Configure<JwtSettings>(jwtSettings);
@@ -146,6 +146,7 @@ if (app.Environment.IsDevelopment())
     
     try
     {
+        dbContext.Database.EnsureCreated();
         dbContext.Database.Migrate();
         SeedData.Initialize(dbContext, authService);
     }

@@ -89,11 +89,11 @@ namespace CompanyManager.Infrastructure.Data
       });
 
       // Relacionamentos explícitos
-      modelBuilder.Entity<Employee>()
-          .HasMany<PhoneNumber>()
-          .WithOne()
-          .HasForeignKey("EmployeeId")
-          .OnDelete(DeleteBehavior.Cascade);
+  modelBuilder.Entity<Employee>()
+    .HasMany(e => e.PhoneNumbers)  // Especifique a propriedade de navegação
+    .WithOne()
+    .HasForeignKey("EmployeeId")
+    .OnDelete(DeleteBehavior.Cascade);
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

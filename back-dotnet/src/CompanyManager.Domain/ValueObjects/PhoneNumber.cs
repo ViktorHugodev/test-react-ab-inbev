@@ -10,7 +10,7 @@ namespace CompanyManager.Domain.ValueObjects
         public Guid Id { get; private set; }
         public string Number { get; private set; }
         public PhoneType Type { get; private set; }
-
+  public Guid EmployeeId { get; private set; } 
         // Construtor privado para Entity Framework
         private PhoneNumber() { }
 

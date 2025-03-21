@@ -1,0 +1,118 @@
+@baseUrl = http://localhost:5000
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+###
+# @name login
+# Realiza login e obtém token JWT
+POST {{baseUrl}}/api/Auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@companymanager.com",
+  "password": "Admin@123"
+}
+
+###
+# Obtém informações do usuário atual
+GET {{baseUrl}}/api/Auth/me
+Authorization: Bearer {{token}}
+
+###
+# @name getAllEmployees
+# Obtém todos os funcionários
+GET {{baseUrl}}/api/Employees
+Authorization: Bearer {{token}}
+
+###
+# Obtém funcionários com paginação e filtros
+GET {{baseUrl}}/api/Employees/paged?pageNumber=1&pageSize=10&searchTerm=&department=TI&managerId=
+Authorization: Bearer {{token}}
+
+###
+# Obtém um funcionário pelo ID
+GET {{baseUrl}}/api/Employees/3fa85f64-5717-4562-b3fc-2c963f66afa6
+Authorization: Bearer {{token}}
+
+###
+# Obtém funcionários por departamento
+GET {{baseUrl}}/api/Employees/department/TI
+Authorization: Bearer {{token}}
+
+###
+# Obtém funcionários por gerente
+GET {{baseUrl}}/api/Employees/manager/3fa85f64-5717-4562-b3fc-2c963f66afa6
+Authorization: Bearer {{token}}
+
+###
+# Cria um novo funcionário (requer permissão de Líder ou Diretor)
+POST {{baseUrl}}/api/Employees
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "firstName": "João",
+  "lastName": "Silva",
+  "email": "joao.silva@empresa.com",
+  "documentNumber": "123.456.789-00",
+  "birthDate": "1990-01-01T00:00:00.000Z",
+  "password": "Senha@123",
+  "role": "Employee",
+  "department": "TI",
+  "managerId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "phoneNumbers": [
+    {
+      "number": "(11) 98765-4321",
+      "type": "Mobile"
+    },
+    {
+      "number": "(11) 3456-7890",
+      "type": "Home"
+    }
+  ]
+}
+
+###
+# Atualiza um funcionário existente (requer permissão de Líder ou Diretor)
+PUT {{baseUrl}}/api/Employees/3fa85f64-5717-4562-b3fc-2c963f66afa6
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "firstName": "João",
+  "lastName": "Silva",
+  "email": "joao.silva@empresa.com",
+  "birthDate": "1990-01-01T00:00:00.000Z",
+  "role": "Employee",
+  "department": "RH",
+  "managerId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "phoneNumbers": [
+    {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "number": "(11) 98765-4321",
+      "type": "Mobile"
+    },
+    {
+      "number": "(11) 3456-7890",
+      "type": "Work"
+    }
+  ]
+}
+
+###
+# Atualiza a senha de um funcionário
+PUT {{baseUrl}}/api/Employees/3fa85f64-5717-4562-b3fc-2c963f66afa6/password
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "employeeId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "currentPassword": "Senha@123",
+  "newPassword": "NovaSenha@123",
+  "confirmNewPassword": "NovaSenha@123"
+}
+
+###
+# Exclui um funcionário (requer permissão de Diretor)
+DELETE {{baseUrl}}/api/Employees/3fa85f64-5717-4562-b3fc-2c963f66afa6
+Authorization: Bearer {{token}}

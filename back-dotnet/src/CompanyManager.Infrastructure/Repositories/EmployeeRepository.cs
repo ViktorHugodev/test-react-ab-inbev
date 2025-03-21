@@ -23,7 +23,7 @@ namespace CompanyManager.Infrastructure.Repositories
         {
             return await _context.Employees
                 .Include(e => e.Manager)
-                .Include("_phoneNumbers") // Acesso ao campo privado via string
+                .Include(e => e.PhoneNumbers) // Acesso ao campo privado via string
                 .FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
         }
 
@@ -31,7 +31,7 @@ namespace CompanyManager.Infrastructure.Repositories
         {
             return await _context.Employees
                 .Include(e => e.Manager)
-                .Include("_phoneNumbers")
+                .Include(e => e.PhoneNumbers)
                 .ToListAsync(cancellationToken);
         }
 
@@ -39,7 +39,7 @@ namespace CompanyManager.Infrastructure.Repositories
         {
             return await _context.Employees
                 .Include(e => e.Manager)
-                .Include("_phoneNumbers")
+                .Include(e => e.PhoneNumbers)
                 .FirstOrDefaultAsync(e => e.Email == email.ToLower(), cancellationToken);
         }
 
@@ -47,7 +47,7 @@ namespace CompanyManager.Infrastructure.Repositories
         {
             return await _context.Employees
                 .Include(e => e.Manager)
-                .Include("_phoneNumbers")
+                .Include(e => e.PhoneNumbers)
                 .FirstOrDefaultAsync(e => e.DocumentNumber == documentNumber, cancellationToken);
         }
 
@@ -55,7 +55,7 @@ namespace CompanyManager.Infrastructure.Repositories
         {
             return await _context.Employees
                 .Include(e => e.Manager)
-                .Include("_phoneNumbers")
+                .Include(e => e.PhoneNumbers)
                 .Where(e => e.Department == department)
                 .ToListAsync(cancellationToken);
         }
@@ -64,7 +64,7 @@ namespace CompanyManager.Infrastructure.Repositories
         {
             return await _context.Employees
                 .Include(e => e.Manager)
-                .Include("_phoneNumbers")
+                .Include(e => e.PhoneNumbers)
                 .Where(e => e.ManagerId == managerId)
                 .ToListAsync(cancellationToken);
         }
@@ -79,7 +79,7 @@ namespace CompanyManager.Infrastructure.Repositories
         {
             var query = _context.Employees
                 .Include(e => e.Manager)
-                .Include("_phoneNumbers")
+                .Include(e => e.PhoneNumbers)
                 .AsQueryable();
 
             // Aplicar filtros
