@@ -2,8 +2,10 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using CompanyManager.Domain.Aggregates.Employee;
+using CompanyManager.Domain.Interfaces;
 using CompanyManager.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace CompanyManager.Infrastructure.Data
 {
@@ -94,22 +96,33 @@ namespace CompanyManager.Infrastructure.Data
           .OnDelete(DeleteBehavior.Cascade);
     }
 
-  public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-{
-    // Atualiza os timestamps para entidades modificadas
-    foreach (var entry in ChangeTracker.Entries<Employee>())
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        if (entry.State == EntityState.Added)
-        {
-            entry.Entity.CreatedAt = DateTime.UtcNow;  // Acesso direto à propriedade
-        }
-        else if (entry.State == EntityState.Modified)
-        {
-            entry.Entity.UpdatedAt = DateTime.UtcNow;  // Acesso direto à propriedade
-        }
-    }
+      // Atualiza os timestamps para entidades modificadas
+      var entries = ChangeTracker.Entries()
+          .Where(e => e.Entity is IHasTimestamps && 
+                 (e.State == EntityState.Added || e.State == EntityState.Modified));
 
-    return base.SaveChangesAsync(cancellationToken);
-}
+      foreach (var entry in entries)
+      {
+        var entity = entry.Entity as IHasTimestamps;
+        
+        if (entity != null)
+        {
+          if (entry.State == EntityState.Added)
+          {
+            // Usa a interface para definir a data de criação
+            entity.SetCreatedAt(DateTime.UtcNow);
+          }
+          else if (entry.State == EntityState.Modified)
+          {
+            // Usa a interface para definir a data de atualização
+            entity.SetUpdatedAt(DateTime.UtcNow);
+          }
+        }
+      }
+
+      return base.SaveChangesAsync(cancellationToken);
+    }
   }
 }

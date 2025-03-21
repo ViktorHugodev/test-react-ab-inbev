@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using CompanyManager.Domain.Enums;
 using CompanyManager.Domain.Exceptions;
+using CompanyManager.Domain.Interfaces;
 using CompanyManager.Domain.ValueObjects;
 
 namespace CompanyManager.Domain.Aggregates.Employee
 {
-    public class Employee
+    public class Employee : IHasTimestamps
     {
         private readonly List<PhoneNumber> _phoneNumbers = new();
 
@@ -23,8 +24,8 @@ namespace CompanyManager.Domain.Aggregates.Employee
         public Guid? ManagerId { get; private set; }
         public Employee Manager { get; private set; }
         public IReadOnlyCollection<PhoneNumber> PhoneNumbers => _phoneNumbers.AsReadOnly();
-  public DateTime CreatedAt { get; internal set; }
-     public DateTime? UpdatedAt { get; internal set; }
+        public DateTime CreatedAt { get; private set; }
+        public DateTime? UpdatedAt { get; private set; }
 
         // Construtor privado para EF Core
         private Employee() { }
@@ -114,6 +115,17 @@ namespace CompanyManager.Domain.Aggregates.Employee
 
             PasswordHash = newPasswordHash;
             UpdatedAt = DateTime.UtcNow;
+        }
+
+        // Métodos para manipulação de timestamps (para uso interno/infraestrutura)
+        public void SetCreatedAt(DateTime createdAt)
+        {
+            CreatedAt = createdAt;
+        }
+
+        public void SetUpdatedAt(DateTime updatedAt)
+        {
+            UpdatedAt = updatedAt;
         }
 
         // Validações de domínio

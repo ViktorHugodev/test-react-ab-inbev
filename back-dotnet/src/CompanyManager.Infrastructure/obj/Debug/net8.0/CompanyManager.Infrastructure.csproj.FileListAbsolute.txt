@@ -4,3 +4,17 @@
 /home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Infrastructure/obj/Debug/net8.0/CompanyManager.Infrastructure.AssemblyInfo.cs
 /home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Infrastructure/obj/Debug/net8.0/CompanyManager.Infrastructure.csproj.CoreCompileInputs.cache
 /home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Infrastructure/obj/Debug/net8.0/CompanyManager.Infrastructure.sourcelink.json
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Infrastructure/bin/Debug/net8.0/CompanyManager.Infrastructure.deps.json
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Infrastructure/bin/Debug/net8.0/CompanyManager.Infrastructure.runtimeconfig.json
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Infrastructure/bin/Debug/net8.0/CompanyManager.Infrastructure.dll
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Infrastructure/bin/Debug/net8.0/CompanyManager.Infrastructure.pdb
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Infrastructure/bin/Debug/net8.0/CompanyManager.Application.dll
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Infrastructure/bin/Debug/net8.0/CompanyManager.Domain.dll
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Infrastructure/bin/Debug/net8.0/CompanyManager.Domain.pdb
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Infrastructure/bin/Debug/net8.0/CompanyManager.Application.pdb
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Infrastructure/obj/Debug/net8.0/CompanyM.CCC23661.Up2Date
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Infrastructure/obj/Debug/net8.0/CompanyManager.Infrastructure.dll
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Infrastructure/obj/Debug/net8.0/refint/CompanyManager.Infrastructure.dll
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Infrastructure/obj/Debug/net8.0/CompanyManager.Infrastructure.pdb
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Infrastructure/obj/Debug/net8.0/CompanyManager.Infrastructure.genruntimeconfig.cache
+/home/victor/www/testes/test-react-ab-inbev/back-dotnet/src/CompanyManager.Infrastructure/obj/Debug/net8.0/ref/CompanyManager.Infrastructure.dll
