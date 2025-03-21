@@ -16,7 +16,7 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuração do Serilog
+// 1. Configuração do Serilog
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
@@ -24,45 +24,55 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-// Adiciona serviços ao container
+// 2. Adiciona serviços ao container
 builder.Services.AddControllers();
 
-// Configuração do Entity Framework
+// 3. Configuração do Entity Framework
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseSqlServer(connectionString);
 });
 
-// Configuração de CORS
-// Configuração de CORS
+// 4. Configuração de CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", policy =>
     {
         policy.WithOrigins("http://localhost:3000", "http://localhost:5000")
-            .AllowAnyMethod()
-            .AllowAnyHeader();
-        // Remova o .AllowCredentials() OU especifique origens específicas em vez de usar "*"
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+        // Remova .AllowCredentials() ou especifique origens específicas
     });
 });
-// Configuração do JWT
+
+// 5. Lê configurações de JWT do appsettings.json
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 builder.Services.Configure<JwtSettings>(jwtSettings);
 
-var secret = jwtSettings["Secret"];
-var key = Encoding.ASCII.GetBytes(secret);
+// 6. Pega a Secret diretamente
+var secretFromConfig = jwtSettings["Secret"];
 
-builder.Services.AddAuthentication(x =>
+// Verifica se está vazio ou nulo
+if (string.IsNullOrWhiteSpace(secretFromConfig))
 {
-    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    throw new Exception("JwtSettings:Secret não foi definido no appsettings.json (ou está vazio).");
+}
+
+// Converte para bytes
+var key = Encoding.UTF8.GetBytes(secretFromConfig);
+
+// 7. Configuração de autenticação JWT
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
-.AddJwtBearer(x =>
+.AddJwtBearer(options =>
 {
-    x.RequireHttpsMetadata = false;
-    x.SaveToken = true;
-    x.TokenValidationParameters = new TokenValidationParameters
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(key),
@@ -75,12 +85,12 @@ builder.Services.AddAuthentication(x =>
     };
 });
 
-// Registro dos serviços
+// 8. Registro dos serviços da aplicação
 builder.Services.AddScoped<IUnitOfWork, CompanyManager.Infrastructure.UnitOfWork.UnitOfWork>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
-// Swagger
+// 9. Configuração do Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -91,7 +101,7 @@ builder.Services.AddSwaggerGen(c =>
         Description = "API para gerenciamento de funcionários"
     });
 
-    // Configuração para autenticação via JWT no Swagger
+    // Definição de Autenticação via JWT no Swagger
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header usando o esquema Bearer. Exemplo: \"Authorization: Bearer {token}\"",
@@ -119,10 +129,10 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Middleware de tratamento de exceções
+// 10. Middleware de tratamento de exceções
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 
-// Configuração do pipeline de requisições HTTP
+// 11. Pipeline de requisições HTTP
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -137,13 +147,13 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Seed do banco de dados (opcional, para ambiente de desenvolvimento)
+// 12. Seed do banco de dados (opcional, p/ Dev)
 if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     var authService = scope.ServiceProvider.GetRequiredService<IAuthService>();
-    
+
     try
     {
         dbContext.Database.EnsureCreated();
@@ -158,13 +168,14 @@ if (app.Environment.IsDevelopment())
 
 app.Run();
 
-// Classe para seed inicial de dados
+// 13. Classe para seed inicial de dados
 public static class SeedData
 {
     public static void Initialize(ApplicationDbContext context, IAuthService authService)
     {
+        // Se já existir algum Employee, não semeia de novo
         if (context.Employees.Any())
-            return; // Banco já possui dados
+            return;
 
         var director = CompanyManager.Domain.Aggregates.Employee.Employee.Create(
             "Admin",
@@ -174,7 +185,8 @@ public static class SeedData
             new DateTime(1980, 1, 1),
             authService.HashPassword("Admin@123"),
             CompanyManager.Domain.Enums.Role.Director,
-            "Diretoria");
+            "Diretoria"
+        );
 
         context.Employees.Add(director);
         context.SaveChanges();

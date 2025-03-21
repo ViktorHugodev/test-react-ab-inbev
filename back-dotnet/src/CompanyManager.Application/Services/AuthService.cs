@@ -39,27 +39,22 @@ namespace CompanyManager.Application.Services
         {
             try
             {
-                // Verifica se o email existe
                 var employee = await _unitOfWork.Employees.GetByEmailAsync(loginDto.Email, cancellationToken);
                 if (employee == null)
                     throw new InvalidCredentialsException("Email ou senha inválidos.");
 
-                // Verifica a senha
                 if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, employee.PasswordHash))
                     throw new InvalidCredentialsException("Email ou senha inválidos.");
 
-                // Mapeia para DTO
                 var employeeDto = MapToEmployeeDto(employee);
 
                 // Gera token JWT
                 var token = GenerateJwtToken(employeeDto);
 
-                // Calcula expiração
                 var expiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes);
 
                 _logger.LogInformation("Login bem-sucedido para o usuário: {Email}", loginDto.Email);
 
-                // Retorna resposta
                 return new AuthResponseDto
                 {
                     Token = token,
@@ -93,15 +88,12 @@ namespace CompanyManager.Application.Services
 
         public bool HasPermission(Role currentUserRole, Role requiredRole)
         {
-            // Diretores podem tudo
             if (currentUserRole == Role.Director)
                 return true;
 
-            // Líderes podem gerenciar funcionários, mas não diretores
             if (currentUserRole == Role.Leader)
                 return requiredRole != Role.Director;
 
-            // Funcionários comuns não podem gerenciar ninguém
             return false;
         }
 
@@ -116,6 +108,7 @@ namespace CompanyManager.Application.Services
                 new Claim(ClaimTypes.Role, employee.Role.ToString())
             };
 
+            // Usa a secret do _jwtSettings
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var expires = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes);
@@ -131,7 +124,6 @@ namespace CompanyManager.Application.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        // Método auxiliar para mapeamento
         private EmployeeDto MapToEmployeeDto(Employee employee)
         {
             return new EmployeeDto
@@ -168,7 +160,7 @@ namespace CompanyManager.Application.Services
         }
     }
 
-    // Classe para configurações JWT
+    // JWT Settings
     public class JwtSettings
     {
         public string Secret { get; set; }

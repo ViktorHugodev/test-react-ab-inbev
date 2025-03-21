@@ -1,5 +1,5 @@
-@baseUrl = http://localhost:5000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+@baseUrl = http://localhost:5244
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4YjY3ODI0OC1mZDQyLTRlN2MtYjRhZS04ZmMwY2U1YmUxY2IiLCJlbWFpbCI6ImFkbWluQGNvbXBhbnltYW5hZ2VyLmNvbSIsImp0aSI6IjU3NGM0YzYzLWYxYmQtNDhmMS1iYTAwLWFiNjg1YmQxMDdiMiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJBZG1pbiBTaXN0ZW1hIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiRGlyZWN0b3IiLCJleHAiOjE3NDI1ODQzMjMsImlzcyI6IkNvbXBhbnlNYW5hZ2VyIiwiYXVkIjoiQ29tcGFueU1hbmFnZXJBcGkifQ.qfaYcA7GkT3iTxdNeRIPd-QBg2NCmYqBfmlR1qeL1zE
 
 ###
 # @name login
@@ -49,28 +49,23 @@ POST {{baseUrl}}/api/Employees
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
-{
-  "firstName": "João",
-  "lastName": "Silva",
-  "email": "joao.silva@empresa.com",
-  "documentNumber": "123.456.789-00",
-  "birthDate": "1990-01-01T00:00:00.000Z",
-  "password": "Senha@123",
-  "role": "Employee",
-  "department": "TI",
-  "managerId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-  "phoneNumbers": [
-    {
-      "number": "(11) 98765-4321",
-      "type": "Mobile"
-    },
-    {
-      "number": "(11) 3456-7890",
-      "type": "Home"
-    }
-  ]
-}
-
+ {
+    "firstName": "Aline",
+    "lastName": "Souza",
+    "email": "aline.souza@empresa.com",
+    "documentNumber": "987.123.654-00",
+    "birthDate": "1993-10-12T00:00:00.000Z",
+    "password": "AlineSecure#33",
+    "role": 1,
+    "department": "Marketing",
+    "managerId":"91dd6987-e396-4415-b7a3-542b251d7e5c",
+    "phoneNumbers": [
+      {
+        "number": "(31) 91234-5678",
+        "type": 1
+      }
+    ]
+  }
 ###
 # Atualiza um funcionário existente (requer permissão de Líder ou Diretor)
 PUT {{baseUrl}}/api/Employees/3fa85f64-5717-4562-b3fc-2c963f66afa6
