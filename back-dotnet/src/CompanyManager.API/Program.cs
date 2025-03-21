@@ -176,7 +176,43 @@ public static class SeedData
     {
         // Se já existir algum Employee, não semeia de novo
         if (context.Employees.Any())
+        {
+            // Certifique-se de que a tabela Departments existe
+            context.Database.ExecuteSqlRaw(@"
+                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Departments')
+                BEGIN
+                    CREATE TABLE [Departments] (
+                        [Id] uniqueidentifier NOT NULL,
+                        [Name] nvarchar(50) NOT NULL,
+                        [Description] nvarchar(200) NOT NULL,
+                        [IsActive] bit NOT NULL,
+                        [CreatedAt] datetime2 NOT NULL,
+                        [UpdatedAt] datetime2 NULL,
+                        CONSTRAINT [PK_Departments] PRIMARY KEY ([Id])
+                    );
+                    
+                    CREATE UNIQUE INDEX [IX_Departments_Name] ON [Departments] ([Name]);
+                END
+            ");
+            
+            // Se não existirem departamentos, adicione-os
+            if (!context.Departments.Any())
+            {
+                var existingDepartments = new[]
+                {
+                    CompanyManager.Domain.Aggregates.Department.Department.Create("Diretoria", "Departamento de Diretoria"),
+                    CompanyManager.Domain.Aggregates.Department.Department.Create("RH", "Recursos Humanos"),
+                    CompanyManager.Domain.Aggregates.Department.Department.Create("TI", "Tecnologia da Informação"),
+                    CompanyManager.Domain.Aggregates.Department.Department.Create("Marketing", "Departamento de Marketing"),
+                    CompanyManager.Domain.Aggregates.Department.Department.Create("Financeiro", "Departamento Financeiro")
+                };
+                
+                context.Departments.AddRange(existingDepartments);
+                context.SaveChanges();
+            }
+            
             return;
+        }
 
         var director = CompanyManager.Domain.Aggregates.Employee.Employee.Create(
             "Admin",
@@ -190,6 +226,18 @@ public static class SeedData
         );
 
         context.Employees.Add(director);
+        
+        // Adicionar departamentos
+        var initialDepartments = new[]
+        {
+            CompanyManager.Domain.Aggregates.Department.Department.Create("Diretoria", "Departamento de Diretoria"),
+            CompanyManager.Domain.Aggregates.Department.Department.Create("RH", "Recursos Humanos"),
+            CompanyManager.Domain.Aggregates.Department.Department.Create("TI", "Tecnologia da Informação"),
+            CompanyManager.Domain.Aggregates.Department.Department.Create("Marketing", "Departamento de Marketing"),
+            CompanyManager.Domain.Aggregates.Department.Department.Create("Financeiro", "Departamento Financeiro")
+        };
+        
+        context.Departments.AddRange(initialDepartments);
         context.SaveChanges();
     }
 }
