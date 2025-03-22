@@ -6,6 +6,7 @@ import { Header } from "@/components/layout/header";
 import { AuthProvider } from "@/hooks/use-auth";
 import { QueryProvider } from "@/providers/query-provider";
 import { Toaster } from "sonner";
+import { TokenSyncClient } from "@/components/auth/token-sync-client";
 
 const poppins = Poppins({
   weight: ['300', '400', '500', '600', '700'],
@@ -31,6 +32,9 @@ export default function RootLayout({
       >
         <QueryProvider>
           <AuthProvider>
+            {/* Componente para sincronizar o token entre localStorage e cookies */}
+            <TokenSyncClient />
+            
             <div className="relative flex min-h-screen flex-col">
               <Header />
               <main className="flex-1">{children}</main>

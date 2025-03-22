@@ -3,6 +3,8 @@
 import React, { useState, useEffect, createContext, useContext } from "react";
 import { EmployeeRole, AuthResponseDTO, LoginDTO } from "@/types/employee";
 import { loginUser, getCurrentUser, CurrentUserResponse } from "@/lib/api/auth";
+import { clearAuthToken } from "@/lib/token-sync";
+import Cookies from "js-cookie";
 
 interface User {
   id: string;
@@ -117,9 +119,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     try {
       const authResponse: AuthResponseDTO = await loginUser({ email, password });
       
-      // Salvar token
+      // Salvar token no localStorage e cookie
       if (typeof window !== 'undefined') {
         localStorage.setItem("auth_token", authResponse.token);
+        // Sincronizar com cookie para o middleware
+        Cookies.set("auth_token", authResponse.token, {
+          expires: 1, // 1 dia
+          path: '/',
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax'
+        });
       }
       
       // Extrair informações do usuário
@@ -141,9 +150,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
   
   // Logout function
   const logout = (): void => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem("auth_token");
-    }
+    // Limpar token do localStorage e cookie
+    clearAuthToken();
     setUser(null);
   };
   

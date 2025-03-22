@@ -1,39 +1,33 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/use-auth";
-import { LoginForm } from "@/components/forms/login-form";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
-  const { user, isLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl");
+  const error = searchParams.get("error");
 
   useEffect(() => {
-    // Se já estiver autenticado, redireciona para a página inicial
-    if (!isLoading && user) {
-      router.push("/");
+    // Redireciona para a nova rota de login mantendo os parâmetros de query
+    const url = new URL('/auth/login', window.location.origin);
+    
+    // Preserva os parâmetros de query
+    if (callbackUrl) {
+      url.searchParams.set('callbackUrl', callbackUrl);
     }
-  }, [user, isLoading, router]);
-
-  if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
-  }
+    
+    if (error) {
+      url.searchParams.set('error', error);
+    }
+    
+    router.replace(url.toString());
+  }, [router, callbackUrl, error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">AB InBev</CardTitle>
-          <CardDescription className="text-center">
-            Entre com suas credenciais para acessar o sistema
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <LoginForm />
-        </CardContent>
-      </Card>
+    <div className="min-h-screen flex items-center justify-center">
+      Redirecionando...
     </div>
   );
 }
