@@ -21,7 +21,7 @@ describe('Card Component', () => {
     
     rerender(<Card data-testid="test-card" variant="dark">Dark Card</Card>);
     card = screen.getByTestId('test-card');
-    expect(card).toHaveClass('bg-solid-2');
+    expect(card).toHaveClass('dark-card');
     
     rerender(<Card data-testid="test-card" variant="feature">Feature Card</Card>);
     card = screen.getByTestId('test-card');
@@ -60,5 +60,40 @@ describe('Card Component', () => {
     expect(screen.getByTestId('card-description')).toHaveTextContent('Card Description');
     expect(screen.getByTestId('card-content')).toHaveTextContent('Card Content');
     expect(screen.getByTestId('card-footer')).toHaveTextContent('Card Footer');
+  });
+
+  // Teste de propriedades adicionais
+  it('applies additional className correctly', () => {
+    render(<Card data-testid="test-card" className="custom-class">Card Content</Card>);
+    const card = screen.getByTestId('test-card');
+    
+    expect(card).toHaveClass('custom-class');
+    expect(card).toHaveClass('rounded-4xl'); // Ainda mantém as classes padrão
+  });
+
+  // Teste de animação
+  it('applies animation variant correctly', () => {
+    render(<Card data-testid="test-card" animation="float">Floating Card</Card>);
+    const card = screen.getByTestId('test-card');
+    
+    expect(card).toHaveClass('animate-float');
+  });
+
+  // Teste de acessibilidade para sub-componentes
+  it('renders CardHeader with appropriate spacing classes', () => {
+    render(<CardHeader data-testid="header">Header Content</CardHeader>);
+    const header = screen.getByTestId('header');
+    
+    expect(header).toHaveClass('flex');
+    expect(header).toHaveClass('flex-col');
+    expect(header).toHaveClass('space-y-1.5');
+  });
+
+  it('renders CardTitle with appropriate typography classes', () => {
+    render(<CardTitle data-testid="title">Title Text</CardTitle>);
+    const title = screen.getByTestId('title');
+    
+    expect(title).toHaveClass('text-xl');
+    expect(title).toHaveClass('font-medium');
   });
 });

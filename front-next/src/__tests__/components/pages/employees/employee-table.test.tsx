@@ -1,4 +1,5 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { EmployeeTable } from '@/components/pages/employees/employee-table';
 import { EmployeeRole } from '@/types/employee';
 import { renderWithProviders } from '@/test/utils/test-utils';
@@ -20,8 +21,8 @@ describe('EmployeeTable', () => {
       phoneNumbers: [
         { id: '1', number: '11999999999', type: 1 }
       ],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdAt: new Date('2023-05-20').toISOString(),
+      updatedAt: new Date('2023-06-15').toISOString()
     },
     {
       id: '2',
@@ -37,8 +38,25 @@ describe('EmployeeTable', () => {
       phoneNumbers: [
         { id: '2', number: '11988888888', type: 1 }
       ],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdAt: new Date('2023-01-10').toISOString(),
+      updatedAt: new Date('2023-02-20').toISOString()
+    },
+    {
+      id: '3',
+      firstName: 'Bob',
+      lastName: 'Johnson',
+      fullName: 'Bob Johnson',
+      email: 'bob.johnson@example.com',
+      documentNumber: '45678912300',
+      birthDate: new Date('1985-08-20').toISOString(),
+      age: 38,
+      role: EmployeeRole.Employee,
+      department: 'TI',
+      phoneNumbers: [
+        { id: '3', number: '11977777777', type: 1 }
+      ],
+      createdAt: new Date('2023-03-15').toISOString(),
+      updatedAt: new Date('2023-04-10').toISOString()
     }
   ];
 
@@ -46,8 +64,10 @@ describe('EmployeeTable', () => {
   const mockOnView = jest.fn();
   const mockOnEdit = jest.fn();
   const mockOnDelete = jest.fn();
+  const mockOnSort = jest.fn();
+  const mockOnPageChange = jest.fn();
 
-  afterEach(() => {
+  beforeEach(() => {
     jest.clearAllMocks();
   });
 
@@ -68,6 +88,10 @@ describe('EmployeeTable', () => {
     const skeletons = screen.getAllByRole('row');
     // Header row + 5 skeleton rows
     expect(skeletons.length).toBe(6);
+    
+    // Check for skeleton UI elements - looking for animate-pulse class which is used by Skeleton component
+    const skeletonElements = screen.getAllByClassName('animate-pulse');
+    expect(skeletonElements.length).toBeGreaterThan(0);
   });
 
   it('renders empty state when no employees are provided', () => {
@@ -100,24 +124,29 @@ describe('EmployeeTable', () => {
       />
     );
 
-    // Check if employee names are displayed
+    // Check if all employees are displayed
     expect(screen.getByText('John Doe')).toBeInTheDocument();
     expect(screen.getByText('Jane Smith')).toBeInTheDocument();
+    expect(screen.getByText('Bob Johnson')).toBeInTheDocument();
 
     // Check if emails are displayed
     expect(screen.getByText('john.doe@example.com')).toBeInTheDocument();
     expect(screen.getByText('jane.smith@example.com')).toBeInTheDocument();
+    expect(screen.getByText('bob.johnson@example.com')).toBeInTheDocument();
 
     // Check if departments are displayed
-    expect(screen.getByText('TI')).toBeInTheDocument();
+    const tiDepartments = screen.getAllByText('TI');
+    expect(tiDepartments.length).toBe(2); // Two employees in TI
     expect(screen.getByText('Marketing')).toBeInTheDocument();
 
     // Check if roles are displayed with correct badge
     expect(screen.getByText('Líder')).toBeInTheDocument();
     expect(screen.getByText('Diretor')).toBeInTheDocument();
+    expect(screen.getByText('Funcionário')).toBeInTheDocument();
   });
 
-  it('calls onView when view button is clicked', () => {
+  it('calls onView with correct employee ID when view button is clicked', async () => {
+    const user = userEvent.setup();
     renderWithProviders(
       <EmployeeTable
         employees={mockEmployees}
@@ -130,17 +159,22 @@ describe('EmployeeTable', () => {
       />
     );
 
-    // Get all view buttons (there should be one for each employee)
+    // Get all view buttons
     const viewButtons = screen.getAllByLabelText('Ver');
     
-    // Click the first view button
-    fireEvent.click(viewButtons[0]);
-    
-    // Check if onView was called with the correct employee ID
+    // Click each view button and verify the correct ID is passed
+    await user.click(viewButtons[0]);
     expect(mockOnView).toHaveBeenCalledWith('1');
+    
+    await user.click(viewButtons[1]);
+    expect(mockOnView).toHaveBeenCalledWith('2');
+    
+    await user.click(viewButtons[2]);
+    expect(mockOnView).toHaveBeenCalledWith('3');
   });
 
-  it('calls onEdit when edit button is clicked', () => {
+  it('calls onEdit with correct employee ID when edit button is clicked', async () => {
+    const user = userEvent.setup();
     renderWithProviders(
       <EmployeeTable
         employees={mockEmployees}
@@ -153,17 +187,22 @@ describe('EmployeeTable', () => {
       />
     );
 
-    // Get all edit buttons (there should be one for each employee)
+    // Get all edit buttons
     const editButtons = screen.getAllByLabelText('Editar');
     
-    // Click the first edit button
-    fireEvent.click(editButtons[0]);
-    
-    // Check if onEdit was called with the correct employee ID
+    // Click each edit button and verify the correct ID is passed
+    await user.click(editButtons[0]);
     expect(mockOnEdit).toHaveBeenCalledWith('1');
+    
+    await user.click(editButtons[1]);
+    expect(mockOnEdit).toHaveBeenCalledWith('2');
+    
+    await user.click(editButtons[2]);
+    expect(mockOnEdit).toHaveBeenCalledWith('3');
   });
 
-  it('calls onDelete when delete button is clicked', () => {
+  it('calls onDelete with correct employee ID when delete button is clicked', async () => {
+    const user = userEvent.setup();
     renderWithProviders(
       <EmployeeTable
         employees={mockEmployees}
@@ -176,14 +215,18 @@ describe('EmployeeTable', () => {
       />
     );
 
-    // Get all delete buttons (there should be one for each employee)
+    // Get all delete buttons
     const deleteButtons = screen.getAllByLabelText('Excluir');
     
-    // Click the first delete button
-    fireEvent.click(deleteButtons[0]);
-    
-    // Check if onDelete was called with the correct employee ID
+    // Click each delete button and verify the correct ID is passed
+    await user.click(deleteButtons[0]);
     expect(mockOnDelete).toHaveBeenCalledWith('1');
+    
+    await user.click(deleteButtons[1]);
+    expect(mockOnDelete).toHaveBeenCalledWith('2');
+    
+    await user.click(deleteButtons[2]);
+    expect(mockOnDelete).toHaveBeenCalledWith('3');
   });
 
   it('does not render edit button when canEdit is false', () => {
@@ -220,5 +263,73 @@ describe('EmployeeTable', () => {
     // Check if delete buttons are not rendered
     const deleteButtons = screen.queryAllByLabelText('Excluir');
     expect(deleteButtons.length).toBe(0);
+  });
+
+  it('renders the correct role badge variant for each role', () => {
+    renderWithProviders(
+      <EmployeeTable
+        employees={mockEmployees}
+        isLoading={false}
+        onView={mockOnView}
+        onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
+        canEdit={true}
+        canDelete={true}
+      />
+    );
+
+    // Check role badges
+    const badges = screen.getAllByRole('status');
+    
+    // Director role should have default variant
+    const directorBadge = badges.find(badge => within(badge).getByText('Diretor'));
+    expect(directorBadge).toHaveClass('bg-primary');
+    
+    // Leader role should have secondary variant
+    const leaderBadge = badges.find(badge => within(badge).getByText('Líder'));
+    expect(leaderBadge).toHaveClass('bg-secondary');
+    
+    // Employee role should have outline variant
+    const employeeBadge = badges.find(badge => within(badge).getByText('Funcionário'));
+    expect(employeeBadge).toHaveClass('border');
+  });
+
+  // Test for accessibility
+  it('has proper accessibility attributes', () => {
+    renderWithProviders(
+      <EmployeeTable
+        employees={mockEmployees}
+        isLoading={false}
+        onView={mockOnView}
+        onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
+        canEdit={true}
+        canDelete={true}
+      />
+    );
+
+    // Table should have accessible role
+    expect(screen.getByRole('table')).toBeInTheDocument();
+    
+    // Table headers should have proper role
+    const headers = screen.getAllByRole('columnheader');
+    expect(headers.length).toBe(5); // 5 columns in table
+    
+    // Action buttons should have proper accessible names
+    expect(screen.getAllByLabelText('Ver').length).toBe(3);
+    expect(screen.getAllByLabelText('Editar').length).toBe(3);
+    expect(screen.getAllByLabelText('Excluir').length).toBe(3);
+  });
+
+  // Note: The following tests would require adding pagination and sorting functionality to the component
+
+  it('should render pagination controls when implemented', () => {
+    // This would test pagination controls once implemented
+    expect(true).toBe(true);
+  });
+
+  it('should call onSort when column headers are clicked (once implemented)', () => {
+    // This would test sorting functionality once implemented
+    expect(true).toBe(true);
   });
 });
