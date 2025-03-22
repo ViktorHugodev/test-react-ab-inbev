@@ -5,8 +5,9 @@ import { usePathname } from "next/navigation";
 import { LayoutDashboard, Users, Building, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
+import { MobileNav } from "./mobile-nav";
 
-const navItems = [
+export const navItems = [
   {
     name: "Dashboard",
     href: "/dashboard",
@@ -30,7 +31,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-10 w-full border-b bg-background">
-      <div className="container flex h-16 items-center justify-between">
+      <div className="container flex h-16 items-center justify-between px-4 md:px-6 lg:px-8">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2">
             <span className="text-xl font-bold">CompanyManager</span>
@@ -54,6 +55,7 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-4">
+          <MobileNav />
           {user ? (
             <>
               <div className="hidden md:block">

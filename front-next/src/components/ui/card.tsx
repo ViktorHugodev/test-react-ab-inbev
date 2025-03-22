@@ -1,20 +1,44 @@
 import * as React from "react"
-
+import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
-const Card = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "rounded-xl border bg-card text-card-foreground shadow",
-      className
-    )}
-    {...props}
-  />
-))
+const cardVariants = cva(
+  "rounded-4xl border transition-all duration-300",
+  {
+    variants: {
+      variant: {
+        default: "bg-solid-1 text-solid-6 shadow-card",
+        glass: "glass-container",
+        dark: "dark-card",
+        feature: "feature-card shadow-feature",
+        primary: "bg-gradient-primary text-solid-2",
+        accent: "bg-gradient-accent text-solid-2",
+      },
+      animation: {
+        none: "",
+        float: "animate-float",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      animation: "none",
+    },
+  }
+)
+
+interface CardProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof cardVariants> {}
+
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, variant, animation, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn(cardVariants({ variant, animation, className }))}
+      {...props}
+    />
+  )
+)
 Card.displayName = "Card"
 
 const CardHeader = React.forwardRef<
@@ -35,7 +59,7 @@ const CardTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("font-semibold leading-none tracking-tight", className)}
+    className={cn("text-xl font-medium leading-none tracking-tight", className)}
     {...props}
   />
 ))
@@ -73,4 +97,4 @@ const CardFooter = React.forwardRef<
 ))
 CardFooter.displayName = "CardFooter"
 
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent, cardVariants }

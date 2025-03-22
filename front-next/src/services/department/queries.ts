@@ -98,11 +98,3 @@ export const useDeleteDepartment = () => {
   });
 };
 
-export const useGetEmployeesByDepartment = (departmentId: string) => {
-  return useQuery<Employee[], ApiError>({
-    queryKey: ["employees", "department", departmentId],
-    queryFn: () => employeeService.getByDepartment(departmentId),
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    enabled: !!departmentId, // Only run if departmentId is provided
-  });
-};

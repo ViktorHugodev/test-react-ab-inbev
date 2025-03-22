@@ -69,16 +69,16 @@ export default function DashboardPage() {
   }, [employeesData, departmentsData]);
 
   return (
-    <div className="container py-6 space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
-        <p className="text-muted-foreground">
+    <div className="container py-8 space-y-10">
+      <div className="text-center mb-8">
+        <h5 className="mb-3">Dashboard</h5>
+        <p className="text-muted-foreground max-w-2xl mx-auto">
           Visão geral do sistema de gerenciamento de funcionários
         </p>
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total de Funcionários"
           value={isLoadingEmployees ? "..." : stats.totalEmployees}
@@ -111,7 +111,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Second row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <StatCard
           title="Tamanho Médio de Equipe"
           value={isLoadingEmployees ? "..." : stats.averageTeamSize}
@@ -132,14 +132,22 @@ export default function DashboardPage() {
       </div>
 
       {/* Charts and data tables */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-        <RecentEmployees />
-        <DepartmentChart />
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+        <div className="md:col-span-7">
+          <RecentEmployees />
+        </div>
+        <div className="md:col-span-5">
+          <DepartmentChart />
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-        <RoleDistribution />
-        <TopManagers />
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+        <div className="md:col-span-5">
+          <RoleDistribution />
+        </div>
+        <div className="md:col-span-7">
+          <TopManagers />
+        </div>
       </div>
     </div>
   );
