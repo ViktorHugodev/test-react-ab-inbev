@@ -388,15 +388,21 @@ describe('Employee Service', () => {
     });
   });
 
-  describe('validateDocumentNumber', () => {
-    it('validates a document number correctly', () => {
-      // Valid CPF
-      expect(employeeService.validateDocumentNumber('12345678909')).toBe(true);
+  describe('validateDocument', () => {
+    it('validates a document number correctly', async () => {
+      // Mock the API responses
+      mockApi.get.mockResolvedValueOnce({ isValid: true });
+      mockApi.get.mockRejectedValueOnce(new Error('Invalid document'));
       
-      // Invalid formats
-      expect(employeeService.validateDocumentNumber('123.456.789-09')).toBe(false);
-      expect(employeeService.validateDocumentNumber('12345')).toBe(false);
-      expect(employeeService.validateDocumentNumber('ABCDEFGHIJK')).toBe(false);
+      // Valid document
+      expect(await employeeService.validateDocument('12345678909')).toBe(true);
+      
+      // Invalid document (mock rejects the second call)
+      expect(await employeeService.validateDocument('ABCDEFGHIJK')).toBe(false);
+      
+      // Verify API calls
+      expect(mockApi.get).toHaveBeenCalledWith('/Employees/validate-document/12345678909');
+      expect(mockApi.get).toHaveBeenCalledWith('/Employees/validate-document/ABCDEFGHIJK');
     });
   });
 });
