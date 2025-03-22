@@ -8,6 +8,7 @@ import {
   CheckCircle
 } from "lucide-react";
 import { StatCard } from './stat-card';
+import { Skeleton } from "@/components/ui/skeleton";
 
 export interface DepartmentStatsData {
   totalDepartments: number;
@@ -27,55 +28,52 @@ export function DepartmentStatsOverview({
   data, 
   isLoading 
 }: DepartmentStatsOverviewProps) {
-  return (
-    <>
-      {/* Primeira linha de estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 -mt-8">
-        <StatCard
-          title="Total de Departamentos"
-          value={isLoading ? "..." : data.totalDepartments}
-          description="Departamentos cadastrados"
-          icon={Building}
-        />
-        
-        <StatCard
-          title="Departamentos Ativos"
-          value={isLoading ? "..." : data.activeDepartments}
-          description="Em operação atualmente"
-          icon={CheckCircle}
-        />
-        
-        <StatCard
-          title="Total de Funcionários"
-          value={isLoading ? "..." : data.totalEmployees}
-          description="Distribuídos nos departamentos"
-          icon={Users}
-        />
+  if (isLoading) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+        {[...Array(5)].map((_, i) => (
+          <Skeleton key={i} className="h-[120px] w-full" />
+        ))}
       </div>
+    );
+  }
 
-      {/* Segunda linha de estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-        <StatCard
-          title="Média de Funcionários"
-          value={isLoading ? "..." : data.averageEmployeesPerDepartment}
-          description="Funcionários por departamento"
-          icon={Briefcase}
-        />
-        
-        <StatCard
-          title="Departamento Mais Recente"
-          value={isLoading ? "..." : data.newestDepartment}
-          description="Última adição à estrutura"
-          icon={CalendarDays}
-        />
-        
-        <StatCard
-          title="Departamento Mais Antigo"
-          value={isLoading ? "..." : data.oldestDepartment}
-          description="Primeira estrutura criada"
-          icon={Clock}
-        />
-      </div>
-    </>
+  return (
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+      <StatCard
+        title="Total de Departamentos"
+        value={data.totalDepartments}
+        icon={Building}
+        className="bg-card hover:shadow-md transition-all duration-300"
+      />
+      <StatCard
+        title="Departamentos Ativos"
+        value={data.activeDepartments}
+        description={`${Math.round((data.activeDepartments / data.totalDepartments) * 100)}% do total`}
+        icon={CheckCircle}
+        className="bg-card hover:shadow-md transition-all duration-300"
+      />
+      <StatCard
+        title="Total de Funcionários"
+        value={data.totalEmployees}
+        description={`Distribuídos em ${data.totalDepartments} departamentos`}
+        icon={Users}
+        className="bg-card hover:shadow-md transition-all duration-300"
+      />
+      <StatCard
+        title="Média por Departamento"
+        value={data.averageEmployeesPerDepartment}
+        description="Funcionários por departamento"
+        icon={Briefcase}
+        className="bg-card hover:shadow-md transition-all duration-300"
+      />
+      <StatCard
+        title="Departamento Mais Recente"
+        value={data.newestDepartment}
+        description="Última adição à estrutura"
+        icon={CalendarDays}
+        className="bg-card hover:shadow-md transition-all duration-300"
+      />
+    </div>
   );
 }

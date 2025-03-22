@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { Building2, Users } from "lucide-react";
+import { Building2, Users, Edit, Trash2, ExternalLink } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -22,12 +22,22 @@ export interface Department {
 
 export interface DepartmentCardProps {
   department: Department;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
-export function DepartmentCard({ department }: DepartmentCardProps) {
+export function DepartmentCard({ department, onEdit, onDelete }: DepartmentCardProps) {
+  const handleClick = (e: React.MouseEvent, callback?: () => void) => {
+    if (callback) {
+      e.preventDefault();
+      e.stopPropagation();
+      callback();
+    }
+  };
+
   return (
-    <Link href={`/departments/${department.id}`}>
-      <Card className="h-full cursor-pointer hover:shadow-md transition-shadow">
+    <Card className="h-full cursor-pointer hover:shadow-md transition-shadow">
+      <Link href={`/departments/${department.id}`}>
         <CardHeader className="pb-2">
           <div className="flex items-center space-x-2">
             <Building2 className="h-5 w-5 text-primary" />
@@ -51,12 +61,43 @@ export function DepartmentCard({ department }: DepartmentCardProps) {
             )}
           </div>
         </CardContent>
-        <CardFooter>
-          <Button variant="ghost" className="w-full">
-            Ver detalhes
-          </Button>
-        </CardFooter>
-      </Card>
-    </Link>
+      </Link>
+      
+      <CardFooter className="flex justify-between items-center">
+        <Button variant="ghost" size="sm" className="gap-1" asChild>
+          <Link href={`/departments/${department.id}`}>
+            <span>Ver detalhes</span>
+            <ExternalLink className="h-3.5 w-3.5" />
+          </Link>
+        </Button>
+        
+        {(onEdit || onDelete) && (
+          <div className="flex gap-2">
+            {onEdit && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8" 
+                onClick={(e) => handleClick(e, onEdit)}
+              >
+                <Edit className="h-4 w-4" />
+                <span className="sr-only">Editar</span>
+              </Button>
+            )}
+            {onDelete && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 text-destructive hover:text-destructive" 
+                onClick={(e) => handleClick(e, onDelete)}
+              >
+                <Trash2 className="h-4 w-4" />
+                <span className="sr-only">Excluir</span>
+              </Button>
+            )}
+          </div>
+        )}
+      </CardFooter>
+    </Card>
   );
 }

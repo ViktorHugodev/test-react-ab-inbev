@@ -56,7 +56,7 @@ export default function DepartmentsPage() {
   // Filter departments based on search term
   const filteredDepartments = departments?.filter(
     (department) => department.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ) || [];
 
   // Only directors can create departments
   const canManageDepartments = user?.role === EmployeeRole.Director;
@@ -128,8 +128,34 @@ export default function DepartmentsPage() {
     }
   }, [departments, employees]);
 
+  // Renderização condicional para estado de carregamento
+  if (isLoadingDepts || isLoadingEmployees) {
+    return (
+      <main className="bg-background min-h-screen">
+        <DepartmentHeader 
+          title="Gerenciamento de Departamentos" 
+          subtitle="Visualize, crie e gerencie os departamentos da empresa" 
+        />
+        <div className="container px-6 py-8">
+          <DepartmentStatsOverview 
+            data={stats} 
+            isLoading={true} 
+          />
+          <div className="mt-8 animate-pulse">
+            <div className="h-10 bg-muted rounded-full w-64 mb-6"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="h-48 bg-muted rounded-lg"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   return (
-    <div className="bg-background min-h-screen">
+    <main className="bg-background min-h-screen">
       {/* Header */}
       <DepartmentHeader 
         title="Gerenciamento de Departamentos" 
@@ -141,7 +167,7 @@ export default function DepartmentsPage() {
         {/* Stats Overview */}
         <DepartmentStatsOverview 
           data={stats} 
-          isLoading={isLoadingDepts || isLoadingEmployees} 
+          isLoading={false} 
         />
 
         {/* Search and Add */}
@@ -176,9 +202,9 @@ export default function DepartmentsPage() {
           <DepartmentGrid 
             departments={filteredDepartments} 
             employeeCounts={employeeCounts}
-            isLoading={isLoadingDepts}
-            onEdit={canManageDepartments ? handleEditDepartment : () => {}}
-            onDelete={canManageDepartments ? handleDeleteClick : () => {}}
+            isLoading={false}
+            onEdit={canManageDepartments ? handleEditDepartment : undefined}
+            onDelete={canManageDepartments ? handleDeleteClick : undefined}
           />
         </div>
       </div>
@@ -200,6 +226,6 @@ export default function DepartmentsPage() {
         onConfirm={handleDeleteDepartment}
         isLoading={deleteDepartment.isPending}
       />
-    </div>
+    </main>
   );
 }

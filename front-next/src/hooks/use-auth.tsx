@@ -68,7 +68,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     
     const checkAuth = async () => {
       try {
-        const token = typeof window !== 'undefined' ? localStorage.getItem("auth_token") : null;
+        // Usar uma variável local para evitar acesso direto ao localStorage durante a renderização
+        let token = null;
+        
+        // Verificar se estamos no cliente antes de acessar localStorage
+        if (typeof window !== 'undefined') {
+          token = localStorage.getItem("auth_token");
+        }
         
         if (token) {
           try {
@@ -97,7 +103,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
       }
     };
     
-    checkAuth();
+    // Atrasar a verificação de autenticação para garantir que estamos no cliente
+    const timer = setTimeout(() => {
+      checkAuth();
+    }, 0);
+    
+    return () => clearTimeout(timer);
   }, [authChecked]);
   
   // Login function
