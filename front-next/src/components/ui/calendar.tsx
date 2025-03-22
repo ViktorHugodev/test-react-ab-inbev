@@ -1,11 +1,24 @@
 "use client"
 
 import * as React from "react"
+import { useRef, useState, useEffect } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker } from "react-day-picker"
+import { DayPicker, CaptionProps, useDayPicker } from "react-day-picker"
+import { ptBR } from "date-fns/locale"
+import { addYears, subYears } from "date-fns"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select"
+import { 
+  ScrollArea 
+} from "@/components/ui/scroll-area"
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
@@ -13,17 +26,42 @@ function Calendar({
   className,
   classNames,
   showOutsideDays = true,
+  month,
+  onMonthChange,
   ...props
 }: CalendarProps) {
+  // Estado local para controlar o mês atual se não for fornecido externamente
+  const [internalMonth, setInternalMonth] = useState<Date>(month || new Date())
+  
+  // Sincronizar o estado interno com o prop external, se fornecido
+  useEffect(() => {
+    if (month) {
+      setInternalMonth(month)
+    }
+  }, [month])
+  
+  // Função para atualizar o mês
+  const handleMonthChange = (date: Date) => {
+    // Se onMonthChange for fornecida, usamos ela
+    if (onMonthChange) {
+      onMonthChange(date)
+    } else {
+      // Caso contrário, atualizamos o estado interno
+      setInternalMonth(date)
+    }
+  }
+
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
+      month={month || internalMonth}
+      onMonthChange={handleMonthChange}
       className={cn("p-3", className)}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
         caption: "flex justify-center pt-1 relative items-center",
-        caption_label: "text-sm font-medium",
+        caption_label: "hidden", // Esconder o label padrão
         nav: "space-x-1 flex items-center",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
@@ -66,11 +104,93 @@ function Calendar({
         IconRight: ({ className, ...props }) => (
           <ChevronRight className={cn("h-4 w-4", className)} {...props} />
         ),
+        Caption: (captionProps) => (
+          <CustomCaption 
+            {...captionProps} 
+            onMonthSelect={handleMonthChange}
+          />
+        )
       }}
+      locale={ptBR}
+      disabled={props.disabled || { after: new Date() }} // Desabilitar datas futuras
       {...props}
     />
   )
 }
+
+// Propriedades estendidas para o CustomCaption
+interface CustomCaptionProps extends CaptionProps {
+  onMonthSelect: (date: Date) => void;
+}
+
+// Componente customizado para o cabeçalho do calendário
+function CustomCaption({ displayMonth, onMonthSelect }: CustomCaptionProps) {
+  const months = [
+    "Janeiro", "Fevereiro", "Março", "Abril", 
+    "Maio", "Junho", "Julho", "Agosto", 
+    "Setembro", "Outubro", "Novembro", "Dezembro"
+  ];
+  
+  // Calcular o ano atual e o intervalo de anos para seleção
+  // Considerar que a pessoa deve ter pelo menos 18 anos
+  const today = new Date();
+  const maxYear = today.getFullYear() - 18; // O ano máximo é 18 anos atrás
+  const minYear = maxYear - 82; // 100 anos de range (18 até 100 anos)
+  
+  // Criar array de anos (do mais recente para o mais antigo)
+  const years = Array.from(
+    { length: (maxYear - minYear) + 1 }, 
+    (_, i) => maxYear - i
+  );
+  
+  const currentMonth = displayMonth.getMonth();
+  const currentDisplayYear = displayMonth.getFullYear();
+  
+  const handleMonthChange = (value: string) => {
+    const newMonth = parseInt(value);
+    const newDate = new Date(currentDisplayYear, newMonth, 1);
+    onMonthSelect(newDate);
+  };
+  
+  const handleYearChange = (value: string) => {
+    const newYear = parseInt(value);
+    const newDate = new Date(newYear, currentMonth, 1);
+    onMonthSelect(newDate);
+  };
+  
+  return (
+    <div className="flex justify-center items-center gap-1 px-8 py-1">
+      <Select value={currentMonth.toString()} onValueChange={handleMonthChange}>
+        <SelectTrigger className="h-7 w-[110px] text-xs font-medium">
+          <SelectValue placeholder="Mês" />
+        </SelectTrigger>
+        <SelectContent>
+          {months.map((month, i) => (
+            <SelectItem key={i} value={i.toString()} className="text-xs">
+              {month}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      
+      <Select value={currentDisplayYear.toString()} onValueChange={handleYearChange}>
+        <SelectTrigger className="h-7 w-[90px] text-xs font-medium">
+          <SelectValue placeholder="Ano" />
+        </SelectTrigger>
+        <SelectContent>
+          <ScrollArea className="h-60">
+            {years.map((year) => (
+              <SelectItem key={year} value={year.toString()} className="text-xs">
+                {year}
+              </SelectItem>
+            ))}
+          </ScrollArea>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
 Calendar.displayName = "Calendar"
 
 export { Calendar }
