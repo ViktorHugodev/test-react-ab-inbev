@@ -34,6 +34,43 @@ namespace CompanyManager.Domain.Aggregates.Employee
 
         // Construtor privado para EF Core
         private Employee() { }
+        
+        // Construtor para testes
+        public Employee(
+            string firstName, 
+            string lastName, 
+            string email, 
+            string documentNumber, 
+            DateTime birthDate, 
+            Role role, 
+            string department, 
+            Guid? managerId = null)
+        {
+            ValidateName(firstName, lastName);
+            ValidateEmail(email);
+            ValidateDocumentNumber(documentNumber);
+            ValidateAge(birthDate);
+
+            Id = Guid.NewGuid();
+            FirstName = firstName;
+            LastName = lastName;
+            Email = email.ToLower();
+            DocumentNumber = documentNumber;
+            BirthDate = birthDate;
+            Role = role;
+            Department = department;
+            ManagerId = managerId;
+            CreatedAt = DateTime.UtcNow;
+        }
+        
+        // Método para testes
+        public void SetPasswordHash(string passwordHash)
+        {
+            if (string.IsNullOrWhiteSpace(passwordHash))
+                throw new DomainException("A senha não pode ser vazia.");
+                
+            PasswordHash = passwordHash;
+        }
 
         // Factory method principal
         public static Employee Create(

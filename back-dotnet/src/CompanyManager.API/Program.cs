@@ -169,6 +169,9 @@ if (app.Environment.IsDevelopment())
 
 app.Run();
 
+// Torna a classe Program pública para testes
+public partial class Program { }
+
 // 13. Classe para seed inicial de dados
 public static class SeedData
 {
