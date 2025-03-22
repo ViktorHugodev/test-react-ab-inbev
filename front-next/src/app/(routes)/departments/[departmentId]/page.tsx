@@ -58,7 +58,7 @@ export default function DepartmentDetailPage() {
     isLoading: isLoadingEmployees, 
     isError: isEmployeesError 
   } = useGetEmployeesByDepartment(departmentId);
-  
+  console.log('employees',employees);
   // Filter employees based on search term
   const filteredEmployees = employees?.filter(
     (employee) => 

@@ -32,6 +32,40 @@ namespace CompanyManager.Application.Services
             _jwtSettings = jwtSettings.Value;
             _logger = logger;
         }
+        
+        public async Task<EmployeeDto> GetEmployeeById(Guid id, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var employee = await _unitOfWork.Employees.GetByIdAsync(id, cancellationToken);
+                if (employee == null)
+                    return null;
+                    
+                return MapToEmployeeDto(employee);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao buscar funcionário pelo ID: {Id}", id);
+                return null;
+            }
+        }
+        
+        public async Task<EmployeeDto> GetEmployeeByEmailAsync(string email, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var employee = await _unitOfWork.Employees.GetByEmailAsync(email, cancellationToken);
+                if (employee == null)
+                    return null;
+                    
+                return MapToEmployeeDto(employee);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao buscar funcionário pelo email: {Email}", email);
+                return null;
+            }
+        }
 
         public async Task<AuthResponseDto> LoginAsync(
             LoginDto loginDto,

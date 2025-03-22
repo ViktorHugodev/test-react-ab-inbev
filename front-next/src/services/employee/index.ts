@@ -136,8 +136,25 @@ export const employeeService = {
    /**
    * Get employees by department
    */
-   getByDepartment: async (departmentId: string): Promise<Employee[]> => {
-    const response = await api.get<any>(`/Employees/department/${departmentId}`);
+ /**
+   * Get employees by department ID
+   */
+ getByDepartment: async (departmentId: string): Promise<Employee[]> => {
+  try {
+    // Primeiro, precisamos obter o departamento pelo ID para ter acesso ao nome
+    const department = await api.get<any>(`/Departments/${departmentId}`);
+    
+    if (!department || !department.name) {
+      console.error("Departamento não encontrado ou sem nome");
+      return [];
+    }
+    
+    // Agora que temos o nome do departamento, podemos buscar os funcionários
+    const response = await api.get<any>(`/Employees/department/${department.name}`);
     return Array.isArray(response) ? response.map(adaptEmployee) : [];
-  },
+  } catch (error) {
+    console.error("Erro ao buscar funcionários por departamento:", error);
+    return [];
+  }
+},
 };

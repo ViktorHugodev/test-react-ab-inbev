@@ -33,8 +33,20 @@ interface AuthProviderProps {
   mockRole?: EmployeeRole;
 }
 
-// Convert string role to enum
-const convertStringRoleToEnum = (role: string): EmployeeRole => {
+// Convert role to enum - handle both string and number inputs
+const convertRoleToEnum = (role: string | number): EmployeeRole => {
+  // Se for número, converte diretamente
+  if (typeof role === 'number') {
+    // Verifica se o número está dentro dos valores válidos do enum
+    if (Object.values(EmployeeRole).includes(role)) {
+      return role as EmployeeRole;
+    }
+    // Se não for um valor válido, retorna Employee como fallback
+    console.warn(`Valor de role inválido recebido: ${role}, usando Employee como fallback`);
+    return EmployeeRole.Employee;
+  }
+  
+  // Se for string, converte baseado no texto
   if (role === "Director") return EmployeeRole.Director;
   if (role === "Leader") return EmployeeRole.Leader;
   return EmployeeRole.Employee;
@@ -67,7 +79,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
               id: userData.id,
               name: userData.name,
               email: userData.email,
-              role: convertStringRoleToEnum(userData.role)
+              role: convertRoleToEnum(userData.role)
             });
           } catch (error) {
             console.error("Error fetching user data:", error);
@@ -106,7 +118,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
         id: userData.id!,
         name: `${userData.firstName} ${userData.lastName}`,
         email: userData.email,
-        role: userData.role
+        role: convertRoleToEnum(userData.role)
       });
     } catch (error) {
       console.error("Login error:", error);

@@ -26,5 +26,11 @@ namespace CompanyManager.Application.Interfaces
         
         // Geração de token JWT
         string GenerateJwtToken(EmployeeDto employee);
+        
+        // Buscar funcionário pelo ID
+        Task<EmployeeDto> GetEmployeeById(System.Guid id, CancellationToken cancellationToken = default);
+        
+        // Buscar funcionário pelo email
+        Task<EmployeeDto> GetEmployeeByEmailAsync(string email, CancellationToken cancellationToken = default);
     }
 }

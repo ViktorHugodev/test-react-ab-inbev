@@ -30,7 +30,7 @@ Authorization: Bearer {{token}}
 
 ###
 # Obtém um funcionário pelo ID
-GET {{baseUrl}}/api/Employees/3fa85f64-5717-4562-b3fc-2c963f66afa6
+GET {{baseUrl}}/api/Employees/f88ea326-bcd7-4c4f-b3e2-c5e2f3bdb7df
 Authorization: Bearer {{token}}
 
 ###
@@ -68,30 +68,18 @@ Authorization: Bearer {{token}}
   }
 ###
 # Atualiza um funcionário existente (requer permissão de Líder ou Diretor)
-PUT {{baseUrl}}/api/Employees/3fa85f64-5717-4562-b3fc-2c963f66afa6
+PUT {{baseUrl}}/api/Employees/f88ea326-bcd7-4c4f-b3e2-c5e2f3bdb7df
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-  "firstName": "João",
-  "lastName": "Silva",
-  "email": "joao.silva@empresa.com",
-  "birthDate": "1990-01-01T00:00:00.000Z",
-  "role": "Employee",
-  "department": "RH",
-  "managerId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-  "phoneNumbers": [
-    {
-      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-      "number": "(11) 98765-4321",
-      "type": "Mobile"
-    },
-    {
-      "number": "(11) 3456-7890",
-      "type": "Work"
-    }
-  ]
+    "id": "f88ea326-bcd7-4c4f-b3e2-c5e2f3bdb7df",
+    "FirstName": "Alessandra",
+    "LastName": "Ruas",
+    "email": "viktorhug2o.dev@gmail.com",
+    "department": "Engenharia",
+    "managerName": "Lucas Ferreira",
+    "role": 2
 }
 
 ###
@@ -138,7 +126,7 @@ Authorization: Bearer {{token}}
 ###
 # @name getDepartmentById
 # Obtém um departamento pelo ID
-GET {{baseUrl}}/api/Departments/3fa85f64-5717-4562-b3fc-2c963f66afa6
+GET {{baseUrl}}/api/Departments/e5075e38-3136-41b4-8839-a14d2a6c617d
 Authorization: Bearer {{token}}
 
 ###

@@ -1,8 +1,10 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using CompanyManager.Application.DTOs;
 using CompanyManager.Application.Exceptions;
 using CompanyManager.Application.Interfaces;
+using CompanyManager.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -53,16 +55,69 @@ namespace CompanyManager.API.Controllers
         [HttpGet("me")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult GetCurrentUser()
+        public async Task<ActionResult> GetCurrentUser(CancellationToken cancellationToken)
         {
             // Extrair informações do usuário a partir do token JWT
-            return Ok(new
+            var idClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value 
+                ?? User.FindFirst("sub")?.Value;
+                
+            var emailClaim = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value 
+                ?? User.FindFirst("email")?.Value;
+            
+            _logger.LogInformation("Tentativa de obter usuário atual. Claims encontradas - ID: {Id}, Email: {Email}", 
+                idClaim, emailClaim);
+            
+            // Se temos um email válido nas claims, usamos ele para buscar o funcionário completo
+            if (!string.IsNullOrEmpty(emailClaim))
             {
-                Id = User.FindFirst("sub")?.Value,
-                Email = User.FindFirst("email")?.Value,
-                Name = User.FindFirst("name")?.Value,
-                Role = User.FindFirst("role")?.Value
-            });
+                try 
+                {
+                    var employee = await _authService.GetEmployeeByEmailAsync(emailClaim, cancellationToken);
+                    if (employee != null)
+                    {
+                        _logger.LogInformation("Usuário encontrado pelo email: {Email}", emailClaim);
+                        return Ok(new
+                        {
+                            Id = employee.Id.ToString(),
+                            Email = employee.Email,
+                            Name = employee.FullName,
+                            Role = employee.Role
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Erro ao buscar funcionário pelo email: {Email}", emailClaim);
+                }
+            }
+            
+            // Se temos um ID válido nas claims, usamos ele para buscar o funcionário completo
+            if (!string.IsNullOrEmpty(idClaim) && Guid.TryParse(idClaim, out var userId))
+            {
+                try
+                {
+                    var employee = await _authService.GetEmployeeById(userId, cancellationToken);
+                    if (employee != null)
+                    {
+                        _logger.LogInformation("Usuário encontrado pelo ID: {Id}", idClaim);
+                        return Ok(new
+                        {
+                            Id = employee.Id.ToString(),
+                            Email = employee.Email,
+                            Name = employee.FullName,
+                            Role = employee.Role
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Erro ao buscar funcionário pelo ID: {Id}", idClaim);
+                }
+            }
+            
+            // Se não conseguimos encontrar o usuário pelos métodos acima, retornamos um erro 401
+            _logger.LogWarning("Não foi possível encontrar usuário com as claims fornecidas");
+            return Unauthorized(new { message = "Usuário não encontrado ou não autenticado corretamente." });
         }
     }
 }
