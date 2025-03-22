@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import {DM_Sans, Inter} from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 
 import { Header } from "@/components/layout/header";
@@ -7,8 +7,12 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { QueryProvider } from "@/providers/query-provider";
 import { Toaster } from "sonner";
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
-const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans' })
+const poppins = Poppins({
+  weight: ['300', '400', '500', '600', '700'],
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-poppins',
+});
 
 export const metadata: Metadata = {
   title: "AB InBev - Sistema de Gerenciamento",
@@ -23,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className="antialiased">
       <body
-        className={`${inter.variable} ${dmSans.variable} min-h-screen bg-background font-sans text-foreground`}
+        className={`${poppins.variable} min-h-screen bg-background font-sans text-foreground`}
       >
         <QueryProvider>
           <AuthProvider>
@@ -38,7 +42,17 @@ export default function RootLayout({
                 </div>
               </footer>
             </div>
-            <Toaster position="top-center" richColors />
+            <Toaster 
+              position="top-center" 
+              richColors 
+              toastOptions={{
+                style: { 
+                  background: 'hsl(var(--background))',
+                  color: 'hsl(var(--foreground))',
+                  border: '1px solid hsl(var(--border))'
+                }
+              }}
+            />
           </AuthProvider>
         </QueryProvider>
       </body>

@@ -49,9 +49,9 @@ export const useGetEmployee = (id: string) => {
  */
 export const useGetManagers = () => {
   return useQuery<Employee[], ApiError>({
-    queryKey: ["employees", "managers"],
+    queryKey: ["managers"],
     queryFn: () => employeeService.getManagers(),
-    staleTime: 1000 * 60 * 15, // 15 minutes
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };
 
@@ -60,12 +60,12 @@ export const useGetManagers = () => {
  */
 export const useCreateEmployee = () => {
   const queryClient = useQueryClient();
-
+  
   return useMutation<Employee, ApiError, CreateEmployeeDTO>({
     mutationFn: (data) => employeeService.createEmployee(data),
     onSuccess: () => {
-      toast.success("Funcionário criado com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["employees"] });
+      queryClient.invalidateQueries({ queryKey: ["managers"] });
     },
     onError: (error) => {
       handleApiError(error, "Erro ao criar funcionário.");
@@ -78,20 +78,62 @@ export const useCreateEmployee = () => {
  */
 export const useUpdateEmployee = () => {
   const queryClient = useQueryClient();
-
-  return useMutation<Employee, ApiError, { id: string; data: UpdateEmployeeDTO }>({
+  
+  return useMutation<
+    Employee, 
+    ApiError, 
+    { id: string; data: UpdateEmployeeDTO }
+  >({
     mutationFn: ({ id, data }) => employeeService.updateEmployee(id, data),
     onSuccess: (updatedEmployee) => {
-      toast.success("Funcionário atualizado com sucesso!");
-      
-      // Update specific employee query
-      queryClient.setQueryData(["employee", updatedEmployee.id], updatedEmployee);
-      
-      // Invalidate all employee lists
       queryClient.invalidateQueries({ queryKey: ["employees"] });
+      queryClient.invalidateQueries({ queryKey: ["employee", updatedEmployee.id] });
+      queryClient.invalidateQueries({ queryKey: ["managers"] });
     },
     onError: (error) => {
       handleApiError(error, "Erro ao atualizar funcionário.");
+    },
+  });
+};
+
+/**
+ * Update employee profile hook
+ * Específico para atualização do perfil do próprio funcionário
+ */
+export const useUpdateEmployeeProfile = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation<
+    Employee, 
+    ApiError, 
+    { id: string; data: Partial<UpdateEmployeeDTO> }
+  >({
+    mutationFn: async ({ id, data }) => {
+      // Primeiro obtemos os dados completos do funcionário
+      const currentEmployee = await employeeService.getEmployeeById(id);
+      
+      // Criamos um objeto completo de atualização mesclando os dados atuais com as alterações
+      const completeData: UpdateEmployeeDTO = {
+        id,
+        firstName: data.firstName || currentEmployee.firstName,
+        lastName: data.lastName || currentEmployee.lastName,
+        email: data.email || currentEmployee.email,
+        role: data.role || currentEmployee.role,
+        department: data.department || currentEmployee.department,
+        managerId: data.managerId || currentEmployee.managerId,
+        birthDate: data.birthDate || currentEmployee.birthDate,
+        phoneNumbers: data.phoneNumbers || currentEmployee.phoneNumbers || []
+      };
+      
+      // Chamamos o serviço com os dados completos
+      return employeeService.updateEmployee(id, completeData);
+    },
+    onSuccess: (updatedEmployee) => {
+      queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+      queryClient.invalidateQueries({ queryKey: ["employee", updatedEmployee.id] });
+    },
+    onError: (error) => {
+      handleApiError(error, "Erro ao atualizar perfil.");
     },
   });
 };
@@ -102,11 +144,21 @@ export const useUpdateEmployee = () => {
 export const useChangePassword = () => {
   return useMutation<void, ApiError, UpdatePasswordDTO>({
     mutationFn: (data) => employeeService.changePassword(data),
-    onSuccess: () => {
-      toast.success("Senha alterada com sucesso!");
-    },
     onError: (error) => {
       handleApiError(error, "Erro ao alterar senha.");
+    },
+  });
+};
+
+/**
+ * Update employee password hook
+ * Específico para atualização da senha do próprio funcionário
+ */
+export const useUpdateEmployeePassword = () => {
+  return useMutation<void, ApiError, UpdatePasswordDTO>({
+    mutationFn: (data) => employeeService.changePassword(data),
+    onError: (error) => {
+      handleApiError(error, "Erro ao atualizar senha. Verifique se sua senha atual está correta.");
     },
   });
 };
@@ -116,26 +168,27 @@ export const useChangePassword = () => {
  */
 export const useDeleteEmployee = () => {
   const queryClient = useQueryClient();
-
+  
   return useMutation<void, ApiError, string>({
     mutationFn: (id) => employeeService.deleteEmployee(id),
     onSuccess: () => {
-      toast.success("Funcionário excluído com sucesso!");
-      
-      // Invalidate cached data
       queryClient.invalidateQueries({ queryKey: ["employees"] });
+      queryClient.invalidateQueries({ queryKey: ["managers"] });
     },
     onError: (error) => {
       handleApiError(error, "Erro ao excluir funcionário.");
     },
   });
 };
+
+/**
+ * Get employees by department hook
+ */
 export const useGetEmployeesByDepartment = (departmentId: string) => {
   return useQuery<Employee[], ApiError>({
     queryKey: ["employees", "department", departmentId],
     queryFn: () => employeeService.getByDepartment(departmentId),
     staleTime: 1000 * 60 * 5, // 5 minutes
-    enabled: !!departmentId, // Only run if departmentId is provided
-    retry: 1, // Limita o número de tentativas para evitar muitas chamadas em caso de erro
+    enabled: !!departmentId,
   });
 };

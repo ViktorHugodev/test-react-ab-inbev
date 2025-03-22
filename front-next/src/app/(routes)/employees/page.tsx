@@ -1,50 +1,24 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Search, PlusCircle, Pencil, Trash2, Eye } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 
 import { useAuth } from "@/hooks/use-auth";
 import { EmployeeFilters } from "@/services/employee";
 import { Employee, EmployeeRole } from "@/types/employee";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { toast } from "sonner";
+
 import { useDeleteEmployee, useGetEmployees, useGetManagers } from '@/services/employee/queries';
 import { useGetDepartments } from '@/services/department/queries';
+
+import { EmployeeHeader } from "@/components/pages/employees/employee-header";
+import { EmployeeTable } from "@/components/pages/employees/employee-table";
+import { FilterBar } from "@/components/pages/employees/filter-bar";
+import { DeleteDialog } from "@/components/pages/employees/delete-dialog";
+import { EmployeeStatsData, EmployeeStatsOverview } from "@/components/pages/employees/stats-overview";
 
 export default function EmployeesPage() {
   const router = useRouter();
@@ -55,8 +29,15 @@ export default function EmployeesPage() {
     pageSize: 10,
     searchTerm: "",
   });
-  const [employeeToDelete, setEmployeeToDelete] = useState<string | null>(null);
+  const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [stats, setStats] = useState<EmployeeStatsData>({
+    totalEmployees: 0,
+    activeEmployees: 0,
+    totalDepartments: 0,
+    leadersCount: 0,
+    averageTenure: 0,
+  });
 
   // Fetch data with queries
   const { data: employeesData, isLoading, isError } = useGetEmployees(filters);
@@ -101,10 +82,23 @@ export default function EmployeesPage() {
     setFilters((prev) => ({ ...prev, pageNumber: page }));
   };
 
+  // Handle view employee
+  const handleViewEmployee = (id: string) => {
+    router.push(`/employees/${id}`);
+  };
+
+  // Handle edit employee
+  const handleEditEmployee = (id: string) => {
+    router.push(`/employees/${id}/edit`);
+  };
+
   // Handle delete
   const handleDelete = (id: string) => {
-    setEmployeeToDelete(id);
-    setShowDeleteDialog(true);
+    const employee = employeesData?.items.find(emp => emp.id === id);
+    if (employee) {
+      setEmployeeToDelete(employee);
+      setShowDeleteDialog(true);
+    }
   };
 
   // Confirm delete
@@ -112,323 +106,124 @@ export default function EmployeesPage() {
     if (!employeeToDelete) return;
     
     try {
-      await deleteEmployee.mutateAsync(employeeToDelete);
+      await deleteEmployee.mutateAsync(employeeToDelete.id);
       toast.success("Funcionário excluído com sucesso!");
       setShowDeleteDialog(false);
+      setEmployeeToDelete(null);
     } catch (error) {
       toast.error("Erro ao excluir funcionário.");
       console.error(error);
     }
   };
 
-  // Get role display name
-  const getRoleDisplay = (role: EmployeeRole): string => {
-    switch (role) {
-      case EmployeeRole.Director:
-        return "Diretor";
-      case EmployeeRole.Leader:
-        return "Líder";
-      case EmployeeRole.Employee:
-        return "Funcionário";
-      default:
-        return "Desconhecido";
+  // Calculate stats
+  useEffect(() => {
+    if (employeesData && departments) {
+      const now = new Date();
+      let totalTenure = 0;
+      let employeesWithHireDate = 0;
+
+      employeesData.items.forEach(emp => {
+        if (emp.hireDate) {
+          const hireDate = new Date(emp.hireDate);
+          const tenureMonths = (now.getFullYear() - hireDate.getFullYear()) * 12 + 
+                              (now.getMonth() - hireDate.getMonth());
+          totalTenure += tenureMonths;
+          employeesWithHireDate++;
+        }
+      });
+
+      setStats({
+        totalEmployees: employeesData.totalCount,
+        activeEmployees: employeesData.items.filter(emp => emp.isActive).length,
+        totalDepartments: departments.length,
+        leadersCount: employeesData.items.filter(emp => emp.role === EmployeeRole.Leader).length,
+        averageTenure: employeesWithHireDate > 0 ? Math.round(totalTenure / employeesWithHireDate) : 0,
+      });
     }
-  };
-
-  // Get role badge variant
-  const getRoleBadgeVariant = (role: EmployeeRole) => {
-    switch (role) {
-      case EmployeeRole.Director:
-        return "default";
-      case EmployeeRole.Leader:
-        return "secondary";
-      case EmployeeRole.Employee:
-        return "outline";
-      default:
-        return "outline";
-    }
-  };
-
-  // Função para obter o nome completo do funcionário
-  const getFullName = (employee: Employee): string => {
-    if (employee.fullName) return employee.fullName;
-    return `${employee.firstName || ''} ${employee.lastName || ''}`.trim();
-  };
-
-  if (isLoading) {
-    return (
-      <div className="container mx-auto py-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Funcionários</h1>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div className="animate-pulse h-10 bg-gray-200 rounded"></div>
-          <div className="animate-pulse h-10 bg-gray-200 rounded"></div>
-        </div>
-        
-        <div className="animate-pulse mb-6 h-10 w-full max-w-sm bg-gray-200 rounded"></div>
-        
-        <Card>
-          <CardHeader>
-            <div className="animate-pulse h-6 w-1/4 bg-gray-200 rounded mb-2"></div>
-            <div className="animate-pulse h-4 w-1/3 bg-gray-200 rounded"></div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="animate-pulse">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-16 bg-gray-200 rounded mb-2"></div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="container mx-auto py-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Funcionários</h1>
-        </div>
-        
-        <Card className="bg-red-50 border-red-200">
-          <CardContent className="pt-6">
-            <p className="text-red-500">
-              Erro ao carregar funcionários. Por favor, tente novamente mais tarde.
-            </p>
-            <Button
-              variant="outline"
-              className="mt-4"
-              onClick={() => router.refresh()}
-            >
-              Tentar novamente
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  }, [employeesData, departments]);
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Funcionários</h1>
-        {isLeaderOrDirector && (
-          <Link href="/employees/create">
-            <Button>
+    <div className="bg-background min-h-screen">
+      {/* Header */}
+      <EmployeeHeader 
+        title="Gerenciamento de Funcionários" 
+        subtitle="Visualize, crie e gerencie os funcionários da empresa" 
+      />
+
+      {/* Main Content */}
+      <div className="container px-6 py-8">
+        {/* Stats Overview */}
+        <EmployeeStatsOverview 
+          data={stats} 
+          isLoading={isLoading} 
+        />
+
+        {/* Filters and Add Button */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mt-8">
+          <FilterBar 
+            searchTerm={filters.searchTerm || ""}
+            onSearchChange={handleSearch}
+            selectedDepartment={filters.department}
+            onDepartmentChange={handleDepartmentChange}
+            selectedManager={filters.managerId}
+            onManagerChange={handleManagerChange}
+            departments={departments}
+            managers={managers}
+          />
+          
+          {isDirector && (
+            <Button 
+              onClick={() => router.push("/employees/create")}
+              className="rounded-full whitespace-nowrap"
+            >
               <PlusCircle className="mr-2 h-4 w-4" />
-              Adicionar Funcionário
+              Novo Funcionário
             </Button>
-          </Link>
+          )}
+        </div>
+
+        {/* Employees Table */}
+        <div className="mt-6">
+          <EmployeeTable
+            employees={employeesData?.items}
+            isLoading={isLoading}
+            onView={handleViewEmployee}
+            onEdit={handleEditEmployee}
+            onDelete={handleDelete}
+            canEdit={isLeaderOrDirector}
+            canDelete={isDirector}
+          />
+        </div>
+
+        {/* Pagination */}
+        {employeesData && employeesData.totalPages > 1 && (
+          <div className="flex justify-center mt-6">
+            <div className="flex space-x-2">
+              {[...Array(employeesData.totalPages)].map((_, i) => (
+                <Button
+                  key={i}
+                  variant={filters.pageNumber === i + 1 ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handlePageChange(i + 1)}
+                  className="rounded-full w-8 h-8 p-0"
+                >
+                  {i + 1}
+                </Button>
+              ))}
+            </div>
+          </div>
         )}
       </div>
-      
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Filtros</CardTitle>
-          <CardDescription>
-            Filtre os funcionários por departamento ou gerente
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Departamento</label>
-              <Select
-                onValueChange={handleDepartmentChange}
-                value={filters.department || "all"}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Todos os departamentos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os departamentos</SelectItem>
-                  {departments?.map((department) => (
-                    <SelectItem key={department.id} value={department.name}>
-                      {department.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Gerente</label>
-              <Select
-                onValueChange={handleManagerChange}
-                value={filters.managerId || "all"}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Todos os gerentes" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os gerentes</SelectItem>
-                  {managers?.map((manager) => (
-                    <SelectItem key={manager.id} value={manager.id || ''}>
-                      {getFullName(manager)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <div className="relative w-full max-w-sm mb-6">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          type="search"
-          placeholder="Buscar funcionários..."
-          className="pl-8"
-          value={filters.searchTerm}
-          onChange={(e) => handleSearch(e.target.value)}
-        />
-      </div>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Funcionários</CardTitle>
-          <CardDescription>
-            Gerenciar todos os funcionários da empresa
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Cargo</TableHead>
-                <TableHead>Departamento</TableHead>
-                <TableHead>Gerente</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {employeesData?.items && employeesData.items.length > 0 ? (
-                employeesData.items.map((employee) => (
-                  <TableRow key={employee.id}>
-                    <TableCell className="font-medium">
-                      {getFullName(employee)}
-                    </TableCell>
-                    <TableCell>{employee.email}</TableCell>
-                    <TableCell>
-                      <Badge variant={getRoleBadgeVariant(employee.role)}>
-                        {getRoleDisplay(employee.role)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{employee.department}</TableCell>
-                    <TableCell>{employee.managerName || "-"}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end space-x-1">
-                        <Button size="sm" variant="ghost" asChild>
-                          <Link href={`/employees/${employee.id}`}>
-                            <Eye className="h-4 w-4" />
-                            <span className="sr-only">Ver</span>
-                          </Link>
-                        </Button>
-                        
-                        {isLeaderOrDirector && (
-                          <Button size="sm" variant="ghost" asChild>
-                            <Link href={`/employees/${employee.id}/edit`}>
-                              <Pencil className="h-4 w-4" />
-                              <span className="sr-only">Editar</span>
-                            </Link>
-                          </Button>
-                        )}
-                        
-                        {isDirector && (
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            className="text-destructive hover:text-destructive"
-                            onClick={() => handleDelete(employee.id!)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            <span className="sr-only">Excluir</span>
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-6">
-                    <p className="text-muted-foreground">Nenhum funcionário encontrado.</p>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-      
-      {/* Pagination */}
-      {employeesData && employeesData.totalPages > 1 && (
-        <div className="flex justify-between items-center mt-4">
-          <div>
-            Mostrando {employeesData.items?.length || 0} de {employeesData.totalCount} resultados
-          </div>
-          <div className="flex space-x-1">
-            <Button
-              disabled={!employeesData.hasPreviousPage}
-              onClick={() => handlePageChange(employeesData.pageNumber - 1)}
-              className="px-3 py-1 rounded border disabled:opacity-50"
-              size="sm"
-              variant="outline"
-            >
-              Anterior
-            </Button>
-            
-            {Array.from({ length: employeesData.totalPages }, (_, i) => i + 1).map((page) => (
-              <Button
-                key={page}
-                onClick={() => handlePageChange(page)}
-                className={page === employeesData.pageNumber ? "bg-primary text-primary-foreground" : ""}
-                size="sm"
-                variant={page === employeesData.pageNumber ? "default" : "outline"}
-              >
-                {page}
-              </Button>
-            ))}
-            
-            <Button
-              disabled={!employeesData.hasNextPage}
-              onClick={() => handlePageChange(employeesData.pageNumber + 1)}
-              className="px-3 py-1 rounded border disabled:opacity-50"
-              size="sm"
-              variant="outline"
-            >
-              Próximo
-            </Button>
-          </div>
-        </div>
-      )}
-      
       {/* Delete Confirmation Dialog */}
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirmação de exclusão</DialogTitle>
-            <DialogDescription>
-              Tem certeza que deseja excluir este funcionário?
-              Esta ação não pode ser desfeita.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
-              Cancelar
-            </Button>
-            <Button variant="destructive" onClick={confirmDelete}>
-              Excluir
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        employeeName={employeeToDelete ? `${employeeToDelete.firstName} ${employeeToDelete.lastName}` : ""}
+        onConfirm={confirmDelete}
+        isLoading={deleteEmployee.isPending}
+      />
     </div>
   );
 }
