@@ -1,12 +1,17 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export interface StatCardProps {
   title: string;
   value: string | number;
-  description: string;
+  description?: string;
   icon: LucideIcon;
+  trend?: {
+    value: number;
+    isPositive: boolean;
+  };
   className?: string;
 }
 
@@ -15,19 +20,31 @@ export function StatCard({
   value,
   description,
   icon: Icon,
+  trend,
   className,
 }: StatCardProps) {
   return (
-    <Card className={`rounded-3xl overflow-hidden shadow-sm ${className}`}>
+    <Card className={cn("overflow-hidden", className)}>
       <CardContent className="p-6">
-        <div className="flex justify-between items-start">
+        <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-muted-foreground mb-1">{title}</p>
-            <h3 className="text-3xl font-semibold text-foreground">{value}</h3>
-            <p className="text-xs text-muted-foreground mt-2">{description}</p>
+            <p className="text-sm font-medium text-muted-foreground">{title}</p>
+            <h3 className="text-2xl font-bold mt-1">{value}</h3>
+            {description && (
+              <p className="text-xs text-muted-foreground mt-1">{description}</p>
+            )}
+            {trend && (
+              <p className={cn(
+                "text-xs font-medium mt-2 flex items-center",
+                trend.isPositive ? "text-green-500" : "text-red-500"
+              )}>
+                {trend.isPositive ? "+" : "-"}{trend.value}%
+                <span className="text-muted-foreground ml-1">desde o último mês</span>
+              </p>
+            )}
           </div>
-          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary">
-            <Icon className="h-5 w-5 text-primary-foreground" />
+          <div className="rounded-full bg-primary/10 p-3">
+            <Icon className="h-5 w-5 text-primary" />
           </div>
         </div>
       </CardContent>

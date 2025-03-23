@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 
-import { Header } from "@/components/layout/header";
 import { AuthProvider } from "@/hooks/use-auth";
 import { QueryProvider } from "@/providers/query-provider";
 import { Toaster } from "sonner";
 import { TokenSyncClient } from "@/components/auth/token-sync-client";
+import { ConditionalHeader } from "@/components/layout/conditional-header";
+import { ConditionalFooter } from "@/components/layout/conditional-footer";
 
 const poppins = Poppins({
   weight: ['300', '400', '500', '600', '700'],
@@ -36,15 +37,9 @@ export default function RootLayout({
             <TokenSyncClient />
             
             <div className="relative flex min-h-screen flex-col">
-              <Header />
+              <ConditionalHeader />
               <main className="flex-1">{children}</main>
-              <footer className="border-t py-6">
-                <div className="container flex flex-col items-center justify-between gap-4 px-4 text-center md:flex-row md:px-6 lg:px-8">
-                  <p className="text-sm text-muted-foreground">
-                    &copy; {new Date().getFullYear()} AB InBev. Todos os direitos reservados.
-                  </p>
-                </div>
-              </footer>
+              <ConditionalFooter />
             </div>
             <Toaster 
               position="top-center" 
