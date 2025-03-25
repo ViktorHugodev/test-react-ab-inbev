@@ -1,15 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import Link from "next/link";
-import { Loader2, Mail, Lock, User, Phone, Building } from "lucide-react";
+import { Loader2, Mail, Lock, User, Phone, Building, UserCog, AlertTriangle } from "lucide-react";
 
-import { registerSchema, RegisterFormValues } from "@/lib/validations/auth";
 import { useAuth } from "@/hooks/use-auth";
+import { EmployeeRole } from "@/types/employee";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -29,11 +29,18 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { RegisterFormValues, registerSchema } from '@/lib/validations/register';
 
 export function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
-  const { register } = useAuth();
+  const { user, registerEmployee, canCreateRole } = useAuth();
   const router = useRouter();
+  const [hasPermission, setHasPermission] = useState(false);
+
+  useEffect(() => {
+    setHasPermission(user?.role === EmployeeRole.Director);
+  }, [user]);
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -45,7 +52,8 @@ export function RegisterForm() {
       confirmPassword: "",
       documentNumber: "",
       phoneNumber: "",
-      department: "",
+      department: "TI",
+      role: EmployeeRole.Employee,
     },
   });
 
@@ -53,24 +61,68 @@ export function RegisterForm() {
     setIsLoading(true);
 
     try {
-      // Simulação do registro - na implementação real, chamaríamos o método register do hook useAuth
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      toast.success("Cadastro realizado com sucesso! Você receberá um email para confirmar sua conta.");
-      router.push("/auth/login");
+      if (!hasPermission) {
+        throw new Error("Você não tem permissão para registrar funcionários");
+      }
+
+      if (!canCreateRole(values.role)) {
+        throw new Error("Você não pode criar funcionários com este nível de acesso");
+      }
+
+      await registerEmployee({
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: values.email,
+        password: values.password,
+        documentNumber: values.documentNumber,
+        phoneNumber: values.phoneNumber,
+        department: values.department,
+        role: values.role
+      });
+
+      toast.success("Funcionário cadastrado com sucesso!");
+      router.push("/dashboard");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Erro ao realizar cadastro");
+      toast.error(error instanceof Error ? error.message : "Erro ao cadastrar funcionário");
       console.error(error);
     } finally {
       setIsLoading(false);
     }
   }
 
+  if (!hasPermission) {
+    return (
+      <Card className="w-full max-w-lg shadow-lg rounded-4xl border-none bg-gradient-to-b from-card to-card/80 transition-all duration-300">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold text-center">Acesso Restrito</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Acesso Negado</AlertTitle>
+            <AlertDescription>
+              Apenas Diretores podem registrar novos funcionários no sistema.
+            </AlertDescription>
+          </Alert>
+          <div className="mt-4 text-center">
+            <Button
+              onClick={() => router.push("/dashboard")}
+              className="rounded-xl"
+            >
+              Voltar para o Dashboard
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="w-full max-w-lg shadow-lg rounded-4xl border-none bg-gradient-to-b from-card to-card/80 transition-all duration-300">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold text-center">Criar Conta</CardTitle>
+        <CardTitle className="text-2xl font-bold text-center">Cadastrar Funcionário</CardTitle>
         <CardDescription className="text-center">
-          Preencha os dados abaixo para se cadastrar no sistema
+          Preencha os dados abaixo para cadastrar um novo funcionário
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -87,7 +139,7 @@ export function RegisterForm() {
                       <div className="relative">
                         <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input 
-                          placeholder="Seu nome" 
+                          placeholder="Nome do funcionário" 
                           className="pl-10 rounded-xl border-input" 
                           {...field} 
                         />
@@ -107,7 +159,7 @@ export function RegisterForm() {
                       <div className="relative">
                         <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input 
-                          placeholder="Seu sobrenome" 
+                          placeholder="Sobrenome do funcionário" 
                           className="pl-10 rounded-xl border-input" 
                           {...field} 
                         />
@@ -129,7 +181,7 @@ export function RegisterForm() {
                     <div className="relative">
                       <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                       <Input 
-                        placeholder="seu@email.com" 
+                        placeholder="email@nossaempresa.com" 
                         className="pl-10 rounded-xl border-input" 
                         {...field} 
                       />
@@ -227,36 +279,69 @@ export function RegisterForm() {
               />
             </div>
             
-            <FormField
-              control={form.control}
-              name="department"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-foreground">Departamento</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <div className="relative">
-                        <Building className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <SelectTrigger className="pl-10 rounded-xl border-input">
-                          <SelectValue placeholder="Selecione um departamento" />
-                        </SelectTrigger>
-                      </div>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="TI">TI</SelectItem>
-                      <SelectItem value="RH">RH</SelectItem>
-                      <SelectItem value="Financeiro">Financeiro</SelectItem>
-                      <SelectItem value="Marketing">Marketing</SelectItem>
-                      <SelectItem value="Vendas">Vendas</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="department"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-foreground">Departamento</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <div className="relative">
+                          <Building className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                          <SelectTrigger className="pl-10 rounded-xl border-input">
+                            <SelectValue placeholder="Selecione um departamento" />
+                          </SelectTrigger>
+                        </div>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="TI">TI</SelectItem>
+                        <SelectItem value="RH">RH</SelectItem>
+                        <SelectItem value="Financeiro">Financeiro</SelectItem>
+                        <SelectItem value="Marketing">Marketing</SelectItem>
+                        <SelectItem value="Vendas">Vendas</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-foreground">Cargo</FormLabel>
+                    <Select 
+                      onValueChange={(value) => field.onChange(Number(value))} 
+                      defaultValue={field.value.toString()}
+                    >
+                      <FormControl>
+                        <div className="relative">
+                          <UserCog className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                          <SelectTrigger className="pl-10 rounded-xl border-input">
+                            <SelectValue placeholder="Selecione um cargo" />
+                          </SelectTrigger>
+                        </div>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value={EmployeeRole.Employee.toString()}>Funcionário</SelectItem>
+                        <SelectItem value={EmployeeRole.Leader.toString()}>Líder</SelectItem>
+                        {user?.role === EmployeeRole.Director && (
+                          <SelectItem value={EmployeeRole.Director.toString()}>Diretor</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             
             <Button 
               type="submit" 
@@ -269,7 +354,7 @@ export function RegisterForm() {
                   Cadastrando...
                 </>
               ) : (
-                "Cadastrar"
+                "Cadastrar Funcionário"
               )}
             </Button>
           </form>
@@ -277,9 +362,9 @@ export function RegisterForm() {
       </CardContent>
       <CardFooter className="flex flex-col space-y-2 border-t pt-4">
         <div className="text-center text-sm text-muted-foreground">
-          <p>Já tem uma conta?{" "}
-            <Link href="/auth/login" className="text-primary hover:underline">
-              Faça login
+          <p>
+            <Link href="/dashboard" className="text-primary hover:underline">
+              Voltar para o Dashboard
             </Link>
           </p>
         </div>

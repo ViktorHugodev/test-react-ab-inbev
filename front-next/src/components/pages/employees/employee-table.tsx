@@ -134,7 +134,7 @@ export function EmployeeTable({
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => onView(employee.id)}
+                    onClick={() => employee.id && onView(employee.id)}
                     className="h-8 w-8 rounded-full"
                   >
                     <Eye className="h-4 w-4" />
@@ -145,7 +145,7 @@ export function EmployeeTable({
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => onEdit(employee.id)}
+                      onClick={() => employee.id && onEdit(employee.id)}
                       className="h-8 w-8 rounded-full"
                     >
                       <Pencil className="h-4 w-4" />
@@ -157,7 +157,7 @@ export function EmployeeTable({
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => onDelete(employee.id)}
+                      onClick={() => employee.id && onDelete(employee.id)}
                       className="h-8 w-8 rounded-full text-destructive hover:text-destructive hover:bg-destructive/10"
                     >
                       <Trash2 className="h-4 w-4" />

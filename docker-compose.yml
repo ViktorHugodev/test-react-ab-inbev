@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: company-manager-db
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${DB_PASSWORD:-StrongPass123}
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    networks:
+      - company-network
+    restart: unless-stopped
+    command: /opt/mssql/bin/sqlservr
+
+  api:
+    build:
+      context: ./back-dotnet
+      dockerfile: Dockerfile
+    container_name: company-manager-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=db;Database=CompanyManager;User=sa;Password=${DB_PASSWORD:-StrongPassword123!};TrustServerCertificate=True;
+      - JWT_SECRET=${JWT_SECRET:-YourSuperSecretKeyForJwtTokenGenerationAndValidation}
+    ports:
+      - "5000:80"
+    depends_on:
+      - db
+    networks:
+      - company-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./front-next
+      dockerfile: Dockerfile
+    container_name: company-manager-frontend
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:5000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    networks:
+      - company-network
+    restart: unless-stopped
+
+networks:
+  company-network:
+    driver: bridge
+
+volumes:
+  sqlserver_data:

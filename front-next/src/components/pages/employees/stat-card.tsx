@@ -6,11 +6,11 @@ interface StatCardProps {
   title: string;
   value: string | number;
   description?: string;
-  icon: LucideIcon;
+  icon: React.ReactNode;
   trend?: {
     value: number;
     isPositive: boolean;
-  };
+  } | 'neutral' | 'positive' | 'negative';
   className?: string;
 }
 
@@ -18,7 +18,7 @@ export function StatCard({
   title,
   value,
   description,
-  icon: Icon,
+  icon,
   trend,
   className,
 }: StatCardProps) {
@@ -32,7 +32,7 @@ export function StatCard({
             {description && (
               <p className="text-xs text-muted-foreground mt-1">{description}</p>
             )}
-            {trend && (
+            {trend && typeof trend !== 'string' && (
               <p className={cn(
                 "text-xs font-medium mt-2 flex items-center",
                 trend.isPositive ? "text-green-500" : "text-red-500"
@@ -43,7 +43,7 @@ export function StatCard({
             )}
           </div>
           <div className="rounded-full bg-primary/10 p-3">
-            <Icon className="h-5 w-5 text-primary" />
+            {icon}
           </div>
         </div>
       </CardContent>

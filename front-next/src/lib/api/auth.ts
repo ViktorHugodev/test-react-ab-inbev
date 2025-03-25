@@ -1,5 +1,5 @@
 import { api } from "@/services/api";
-import { AuthResponseDTO, LoginDTO } from "@/types/employee";
+import { AuthResponseDTO, LoginDTO, RegisterEmployeeDTO, EmployeeRole, Employee } from "@/types/employee";
 
 // Simula um erro de rede ou servidor
 const simulateNetworkDelay = (ms: number) =>
@@ -74,6 +74,70 @@ export async function getCurrentUser(): Promise<CurrentUserResponse> {
     return await api.get<CurrentUserResponse>("/Auth/me");
   } catch (error) {
     console.error("Erro ao obter usuário atual:", error);
+    throw error;
+  }
+}
+
+/**
+ * Registra um novo funcionário no sistema
+ * Apenas usuários com role=3 (Director) podem executar esta função
+ */
+export async function registerEmployee(employeeData: RegisterEmployeeDTO): Promise<Employee> {
+  try {
+    // Verificar se o usuário atual tem permissão para registrar funcionários
+    const currentUser = await getCurrentUser();
+    
+    if (parseInt(currentUser.role) !== EmployeeRole.Director) {
+      throw new Error("Apenas Diretores podem registrar novos funcionários");
+    }
+    
+    // Em desenvolvimento, podemos usar o backend real ou o mock
+    if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_MOCK === 'true') {
+      await simulateNetworkDelay(Math.floor(Math.random() * 800) + 500);
+      
+      // Validação de email corporativo
+      if (!employeeData.email.endsWith('@nossaempresa.com')) {
+        throw new Error("O email deve ser corporativo (@nossaempresa.com)");
+      }
+      
+      // Simula um registro bem-sucedido
+      return {
+        id: Math.random().toString(36).substring(2, 15),
+        firstName: employeeData.firstName,
+        lastName: employeeData.lastName,
+        email: employeeData.email,
+        documentNumber: employeeData.documentNumber,
+        birthDate: new Date(),
+        role: employeeData.role,
+        department: employeeData.department,
+        phoneNumbers: [
+          { 
+            id: "1", 
+            number: employeeData.phoneNumber, 
+            type: 1 // Mobile
+          }
+        ],
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+    }
+    
+    // Chamada real para o backend
+    // Convertemos o DTO para o formato esperado pela API
+    const apiPayload = {
+      ...employeeData,
+      birthDate: new Date().toISOString(), // Data atual como padrão
+      phoneNumbers: [
+        {
+          number: employeeData.phoneNumber,
+          type: 1 // Mobile como padrão
+        }
+      ]
+    };
+    
+    return await api.post<Employee>("/Auth/register", apiPayload);
+  } catch (error) {
+    console.error("Erro ao registrar funcionário:", error);
     throw error;
   }
 }

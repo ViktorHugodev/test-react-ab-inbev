@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using CompanyManager.Application.DTOs;
 using CompanyManager.Application.Exceptions;
@@ -207,20 +208,45 @@ namespace CompanyManager.Application.Services
                     updateEmployeeDto.Department,
                     updateEmployeeDto.ManagerId);
 
-                // Atualiza telefones (esta é uma abordagem simplificada - em produção, pode-se optar por uma gestão mais refinada)
-                // Limpa telefones existentes
+                // Atualização de telefones
                 var phoneList = employee.PhoneNumbers.ToList();
-                foreach (var phone in phoneList)
-                {
-                    employee.RemovePhoneNumber(phone.Id);
-                }
-
-                // Adiciona novos telefones
+                
+                // Rastreie quais telefones foram processados para saber quais remover depois
+                var processedPhoneIds = new List<Guid>();
+                
+                // Atualiza ou adiciona telefones
                 if (updateEmployeeDto.PhoneNumbers != null)
                 {
                     foreach (var phoneDto in updateEmployeeDto.PhoneNumbers)
                     {
+                        // Se o telefone tiver ID, atualize o existente
+                        if (phoneDto.Id.HasValue && phoneDto.Id.Value != Guid.Empty)
+                        {
+                            var existingPhone = phoneList.FirstOrDefault(p => p.Id == phoneDto.Id.Value);
+                            if (existingPhone != null)
+                            {
+                                // Marca como processado
+                                processedPhoneIds.Add(existingPhone.Id);
+                                
+                                // Para atualizar um telefone existente, removemos e adicionamos um novo
+                                // (já que PhoneNumber é um Value Object imutável)
+                                employee.RemovePhoneNumber(existingPhone.Id);
+                                employee.AddPhoneNumber(phoneDto.Number, phoneDto.Type);
+                                continue;
+                            }
+                        }
+                        
+                        // Se não tiver ID ou não encontrar o telefone, adiciona um novo
                         employee.AddPhoneNumber(phoneDto.Number, phoneDto.Type);
+                    }
+                }
+                
+                // Remove telefones que não foram processados (não estavam no DTO)
+                foreach (var phone in phoneList)
+                {
+                    if (!processedPhoneIds.Contains(phone.Id))
+                    {
+                        employee.RemovePhoneNumber(phone.Id);
                     }
                 }
 
@@ -233,9 +259,16 @@ namespace CompanyManager.Application.Services
 
                 return MapToEmployeeDto(employee);
             }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                _logger.LogError(ex, "Erro de concorrência ao atualizar funcionário ID {EmployeeId}: {ErrorMessage}", 
+                    updateEmployeeDto.Id, ex.Message);
+                throw new ApplicationException("Erro de concorrência: Os dados foram modificados por outro usuário. Por favor, recarregue e tente novamente.", ex);
+            }
             catch (Exception ex) when (ex is not ApplicationException && ex is not DomainException)
             {
-                _logger.LogError(ex, "Erro ao atualizar funcionário: {ErrorMessage}", ex.Message);
+                _logger.LogError(ex, "Erro ao atualizar funcionário ID {EmployeeId}: {ErrorMessage}", 
+                    updateEmployeeDto.Id, ex.Message);
                 throw new ApplicationException("Ocorreu um erro ao atualizar o funcionário. Por favor, tente novamente.", ex);
             }
         }

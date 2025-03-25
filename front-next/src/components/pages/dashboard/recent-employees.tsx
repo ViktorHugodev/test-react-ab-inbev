@@ -41,7 +41,7 @@ export function RecentEmployees() {
   };
 
   return (
-    <Card className="col-span-full md:col-span-6">
+    <Card className="col-span-full md:col-span-6 border-none">
       <CardHeader>
         <CardTitle>Funcionários Recentes</CardTitle>
         <CardDescription>

@@ -72,7 +72,7 @@ export function FilterBar({
           <SelectContent>
             <SelectItem value="all">Todos Gerentes</SelectItem>
             {managers?.map((manager) => (
-              <SelectItem key={manager.id} value={manager.id}>
+              <SelectItem key={manager.id} value={manager.id || ""}>
                 {manager.firstName} {manager.lastName}
               </SelectItem>
             ))}

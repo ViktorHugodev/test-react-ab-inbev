@@ -1,5 +1,5 @@
 // Base API client
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5244/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export const getAuthToken = (): string | null => {
   if (typeof window === "undefined") return null;

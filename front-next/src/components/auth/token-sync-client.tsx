@@ -7,7 +7,7 @@ import Cookies from 'js-cookie';
  * Componente do lado do cliente para sincronizar o token JWT entre localStorage e cookies.
  * Este componente não renderiza nada visualmente, apenas executa a lógica de sincronização.
  */
-export function TokenSyncClient() {
+export function TokenSyncClient(): React.ReactNode {
   useEffect(() => {
     const syncTokenToCookie = () => {
       if (typeof window === 'undefined') return;

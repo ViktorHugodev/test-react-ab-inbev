@@ -148,7 +148,12 @@ namespace CompanyManager.Infrastructure.Repositories
 
         public Task UpdateAsync(Employee employee, CancellationToken cancellationToken = default)
         {
+            // Garante que o Employee está sendo rastreado corretamente
             _context.Entry(employee).State = EntityState.Modified;
+            
+            // Importante: Não devemos alterar o estado da coleção PhoneNumbers diretamente,
+            // pois o Entity Framework Core irá tratá-los com base nas navegações
+            
             return Task.CompletedTask;
         }
 

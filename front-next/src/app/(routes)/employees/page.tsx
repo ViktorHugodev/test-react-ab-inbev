@@ -33,10 +33,8 @@ export default function EmployeesPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [stats, setStats] = useState<EmployeeStatsData>({
     totalEmployees: 0,
-    activeEmployees: 0,
-    totalDepartments: 0,
-    leadersCount: 0,
-    averageTenure: 0,
+    topDepartment: '',
+    departmentDistribution: {}
   });
 
   // Fetch data with queries
@@ -89,7 +87,7 @@ export default function EmployeesPage() {
 
   // Handle edit employee
   const handleEditEmployee = (id: string) => {
-    router.push(`/employees/${id}/edit`);
+    router.push(`/employees/${id}`);
   };
 
   // Handle delete
@@ -103,7 +101,7 @@ export default function EmployeesPage() {
 
   // Confirm delete
   const confirmDelete = async () => {
-    if (!employeeToDelete) return;
+    if (!employeeToDelete || !employeeToDelete.id) return;
     
     try {
       await deleteEmployee.mutateAsync(employeeToDelete.id);
@@ -119,26 +117,30 @@ export default function EmployeesPage() {
   // Calculate stats
   useEffect(() => {
     if (employeesData && departments) {
-      const now = new Date();
-      let totalTenure = 0;
-      let employeesWithHireDate = 0;
-
-      employeesData.items.forEach(emp => {
-        if (emp.hireDate) {
-          const hireDate = new Date(emp.hireDate);
-          const tenureMonths = (now.getFullYear() - hireDate.getFullYear()) * 12 + 
-                              (now.getMonth() - hireDate.getMonth());
-          totalTenure += tenureMonths;
-          employeesWithHireDate++;
+      // Estatísticas básicas sem depender de hireDate
+      const totalEmployees = employeesData.items.length;
+      const departmentCounts = employeesData.items.reduce((acc, emp) => {
+        if (emp.department) {
+          acc[emp.department] = (acc[emp.department] || 0) + 1;
+        }
+        return acc;
+      }, {} as Record<string, number>);
+      
+      // Encontrar o departamento com mais funcionários
+      let topDepartment = '';
+      let maxCount = 0;
+      
+      Object.entries(departmentCounts).forEach(([dept, count]) => {
+        if (count > maxCount) {
+          maxCount = count;
+          topDepartment = dept;
         }
       });
-
+      
       setStats({
-        totalEmployees: employeesData.totalCount,
-        activeEmployees: employeesData.items.filter(emp => emp.isActive).length,
-        totalDepartments: departments.length,
-        leadersCount: employeesData.items.filter(emp => emp.role === EmployeeRole.Leader).length,
-        averageTenure: employeesWithHireDate > 0 ? Math.round(totalTenure / employeesWithHireDate) : 0,
+        totalEmployees,
+        topDepartment,
+        departmentDistribution: departmentCounts
       });
     }
   }, [employeesData, departments]);

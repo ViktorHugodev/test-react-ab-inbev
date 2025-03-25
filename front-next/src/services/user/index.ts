@@ -33,7 +33,7 @@ export const userService = {
       email: data.email || currentUser.email,
       birthDate: data.birthDate || currentUser.birthDate,
       role: currentUser.role,
-      department: currentUser.department,
+      department: currentUser.department || "",
       managerId: currentUser.managerId,
       phoneNumbers: data.phoneNumbers || currentUser.phoneNumbers || []
     };

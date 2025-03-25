@@ -177,7 +177,11 @@ export default function EmployeeDetailPage({ params }: { params: { id: string } 
           role: data.role,
           department: data.department,
           managerId: data.managerId,
-          phoneNumbers: data.phoneNumbers || []
+          phoneNumbers: data.phoneNumbers?.map(phone => ({
+            id: phone.id,
+            number: phone.number || "",
+            type: phone.type || 1
+          })) || []
         }
       });
       

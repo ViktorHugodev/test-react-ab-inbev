@@ -1589,6 +1589,7 @@
         "dependencies": {
           "BCrypt.Net-Next": "4.0.3",
           "CompanyManager.Domain": "1.0.0",
+          "Microsoft.EntityFrameworkCore": "9.0.3",
           "Microsoft.Extensions.Logging.Abstractions": "9.0.3",
           "Microsoft.Extensions.Options": "9.0.3",
           "System.IdentityModel.Tokens.Jwt": "8.6.1"

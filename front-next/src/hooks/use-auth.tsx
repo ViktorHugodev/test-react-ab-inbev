@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, createContext, useContext } from "react";
-import { EmployeeRole, AuthResponseDTO, LoginDTO } from "@/types/employee";
-import { loginUser, getCurrentUser, CurrentUserResponse } from "@/lib/api/auth";
+import { EmployeeRole, AuthResponseDTO, LoginDTO, RegisterEmployeeDTO, Employee } from "@/types/employee";
+import { loginUser, getCurrentUser, CurrentUserResponse, registerEmployee as apiRegisterEmployee } from "@/lib/api/auth";
 import { clearAuthToken } from "@/lib/token-sync";
 import Cookies from "js-cookie";
 
@@ -19,15 +19,16 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   canCreateRole: (role: EmployeeRole) => boolean;
+  registerEmployee: (employeeData: RegisterEmployeeDTO) => Promise<void>;
 }
 
-// Create context with default values
 const AuthContext = createContext<AuthContextType>({
   user: null,
   isLoading: true,
   login: async () => {},
   logout: () => {},
   canCreateRole: () => false,
+  registerEmployee: async () => {},
 });
 
 interface AuthProviderProps {
@@ -35,52 +36,41 @@ interface AuthProviderProps {
   mockRole?: EmployeeRole;
 }
 
-// Convert role to enum - handle both string and number inputs
 const convertRoleToEnum = (role: string | number): EmployeeRole => {
-  // Se for número, converte diretamente
   if (typeof role === 'number') {
-    // Verifica se o número está dentro dos valores válidos do enum
     if (Object.values(EmployeeRole).includes(role)) {
       return role as EmployeeRole;
     }
-    // Se não for um valor válido, retorna Employee como fallback
     console.warn(`Valor de role inválido recebido: ${role}, usando Employee como fallback`);
     return EmployeeRole.Employee;
   }
   
-  // Se for string, converte baseado no texto
   if (role === "Director") return EmployeeRole.Director;
   if (role === "Leader") return EmployeeRole.Leader;
   return EmployeeRole.Employee;
 };
 
-// Provider component to wrap app
 export const AuthProvider: React.FC<AuthProviderProps> = ({ 
   children,
-  mockRole = EmployeeRole.Leader // Allow overriding the mock role for testing
+  mockRole = EmployeeRole.Leader
 }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [authChecked, setAuthChecked] = useState<boolean>(false);
   
-  // Check for auth token once on component mount
   useEffect(() => {
-    // Skip if we already checked
     if (authChecked) return;
     
     const checkAuth = async () => {
       try {
-        // Usar uma variável local para evitar acesso direto ao localStorage durante a renderização
         let token = null;
         
-        // Verificar se estamos no cliente antes de acessar localStorage
         if (typeof window !== 'undefined') {
           token = localStorage.getItem("auth_token");
         }
         
         if (token) {
           try {
-            // Fetch user info from the backend
             const userData: CurrentUserResponse = await getCurrentUser();
             
             setUser({
@@ -91,7 +81,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
             });
           } catch (error) {
             console.error("Error fetching user data:", error);
-            // Token inválido ou expirado, limpar
             if (typeof window !== 'undefined') {
               localStorage.removeItem("auth_token");
             }
@@ -105,7 +94,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
       }
     };
     
-    // Atrasar a verificação de autenticação para garantir que estamos no cliente
     const timer = setTimeout(() => {
       checkAuth();
     }, 0);
@@ -113,25 +101,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     return () => clearTimeout(timer);
   }, [authChecked]);
   
-  // Login function
   const login = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
     try {
       const authResponse: AuthResponseDTO = await loginUser({ email, password });
       
-      // Salvar token no localStorage e cookie
       if (typeof window !== 'undefined') {
         localStorage.setItem("auth_token", authResponse.token);
-        // Sincronizar com cookie para o middleware
         Cookies.set("auth_token", authResponse.token, {
-          expires: 1, // 1 dia
+          expires: 1,
           path: '/',
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'lax'
         });
       }
       
-      // Extrair informações do usuário
       const userData = authResponse.employee;
       
       setUser({
@@ -148,18 +132,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     }
   };
   
-  // Logout function
   const logout = (): void => {
-    // Limpar token do localStorage e cookie
     clearAuthToken();
     setUser(null);
   };
   
-  // Function to check if user can create a role based on hierarchy
   const canCreateRole = (role: EmployeeRole): boolean => {
     if (!user) return false;
     
-    // Role hierarchy check
     const roleHierarchy: Record<EmployeeRole, number> = {
       [EmployeeRole.Director]: 3,
       [EmployeeRole.Leader]: 2,
@@ -169,12 +149,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     return roleHierarchy[user.role] >= roleHierarchy[role];
   };
   
+  const registerEmployee = async (employeeData: RegisterEmployeeDTO): Promise<void> => {
+    setIsLoading(true);
+    try {
+      if (!user || user.role !== EmployeeRole.Director) {
+        throw new Error("Apenas Diretores podem registrar novos funcionários");
+      }
+      
+      if (!canCreateRole(employeeData.role)) {
+        throw new Error("Você não pode criar funcionários com este nível de acesso");
+      }
+      
+      await apiRegisterEmployee(employeeData);
+    } catch (error) {
+      console.error("Error registering employee:", error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout, canCreateRole }}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout, canCreateRole, registerEmployee }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Hook to use auth in components
 export const useAuth = (): AuthContextType => useContext(AuthContext);

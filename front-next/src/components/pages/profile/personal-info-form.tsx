@@ -7,6 +7,7 @@ import { ptBR } from "date-fns/locale";
 import * as z from "zod";
 
 import { Employee, PhoneType } from "@/types/employee";
+import { CurrentUserResponse } from "@/lib/api/auth";
 
 import {
   Form,
@@ -53,7 +54,7 @@ const personalInfoSchema = z.object({
 export type PersonalInfoFormValues = z.infer<typeof personalInfoSchema>;
 
 interface PersonalInfoFormProps {
-  user: Employee | null | undefined;
+  user: Employee | CurrentUserResponse | null | undefined;
   onSubmit: (data: PersonalInfoFormValues) => Promise<void>;
   isLoading: boolean;
 }
@@ -61,15 +62,46 @@ interface PersonalInfoFormProps {
 export function PersonalInfoForm({ user, onSubmit, isLoading }: PersonalInfoFormProps) {
   const [isEditing, setIsEditing] = useState(false);
 
+  // Adaptar os dados do usuário para o formulário
+  const adaptUserData = () => {
+    if (!user) return null;
+    
+    // Se for CurrentUserResponse, adaptar para o formato esperado pelo formulário
+    if ('name' in user) {
+      const nameParts = user.name.split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      
+      return {
+        firstName,
+        lastName,
+        email: user.email,
+        birthDate: undefined,
+        phoneNumbers: []
+      };
+    }
+    
+    // Se for Employee, usar diretamente
+    return {
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      email: user.email || '',
+      birthDate: user.birthDate ? new Date(user.birthDate) : new Date(),
+      phoneNumbers: user.phoneNumbers || []
+    };
+  };
+  
+  const userData = adaptUserData();
+
   // Form for personal information
   const form = useForm<PersonalInfoFormValues>({
     resolver: zodResolver(personalInfoSchema),
-    defaultValues: {
-      firstName: user?.firstName || "",
-      lastName: user?.lastName || "",
-      email: user?.email || "",
-      birthDate: user?.birthDate ? new Date(user.birthDate) : new Date(),
-      phoneNumbers: user?.phoneNumbers || [],
+    defaultValues: userData || {
+      firstName: "",
+      lastName: "",
+      email: "",
+      birthDate: new Date(),
+      phoneNumbers: [],
     },
   });
 

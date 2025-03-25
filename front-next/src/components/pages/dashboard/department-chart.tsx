@@ -21,7 +21,7 @@ export function DepartmentChart() {
   
   if (data?.items) {
     const counts = data.items.reduce((acc, employee) => {
-      const dept = employee.department;
+      const dept = employee.department || 'Sem Departamento';
       if (!acc[dept]) {
         acc[dept] = 0;
       }
@@ -61,7 +61,7 @@ export function DepartmentChart() {
     : 0;
 
   return (
-    <Card className="col-span-full md:col-span-6">
+    <Card className="col-span-full md:col-span-6 border-none">
       <CardHeader>
         <CardTitle>Distribuição por Departamento</CardTitle>
         <CardDescription>

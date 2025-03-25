@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 export function ConditionalFooter() {
   const { user } = useAuth();
   
-  // Only render the footer if the user is authenticated
+
   if (!user) {
     return null;
   }

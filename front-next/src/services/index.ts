@@ -38,8 +38,10 @@ export const api = {
       });
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: `API Error: ${response.status}` }));
-        throw new ApiError(error.message || `API Error: ${response.status}`, response.status, error);
+        const errorData = await response.json().catch(() => ({ message: `API Error: ${response.status}` }));
+        console.error("API Error Response:", JSON.stringify(errorData));
+        const errorMessage = errorData.message || errorData.details || errorData.error || `API Error: ${response.status}`;
+        throw new ApiError(errorMessage, response.status, errorData);
       }
 
       return response.json();
@@ -63,8 +65,10 @@ export const api = {
       });
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: `API Error: ${response.status}` }));
-        throw new ApiError(error.message || `API Error: ${response.status}`, response.status, error);
+        const errorData = await response.json().catch(() => ({ message: `API Error: ${response.status}` }));
+        console.error("API Error Response:", JSON.stringify(errorData));
+        const errorMessage = errorData.message || errorData.details || errorData.error || `API Error: ${response.status}`;
+        throw new ApiError(errorMessage, response.status, errorData);
       }
 
       return response.json();
@@ -78,6 +82,9 @@ export const api = {
 
   put: async <T>(path: string, data: unknown): Promise<T> => {
     try {
+      console.log("PUT request to:", `${API_URL}${path}`);
+      console.log("Data:", JSON.stringify(data));
+      
       const response = await fetch(`${API_URL}${path}`, {
         method: "PUT",
         headers: {
@@ -88,8 +95,10 @@ export const api = {
       });
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: `API Error: ${response.status}` }));
-        throw new ApiError(error.message || `API Error: ${response.status}`, response.status, error);
+        const errorData = await response.json().catch(() => ({ message: `API Error: ${response.status}` }));
+        console.error("API Error Response:", JSON.stringify(errorData));
+        const errorMessage = errorData.message || errorData.details || errorData.error || `API Error: ${response.status}`;
+        throw new ApiError(errorMessage, response.status, errorData);
       }
 
       return response.json();

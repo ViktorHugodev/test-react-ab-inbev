@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // Definição mais clara de rotas públicas vs. protegidas
 const PUBLIC_ROUTES = [
-  '/login',
+
   '/auth/login',
   '/auth/register',
 ];
@@ -69,7 +69,7 @@ export async function middleware(request: NextRequest) {
     }
     
     // Para rotas de página, redireciona para login
-    const loginUrl = new URL('/login', request.url);
+    const loginUrl = new URL('/auth/login', request.url);
     loginUrl.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(loginUrl);
   }
@@ -89,7 +89,7 @@ export async function middleware(request: NextRequest) {
     console.error('Erro na validação do token:', error);
     
     // Se o token for inválido, limpar o cookie e redirecionar
-    const response = NextResponse.redirect(new URL('/login', request.url));
+    const response = NextResponse.redirect(new URL('/auth/login', request.url));
     response.cookies.delete('auth_token');
     return response;
   }

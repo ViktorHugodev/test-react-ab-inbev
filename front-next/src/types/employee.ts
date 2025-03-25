@@ -29,7 +29,7 @@ export interface Employee {
   birthDate: Date;
   age?: number;
   role: EmployeeRole;
-  department: string;
+  department?: string;
   managerId?: string;
   managerName?: string;
   phoneNumbers: Phone[];
@@ -54,13 +54,24 @@ export interface CreateEmployeeDTO {
   }[];
 }
 
+export interface RegisterEmployeeDTO {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  documentNumber: string;
+  phoneNumber: string;
+  department: string;
+  role: EmployeeRole;
+}
+
 export interface UpdateEmployeeDTO {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
   role: EmployeeRole;
-  department: string;
+  department?: string;
   managerId?: string;
   birthDate: string | Date
   phoneNumbers: {

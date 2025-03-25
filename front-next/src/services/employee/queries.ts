@@ -14,11 +14,12 @@ import { ApiError } from '..';
 // Error handler utility
 const handleApiError = (error: unknown, defaultMessage: string) => {
   if (error instanceof ApiError) {
-    toast.error(error.message);
+    console.error('API Error Details:', error);
+    toast.error(`Erro: ${error.message}`);
   } else {
+    console.error('Unknown Error:', error);
     toast.error(defaultMessage);
   }
-  console.error(error);
 };
 
 /**
@@ -109,30 +110,43 @@ export const useUpdateEmployeeProfile = () => {
     { id: string; data: Partial<UpdateEmployeeDTO> }
   >({
     mutationFn: async ({ id, data }) => {
-      // Primeiro obtemos os dados completos do funcionário
-      const currentEmployee = await employeeService.getEmployeeById(id);
-      
-      // Criamos um objeto completo de atualização mesclando os dados atuais com as alterações
-      const completeData: UpdateEmployeeDTO = {
-        id,
-        firstName: data.firstName || currentEmployee.firstName,
-        lastName: data.lastName || currentEmployee.lastName,
-        email: data.email || currentEmployee.email,
-        role: data.role || currentEmployee.role,
-        department: data.department || currentEmployee.department,
-        managerId: data.managerId || currentEmployee.managerId,
-        birthDate: data.birthDate || currentEmployee.birthDate,
-        phoneNumbers: data.phoneNumbers || currentEmployee.phoneNumbers || []
-      };
-      
-      // Chamamos o serviço com os dados completos
-      return employeeService.updateEmployee(id, completeData);
+      try {
+        // Primeiro obtemos os dados completos do funcionário
+        const currentEmployee = await employeeService.getEmployeeById(id);
+        console.log("Current employee data:", currentEmployee);
+        
+        // Log de dados de entrada para debug
+        console.log("Update input data:", data);
+        
+        // Criamos um objeto completo de atualização mesclando os dados atuais com as alterações
+        const completeData: UpdateEmployeeDTO = {
+          id,
+          firstName: data.firstName || currentEmployee.firstName,
+          lastName: data.lastName || currentEmployee.lastName,
+          email: data.email || currentEmployee.email,
+          role: data.role || currentEmployee.role,
+          department: data.department || currentEmployee.department || "",
+          managerId: data.managerId || currentEmployee.managerId,
+          birthDate: data.birthDate || currentEmployee.birthDate,
+          phoneNumbers: data.phoneNumbers || currentEmployee.phoneNumbers || []
+        };
+        
+        console.log("Complete update data:", completeData);
+        
+        // Chamamos o serviço com os dados completos
+        return employeeService.updateEmployee(id, completeData);
+      } catch (error) {
+        console.error("Error in update profile mutation:", error);
+        throw error;
+      }
     },
     onSuccess: (updatedEmployee) => {
+      console.log("Profile update successful:", updatedEmployee);
       queryClient.invalidateQueries({ queryKey: ["currentUser"] });
       queryClient.invalidateQueries({ queryKey: ["employee", updatedEmployee.id] });
     },
     onError: (error) => {
+      console.error("Profile update error:", error);
       handleApiError(error, "Erro ao atualizar perfil.");
     },
   });

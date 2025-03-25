@@ -50,7 +50,7 @@ export const employeeService = {
           true;
           
         const matchesDepartment = department ? 
-          e.department.toLowerCase() === department.toLowerCase() : 
+          e.department?.toLowerCase() === department.toLowerCase() : 
           true;
           
         const matchesManager = managerId ? 
@@ -103,7 +103,7 @@ export const employeeService = {
     // Em desenvolvimento, usando mock ou API real dependendo da configuração
     if (process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_USE_MOCK === "true") {
       await mockDelay(500);
-      return mockEmployees.filter(e => e.department.toLowerCase() === department.toLowerCase());
+      return mockEmployees.filter(e => e.department?.toLowerCase() === department.toLowerCase());
     }
     
     return api.get<Employee[]>(`/Employees/department/${department}`);
@@ -273,7 +273,11 @@ export const employeeService = {
     const employees = await api.get<Employee[]>("/Employees");
     // Create a unique list of departments without using spread on Set
     const departmentSet = new Set<string>();
-    employees.forEach(e => departmentSet.add(e.department));
+    employees.forEach(e => {
+      if (e.department) {
+        departmentSet.add(e.department);
+      }
+    });
     const departments = Array.from(departmentSet);
     return departments.map(name => ({ id: name, name }));
   },

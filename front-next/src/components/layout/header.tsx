@@ -29,7 +29,6 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-// Tipo para os items de navegação
 type NavItem = {
   name: string;
   href: string;
@@ -41,7 +40,6 @@ export function Header() {
   const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
-  // Lista de navegação principal - simplificada
   const navItems: NavItem[] = [
     {
       name: "Dashboard",
@@ -58,14 +56,8 @@ export function Header() {
       href: "/departments",
       icon: Building,
     },
-    {
-      name: "Configurações",
-      href: "/settings",
-      icon: Settings,
-    },
   ];
 
-  // Verificação se o link está ativo
   const isActiveLink = (path: string) => {
     if (path === "/") return pathname === "/";
     return pathname.startsWith(path);
@@ -75,14 +67,12 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-background">
       <div className="px-6 mx-auto max-w-7xl">
         <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
           <Link href="/" className="flex items-center">
             <div className="font-bold text-2xl text-primary">
               AB InBev
             </div>
           </Link>
 
-          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1">
             {navItems.map((item) => (
               <Link 
@@ -99,9 +89,7 @@ export function Header() {
             ))}
           </nav>
 
-          {/* User menu e mobile toggle */}
           <div className="flex items-center gap-4">
-            {/* User menu desktop */}
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -144,7 +132,6 @@ export function Header() {
               </Button>
             )}
 
-            {/* Mobile menu button */}
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="md:hidden">

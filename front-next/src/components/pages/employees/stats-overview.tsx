@@ -4,10 +4,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export interface EmployeeStatsData {
   totalEmployees: number;
-  activeEmployees: number;
-  totalDepartments: number;
-  leadersCount: number;
-  averageTenure: number;
+  topDepartment: string;
+  departmentDistribution: Record<string, number>;
 }
 
 interface EmployeeStatsOverviewProps {
@@ -18,49 +16,36 @@ interface EmployeeStatsOverviewProps {
 export function EmployeeStatsOverview({ data, isLoading }: EmployeeStatsOverviewProps) {
   if (isLoading) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-        {[...Array(5)].map((_, i) => (
-          <Skeleton key={i} className="h-[120px] w-full" />
-        ))}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <Skeleton className="h-32" />
+        <Skeleton className="h-32" />
+        <Skeleton className="h-32" />
       </div>
     );
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-      <StatCard
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <StatCard 
         title="Total de Funcionários"
-        value={data.totalEmployees}
-        icon={Users}
-        className="bg-card hover:shadow-md transition-all duration-300"
+        value={data.totalEmployees.toString()}
+        icon={<Users className="h-5 w-5" />}
+        trend="neutral"
       />
-      <StatCard
-        title="Funcionários Ativos"
-        value={data.activeEmployees}
-        description={`${Math.round((data.activeEmployees / data.totalEmployees) * 100)}% do total`}
-        icon={UserCheck}
-        className="bg-card hover:shadow-md transition-all duration-300"
+      
+      <StatCard 
+        title="Departamento Principal"
+        value={data.topDepartment || "N/A"}
+        icon={<Building2 className="h-5 w-5" />}
+        trend="neutral"
+        description={data.topDepartment ? `${data.departmentDistribution[data.topDepartment] || 0} funcionários` : ""}
       />
-      <StatCard
-        title="Departamentos"
-        value={data.totalDepartments}
-        description={`${Math.round(data.totalEmployees / data.totalDepartments)} funcionários por dept.`}
-        icon={Building2}
-        className="bg-card hover:shadow-md transition-all duration-300"
-      />
-      <StatCard
-        title="Líderes"
-        value={data.leadersCount}
-        description={`${Math.round((data.leadersCount / data.totalEmployees) * 100)}% do total`}
-        icon={Award}
-        className="bg-card hover:shadow-md transition-all duration-300"
-      />
-      <StatCard
-        title="Tempo Médio"
-        value={`${data.averageTenure} meses`}
-        description="Tempo médio na empresa"
-        icon={Clock}
-        className="bg-card hover:shadow-md transition-all duration-300"
+      
+      <StatCard 
+        title="Total de Departamentos"
+        value={Object.keys(data.departmentDistribution).length.toString()}
+        icon={<Building2 className="h-5 w-5" />}
+        trend="neutral"
       />
     </div>
   );

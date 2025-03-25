@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using CompanyManager.Application.Exceptions;
 using CompanyManager.Domain.Exceptions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
@@ -41,7 +42,13 @@ namespace CompanyManager.API.Middlewares
             
             context.Response.StatusCode = (int)statusCode;
             
-            var result = JsonSerializer.Serialize(new { error = message });
+            // Incluir detalhes técnicos para melhor depuração
+            string detailedMessage = exception.ToString();
+            
+            var result = JsonSerializer.Serialize(new { 
+                message = message,
+                details = detailedMessage
+            });
             await context.Response.WriteAsync(result);
         }
 
@@ -58,6 +65,7 @@ namespace CompanyManager.API.Middlewares
                 InvalidTokenException _ => (HttpStatusCode.Unauthorized, exception.Message),
                 UnauthorizedOperationException _ => (HttpStatusCode.Forbidden, exception.Message),
                 ApplicationException _ => (HttpStatusCode.BadRequest, exception.Message),
+                DbUpdateConcurrencyException _ => (HttpStatusCode.Conflict, "Erro de concorrência: Os dados foram modificados por outro usuário. Por favor, recarregue e tente novamente."),
                 _ => (HttpStatusCode.InternalServerError, "Ocorreu um erro inesperado. Por favor, tente novamente mais tarde.")
             };
         }

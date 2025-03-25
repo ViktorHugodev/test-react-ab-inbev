@@ -92,17 +92,6 @@ export default function DashboardPage() {
           isLoadingDepartments={isLoadingDepartments} 
         />
 
-        {/* Botão Ver relatórios */}
-        <div className="flex justify-end mt-8">
-          <Button 
-            variant="outline" 
-            className="rounded-full hover:bg-primary/10 transition-all duration-300"
-            onClick={() => router.push("/reports")}
-          >
-            Ver relatórios completos <ArrowRight className="h-4 w-4 ml-2" />
-          </Button>
-        </div>
-
         {/* Cards de Acesso Rápido */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
           <Card className="rounded-3xl overflow-hidden hover:shadow-md transition-all duration-300 bg-gradient-to-br from-card to-card/80 border-none">
@@ -137,24 +126,6 @@ export default function DashboardPage() {
                 className="w-full rounded-full"
               >
                 Acessar Departamentos
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-3xl overflow-hidden hover:shadow-md transition-all duration-300 bg-gradient-to-br from-card to-card/80 border-none">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xl">Configurações do Sistema</CardTitle>
-              <CardDescription>Personalize sua experiência</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                Ajuste configurações, preferências e permissões do sistema.
-              </p>
-              <Button 
-                onClick={() => router.push("/settings")}
-                className="w-full rounded-full"
-              >
-                Acessar Configurações
               </Button>
             </CardContent>
           </Card>

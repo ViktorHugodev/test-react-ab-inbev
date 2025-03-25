@@ -20,6 +20,8 @@ var builder = WebApplication.CreateBuilder(args);
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
 builder.Host.UseSerilog();
@@ -29,6 +31,13 @@ builder.Services.AddControllers();
 
 // 3. Configuração do Entity Framework
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+// Se DB_PASSWORD estiver no ambiente, substituir no connection string
+var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
+if (!string.IsNullOrEmpty(dbPassword))
+{
+    connectionString = connectionString.Replace("StrongPass123", dbPassword);
+}
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseSqlServer(connectionString);
@@ -39,7 +48,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "http://localhost:5000")
+        policy.WithOrigins("http://localhost:3000", "http://localhost:5000", "http://frontend:3000")
               .AllowAnyMethod()
               .AllowAnyHeader();
         // Remova .AllowCredentials() ou especifique origens específicas
@@ -50,17 +59,17 @@ builder.Services.AddCors(options =>
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 builder.Services.Configure<JwtSettings>(jwtSettings);
 
-// 6. Pega a Secret diretamente
-var secretFromConfig = jwtSettings["Secret"];
+// 6. Pega a Secret do ambiente ou do config
+var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? jwtSettings["Secret"];
 
 // Verifica se está vazio ou nulo
-if (string.IsNullOrWhiteSpace(secretFromConfig))
+if (string.IsNullOrWhiteSpace(jwtSecret))
 {
-    throw new Exception("JwtSettings:Secret não foi definido no appsettings.json (ou está vazio).");
+    throw new Exception("JWT_SECRET não foi definido no ambiente ou JwtSettings:Secret no appsettings.json.");
 }
 
 // Converte para bytes
-var key = Encoding.UTF8.GetBytes(secretFromConfig);
+var key = Encoding.UTF8.GetBytes(jwtSecret);
 
 // 7. Configuração de autenticação JWT
 builder.Services.AddAuthentication(options =>
@@ -177,47 +186,51 @@ public static class SeedData
 {
     public static void Initialize(ApplicationDbContext context, IAuthService authService)
     {
-        // Se já existir algum Employee, não semeia de novo
+        // Certifique-se de que a tabela Departments existe
+        context.Database.ExecuteSqlRaw(@"
+            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Departments')
+            BEGIN
+                CREATE TABLE [Departments] (
+                    [Id] uniqueidentifier NOT NULL,
+                    [Name] nvarchar(50) NOT NULL,
+                    [Description] nvarchar(200) NOT NULL,
+                    [IsActive] bit NOT NULL,
+                    [CreatedAt] datetime2 NOT NULL,
+                    [UpdatedAt] datetime2 NULL,
+                    CONSTRAINT [PK_Departments] PRIMARY KEY ([Id])
+                );
+                
+                CREATE UNIQUE INDEX [IX_Departments_Name] ON [Departments] ([Name]);
+            END
+        ");
+        
+        // Limpa todos os dados existentes para garantir o seed completo
         if (context.Employees.Any())
         {
-            // Certifique-se de que a tabela Departments existe
-            context.Database.ExecuteSqlRaw(@"
-                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Departments')
-                BEGIN
-                    CREATE TABLE [Departments] (
-                        [Id] uniqueidentifier NOT NULL,
-                        [Name] nvarchar(50) NOT NULL,
-                        [Description] nvarchar(200) NOT NULL,
-                        [IsActive] bit NOT NULL,
-                        [CreatedAt] datetime2 NOT NULL,
-                        [UpdatedAt] datetime2 NULL,
-                        CONSTRAINT [PK_Departments] PRIMARY KEY ([Id])
-                    );
-                    
-                    CREATE UNIQUE INDEX [IX_Departments_Name] ON [Departments] ([Name]);
-                END
-            ");
-            
-            // Se não existirem departamentos, adicione-os
-            if (!context.Departments.Any())
-            {
-                var existingDepartments = new[]
-                {
-                    CompanyManager.Domain.Aggregates.Department.Department.Create("Diretoria", "Departamento de Diretoria"),
-                    CompanyManager.Domain.Aggregates.Department.Department.Create("RH", "Recursos Humanos"),
-                    CompanyManager.Domain.Aggregates.Department.Department.Create("TI", "Tecnologia da Informação"),
-                    CompanyManager.Domain.Aggregates.Department.Department.Create("Marketing", "Departamento de Marketing"),
-                    CompanyManager.Domain.Aggregates.Department.Department.Create("Financeiro", "Departamento Financeiro")
-                };
-                
-                context.Departments.AddRange(existingDepartments);
-                context.SaveChanges();
-            }
-            
-            return;
+            context.Employees.RemoveRange(context.Employees);
+            context.SaveChanges();
+        }
+        
+        if (context.Departments.Any())
+        {
+            context.Departments.RemoveRange(context.Departments);
+            context.SaveChanges();
         }
 
-        var director = CompanyManager.Domain.Aggregates.Employee.Employee.Create(
+        // Adicionar departamentos
+        var initialDepartments = new[]
+        {
+            CompanyManager.Domain.Aggregates.Department.Department.Create("Diretoria", "Departamento de Diretoria"),
+            CompanyManager.Domain.Aggregates.Department.Department.Create("RH", "Recursos Humanos"),
+            CompanyManager.Domain.Aggregates.Department.Department.Create("TI", "Tecnologia da Informação"),
+            CompanyManager.Domain.Aggregates.Department.Department.Create("Marketing", "Departamento de Marketing")
+        };
+        
+        context.Departments.AddRange(initialDepartments);
+        context.SaveChanges();
+        
+        // Criar usuário admin
+        var admin = CompanyManager.Domain.Aggregates.Employee.Employee.Create(
             "Admin",
             "Sistema",
             "admin@companymanager.com",
@@ -227,20 +240,105 @@ public static class SeedData
             CompanyManager.Domain.Enums.Role.Director,
             "Diretoria"
         );
-
-        context.Employees.Add(director);
         
-        // Adicionar departamentos
-        var initialDepartments = new[]
+        context.Employees.Add(admin);
+        context.SaveChanges();
+        
+        // Adicionar líderes para cada departamento
+        var leaders = new List<CompanyManager.Domain.Aggregates.Employee.Employee>();
+        
+        var leaderTI = CompanyManager.Domain.Aggregates.Employee.Employee.Create(
+            "João",
+            "Silva",
+            "joao.silva@companymanager.com",
+            "11111111111",
+            new DateTime(1985, 5, 15),
+            authService.HashPassword("Leader@123"),
+            CompanyManager.Domain.Enums.Role.Leader,
+            "TI"
+        );
+        
+        var leaderRH = CompanyManager.Domain.Aggregates.Employee.Employee.Create(
+            "Maria",
+            "Santos",
+            "maria.santos@companymanager.com",
+            "22222222222",
+            new DateTime(1982, 7, 20),
+            authService.HashPassword("Leader@123"),
+            CompanyManager.Domain.Enums.Role.Leader,
+            "RH"
+        );
+        
+        var leaderMarketing = CompanyManager.Domain.Aggregates.Employee.Employee.Create(
+            "Pedro",
+            "Oliveira", 
+            "pedro.oliveira@companymanager.com",
+            "33333333333",
+            new DateTime(1988, 3, 10),
+            authService.HashPassword("Leader@123"),
+            CompanyManager.Domain.Enums.Role.Leader,
+            "Marketing"
+        );
+        
+        var leaderDiretoria = CompanyManager.Domain.Aggregates.Employee.Employee.Create(
+            "Ana",
+            "Pereira",
+            "ana.pereira@companymanager.com", 
+            "44444444444",
+            new DateTime(1975, 9, 5),
+            authService.HashPassword("Leader@123"),
+            CompanyManager.Domain.Enums.Role.Leader,
+            "Diretoria"
+        );
+        
+        leaders.AddRange(new[] { leaderTI, leaderRH, leaderMarketing, leaderDiretoria });
+        context.Employees.AddRange(leaders);
+        context.SaveChanges();
+        
+        // Adicionar funcionários regulares
+        var employees = new List<CompanyManager.Domain.Aggregates.Employee.Employee>
         {
-            CompanyManager.Domain.Aggregates.Department.Department.Create("Diretoria", "Departamento de Diretoria"),
-            CompanyManager.Domain.Aggregates.Department.Department.Create("RH", "Recursos Humanos"),
-            CompanyManager.Domain.Aggregates.Department.Department.Create("TI", "Tecnologia da Informação"),
-            CompanyManager.Domain.Aggregates.Department.Department.Create("Marketing", "Departamento de Marketing"),
-            CompanyManager.Domain.Aggregates.Department.Department.Create("Financeiro", "Departamento Financeiro")
+            // TI
+            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
+                "Lucas", "Ferreira", "lucas.ferreira@companymanager.com", "55555555555", 
+                new DateTime(1990, 6, 12), authService.HashPassword("Employee@123"),
+                CompanyManager.Domain.Enums.Role.Employee, "TI", leaderTI.Id),
+                
+            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
+                "Juliana", "Costa", "juliana.costa@companymanager.com", "66666666666", 
+                new DateTime(1993, 2, 25), authService.HashPassword("Employee@123"),
+                CompanyManager.Domain.Enums.Role.Employee, "TI", leaderTI.Id),
+                
+            // RH
+            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
+                "Roberto", "Almeida", "roberto.almeida@companymanager.com", "77777777777", 
+                new DateTime(1987, 11, 8), authService.HashPassword("Employee@123"),
+                CompanyManager.Domain.Enums.Role.Employee, "RH", leaderRH.Id),
+                
+            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
+                "Carla", "Vieira", "carla.vieira@companymanager.com", "88888888888", 
+                new DateTime(1991, 4, 17), authService.HashPassword("Employee@123"),
+                CompanyManager.Domain.Enums.Role.Employee, "RH", leaderRH.Id),
+                
+            // Marketing
+            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
+                "Felipe", "Souza", "felipe.souza@companymanager.com", "99999999999", 
+                new DateTime(1989, 8, 30), authService.HashPassword("Employee@123"),
+                CompanyManager.Domain.Enums.Role.Employee, "Marketing", leaderMarketing.Id),
+                
+            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
+                "Beatriz", "Lima", "beatriz.lima@companymanager.com", "10101010101", 
+                new DateTime(1992, 1, 22), authService.HashPassword("Employee@123"),
+                CompanyManager.Domain.Enums.Role.Employee, "Marketing", leaderMarketing.Id),
+                
+            // Diretoria
+            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
+                "Ricardo", "Machado", "ricardo.machado@companymanager.com", "12121212121", 
+                new DateTime(1984, 10, 15), authService.HashPassword("Employee@123"),
+                CompanyManager.Domain.Enums.Role.Employee, "Diretoria", leaderDiretoria.Id)
         };
         
-        context.Departments.AddRange(initialDepartments);
+        context.Employees.AddRange(employees);
         context.SaveChanges();
     }
 }

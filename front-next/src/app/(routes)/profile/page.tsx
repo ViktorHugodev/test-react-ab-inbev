@@ -29,7 +29,11 @@ export default function ProfilePage() {
           lastName: data.lastName,
           email: data.email,
           birthDate: data.birthDate.toISOString(),
-          phoneNumbers: data.phoneNumbers
+          phoneNumbers: data.phoneNumbers?.map(phone => ({
+            id: phone.id,
+            number: phone.number || "",
+            type: phone.type || 1
+          })) || []
         }
       });
 

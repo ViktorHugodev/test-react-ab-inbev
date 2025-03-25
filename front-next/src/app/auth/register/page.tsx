@@ -1,36 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useAuth } from "@/hooks/use-auth";
+import React, { Suspense } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "sonner";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import RegisterContent from "./register-content";
 
 export default function RegisterPage() {
-  const { user, isLoading } = useAuth();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const error = searchParams.get("error");
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
-
-  useEffect(() => {
-    // Se já estiver autenticado, redireciona para a página inicial ou callback
-    if (!isLoading && user) {
-      router.push(callbackUrl);
-    }
-
-    // Exibe mensagem de erro se houver
-    if (error) {
-      toast.error(error);
-    }
-  }, [user, isLoading, router, error, callbackUrl]);
-
-  if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
-  }
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <Card className="w-full max-w-md shadow-lg glass-container">
@@ -41,17 +15,9 @@ export default function RegisterPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-4">
-              Funcionalidade de registro em desenvolvimento.
-            </p>
-            <p className="text-sm text-muted-foreground mb-4">
-              Por favor, entre em contato com o administrador do sistema para criar uma conta.
-            </p>
-            <Link href="/auth/login">
-              <Button className="w-full">Voltar para o Login</Button>
-            </Link>
-          </div>
+          <Suspense fallback={<div className="text-center py-4">Carregando...</div>}>
+            <RegisterContent />
+          </Suspense>
         </CardContent>
       </Card>
     </div>

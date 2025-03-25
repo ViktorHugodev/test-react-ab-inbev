@@ -11,8 +11,7 @@ export function DashboardCharts() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-8">
         <Card className="lg:col-span-7 rounded-3xl shadow-sm">
           <CardHeader className="pb-0">
-            <CardTitle className="text-xl">Funcionários Recentes</CardTitle>
-            <CardDescription>Últimas contratações realizadas</CardDescription>
+   
           </CardHeader>
           <CardContent>
             <RecentEmployees />
@@ -21,8 +20,7 @@ export function DashboardCharts() {
         
         <Card className="lg:col-span-5 rounded-3xl shadow-sm">
           <CardHeader className="pb-0">
-            <CardTitle className="text-xl">Distribuição por Departamento</CardTitle>
-            <CardDescription>Alocação de funcionários por área</CardDescription>
+  
           </CardHeader>
           <CardContent>
             <DepartmentChart />
@@ -33,23 +31,14 @@ export function DashboardCharts() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-8">
         <Card className="lg:col-span-5 rounded-3xl shadow-sm">
           <CardHeader className="pb-0">
-            <CardTitle className="text-xl">Distribuição por Cargo</CardTitle>
-            <CardDescription>Análise da hierarquia organizacional</CardDescription>
+       
           </CardHeader>
           <CardContent>
             <RoleDistribution />
           </CardContent>
         </Card>
         
-        <Card className="lg:col-span-7 rounded-3xl shadow-sm">
-          <CardHeader className="pb-0">
-            <CardTitle className="text-xl">Gestores com Mais Subordinados</CardTitle>
-            <CardDescription>Top líderes por tamanho de equipe</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <TopManagers />
-          </CardContent>
-        </Card>
+      
       </div>
     </>
   );

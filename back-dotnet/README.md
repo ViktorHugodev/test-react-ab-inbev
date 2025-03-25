@@ -51,6 +51,6 @@ The application will automatically apply migrations when started in development 
 A default administrator user is created when the database is seeded:
 
 
-
+l
 - Email: admin@companymanager.com
 - Password: Admin@123

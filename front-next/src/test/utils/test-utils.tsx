@@ -13,7 +13,7 @@ const AuthContext = createContext({
 });
 
 // Mock AuthProvider component
-const MockAuthProvider = ({ children, mockRole = EmployeeRole.Leader }) => {
+const MockAuthProvider = ({ children, mockRole = EmployeeRole.Leader }: { children: React.ReactNode, mockRole?: EmployeeRole }) => {
   // Mock implementation for testing purposes
   const mockLogin = jest.fn().mockImplementation(async () => {});
   const mockLogout = jest.fn();
