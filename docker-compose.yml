@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   db:
@@ -24,7 +23,8 @@ services:
     container_name: company-manager-api
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=db;Database=CompanyManager;User=sa;Password=${DB_PASSWORD:-StrongPassword123!};TrustServerCertificate=True;
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Server=db;Database=CompanyManager;User=sa;Password=${DB_PASSWORD:-StrongPass123};TrustServerCertificate=True;
       - JWT_SECRET=${JWT_SECRET:-YourSuperSecretKeyForJwtTokenGenerationAndValidation}
     ports:
       - "5000:80"
@@ -40,7 +40,7 @@ services:
       dockerfile: Dockerfile
     container_name: company-manager-frontend
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:5000
+      - NEXT_PUBLIC_API_URL=http://localhost:5000/api
     ports:
       - "3000:3000"
     depends_on:

@@ -1,11 +1,14 @@
 using System;
 using System.Text;
+using System.IO;
+using System.Security.Cryptography.X509Certificates;
 using CompanyManager.API.Middlewares;
 using CompanyManager.Application.Interfaces;
 using CompanyManager.Application.Services;
 using CompanyManager.Domain.Interfaces;
 using CompanyManager.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,6 +32,36 @@ builder.Host.UseSerilog();
 // 2. Adiciona serviços ao container
 builder.Services.AddControllers();
 
+// Configuração do DataProtection
+var keysDirectory = Path.Combine(builder.Environment.ContentRootPath, "keys");
+Directory.CreateDirectory(keysDirectory);
+
+// Configurar o DataProtection para persistir chaves em um diretório específico
+var dataProtectionBuilder = builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(keysDirectory))
+    .SetApplicationName("CompanyManager")
+    .SetDefaultKeyLifetime(TimeSpan.FromDays(14));
+
+// Configurar a proteção das chaves com certificado
+var certPath = Path.Combine(builder.Environment.ContentRootPath, "certs", "cert.pfx");
+if (File.Exists(certPath))
+{
+    try
+    {
+        var certificate = new X509Certificate2(certPath, "CompanyManager123");
+        dataProtectionBuilder.ProtectKeysWithCertificate(certificate);
+        Log.Information("Proteção de chaves configurada com certificado X.509");
+    }
+    catch (Exception ex)
+    {
+        Log.Warning(ex, "Não foi possível carregar o certificado para proteção de chaves. As chaves serão armazenadas sem criptografia.");
+    }
+}
+else
+{
+    Log.Warning("Certificado para proteção de chaves não encontrado em {CertPath}. As chaves serão armazenadas sem criptografia.", certPath);
+}
+
 // 3. Configuração do Entity Framework
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 // Se DB_PASSWORD estiver no ambiente, substituir no connection string
@@ -48,7 +81,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "http://localhost:5000", "http://frontend:3000")
+        policy.WithOrigins("http://localhost:3000", "http://localhost:5000", "http://frontend:3000", "http://company-manager-frontend:3000")
               .AllowAnyMethod()
               .AllowAnyHeader();
         // Remova .AllowCredentials() ou especifique origens específicas

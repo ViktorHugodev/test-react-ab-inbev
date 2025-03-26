@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5002:80"
+      - "5003:443"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Server=db;Database=CompanyManager;User=sa;Password=${DB_PASSWORD:-StrongPass123};TrustServerCertificate=True;
+      - JWT_SECRET=${JWT_SECRET:-YourSuperSecretKeyForJwtTokenGenerationAndValidation}
+    volumes:
+      - data-protection-keys:/app/keys
+      - api-logs:/app/logs
+    depends_on:
+      - db
+    networks:
+      - company-network
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${DB_PASSWORD:-StrongPass123}
+      - MSSQL_PID=Express
+    ports:
+      - "1434:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    networks:
+      - company-network
+
+volumes:
+  sqlserver-data:
+  data-protection-keys:
+  api-logs:
+
+networks:
+  company-network:
+    driver: bridge
