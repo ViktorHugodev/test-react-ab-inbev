@@ -7,11 +7,11 @@ const simulateNetworkDelay = (ms: number) =>
 
 export async function loginUser(credentials: LoginDTO): Promise<AuthResponseDTO> {
   try {
-    // Em desenvolvimento, podemos usar o backend real ou o mock
+
     if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_MOCK === 'true') {
       await simulateNetworkDelay(Math.floor(Math.random() * 500) + 300);
       
-      // Mock para desenvolvimento
+
       if (credentials.email === "test@example.com" && credentials.password === "password123") {
         const now = new Date();
         const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 horas depois
@@ -42,7 +42,7 @@ export async function loginUser(credentials: LoginDTO): Promise<AuthResponseDTO>
       throw new Error("Email ou senha inválidos");
     }
     
-    // Chamada real para o backend
+
     return await api.post<AuthResponseDTO>("/Auth/login", credentials);
   } catch (error) {
     console.error("Erro ao fazer login:", error);
@@ -59,7 +59,6 @@ export interface CurrentUserResponse {
 
 export async function getCurrentUser(): Promise<CurrentUserResponse> {
   try {
-    // Em desenvolvimento, podemos usar o backend real ou o mock
     if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_MOCK === 'true') {
       await simulateNetworkDelay(Math.floor(Math.random() * 300) + 200);
       
@@ -78,24 +77,21 @@ export async function getCurrentUser(): Promise<CurrentUserResponse> {
   }
 }
 
-/**
- * Registra um novo funcionário no sistema
- * Apenas usuários com role=3 (Director) podem executar esta função
- */
+
 export async function registerEmployee(employeeData: RegisterEmployeeDTO): Promise<Employee> {
   try {
-    // Verificar se o usuário atual tem permissão para registrar funcionários
+ 
     const currentUser = await getCurrentUser();
     
     if (parseInt(currentUser.role) !== EmployeeRole.Director) {
       throw new Error("Apenas Diretores podem registrar novos funcionários");
     }
     
-    // Em desenvolvimento, podemos usar o backend real ou o mock
+  
     if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_MOCK === 'true') {
       await simulateNetworkDelay(Math.floor(Math.random() * 800) + 500);
       
-      // Validação de email corporativo
+
       if (!employeeData.email.endsWith('@nossaempresa.com')) {
         throw new Error("O email deve ser corporativo (@nossaempresa.com)");
       }
@@ -114,7 +110,7 @@ export async function registerEmployee(employeeData: RegisterEmployeeDTO): Promi
           { 
             id: "1", 
             number: employeeData.phoneNumber, 
-            type: 1 // Mobile
+            type: 1
           }
         ],
         createdAt: new Date(),
@@ -122,15 +118,14 @@ export async function registerEmployee(employeeData: RegisterEmployeeDTO): Promi
       };
     }
     
-    // Chamada real para o backend
-    // Convertemos o DTO para o formato esperado pela API
+
     const apiPayload = {
       ...employeeData,
-      birthDate: new Date().toISOString(), // Data atual como padrão
+      birthDate: new Date().toISOString(), 
       phoneNumbers: [
         {
           number: employeeData.phoneNumber,
-          type: 1 // Mobile como padrão
+          type: 1 
         }
       ]
     };

@@ -28,6 +28,7 @@ import {
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useLogout } from '@/services/auth/queries';
 
 type NavItem = {
   name: string;
@@ -37,9 +38,9 @@ type NavItem = {
 
 export function Header() {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
-
+  const logout = useLogout();
   const navItems: NavItem[] = [
     {
       name: "Dashboard",

@@ -28,8 +28,8 @@ src/
 
 ## Credenciais para Teste
 
-- Email: test@example.com
-- Senha: password123
+- Email: admin@companymanager.com
+- Senha: Admin@123
 
 ## Começando
 

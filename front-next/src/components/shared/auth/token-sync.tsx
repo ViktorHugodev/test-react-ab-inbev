@@ -10,7 +10,7 @@ interface TokenSyncProps {
 const AUTH_COOKIE_NAME = 'auth_token';
 const COOKIE_EXPIRY_DAYS = 1;
 
-export default function TokenSync({ children }: TokenSyncProps) {
+export function TokenSync({ children }: TokenSyncProps) {
   useEffect(() => {
     const syncTokenToCookie = () => {
       if (typeof window === 'undefined') return;

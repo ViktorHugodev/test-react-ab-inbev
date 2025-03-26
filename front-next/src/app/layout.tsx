@@ -5,7 +5,7 @@ import "./globals.css";
 import { AuthProvider } from "@/hooks/use-auth";
 import { QueryProvider } from "@/providers/query-provider";
 import { Toaster } from "sonner";
-import { TokenSyncClient } from "@/components/auth/token-sync-client";
+import { TokenSync } from "@/components/shared/auth/token-sync";
 import { ConditionalHeader } from "@/components/layout/conditional-header";
 import { ConditionalFooter } from "@/components/layout/conditional-footer";
 
@@ -34,7 +34,7 @@ export default function RootLayout({
         <QueryProvider>
           <AuthProvider>
             {/* Componente para sincronizar o token entre localStorage e cookies */}
-            <TokenSyncClient />
+            <TokenSync>{children}</TokenSync>
             
             <div className="relative flex min-h-screen flex-col">
               <ConditionalHeader />

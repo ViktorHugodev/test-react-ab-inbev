@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
-import { EmployeeForm } from "@/components/forms/employee-form";
+import { EmployeeForm } from "@/components/shared/forms/employee-form";
 import { Button } from "@/components/ui/button";
 import {
   Card,

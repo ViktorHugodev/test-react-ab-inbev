@@ -57,7 +57,12 @@ interface Manager {
   name: string;
 }
 
-export function EmployeeForm() {
+export interface EmployeeFormProps {
+  onSuccess?: () => void;
+  className?: string;
+}
+
+export function EmployeeForm({ onSuccess, className }: EmployeeFormProps) {
   const { canCreateRole } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -153,6 +158,10 @@ export function EmployeeForm() {
       
       toast.success("Funcionário cadastrado com sucesso!");
       form.reset();
+      
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error) {
       console.error("Error creating employee:", error);
       toast.error(error instanceof Error ? error.message : "Erro ao cadastrar funcionário");
@@ -167,7 +176,7 @@ export function EmployeeForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className={`space-y-6 ${className}`}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Nome */}
           <FormField
