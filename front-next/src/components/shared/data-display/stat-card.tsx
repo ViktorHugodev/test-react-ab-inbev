@@ -47,7 +47,7 @@ export function StatCard({
             {React.isValidElement(icon) ? (
               icon
             ) : typeof icon === "function" ? (
-              React.createElement(icon as React.ComponentType, { className: "h-5 w-5 text-primary" })
+              React.createElement(icon as React.ComponentType<{ className?: string }>, { className: "h-5 w-5 text-primary" })
             ) : null}
           </div>
         </div>

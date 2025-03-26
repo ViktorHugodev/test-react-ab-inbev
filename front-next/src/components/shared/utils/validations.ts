@@ -56,20 +56,20 @@ export const passwordsMatch = (
   });
 };
 
-// Helper function to validate phone numbers
+
 export function isValidPhoneNumber(phoneNumber: string): boolean {
   return phoneRegex.test(phoneNumber);
 }
 
-// Helper function to validate document numbers (CPF)
+
 export function isValidDocument(document: string): boolean {
   const cleanDocument = document.replace(/[^\d]/g, "");
   
   if (cleanDocument.length !== 11) return false;
   
-  // Check if all digits are the same
+
   if (/^(\d)\1{10}$/.test(cleanDocument)) return false;
   
-  // Simple validation logic (could be enhanced with actual CPF validation algorithm)
+
   return documentRegex.test(document);
 }
