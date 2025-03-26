@@ -22,8 +22,10 @@ export function RoleDistribution() {
 
     // Count by role
     data.items.forEach(employee => {
-      if (roleCount[employee.role] !== undefined) {
-        roleCount[employee.role]++;
+      // Verificar se o role é um valor válido do enum EmployeeRole
+      const role = employee.role as EmployeeRole;
+      if (role in roleCount) {
+        roleCount[role]++;
       }
     });
 

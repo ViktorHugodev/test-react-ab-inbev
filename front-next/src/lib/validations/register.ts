@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { EmployeeRole } from "@/types/employee";
+import { EmployeeRole, PhoneType } from "@/types/employee";
 
 // Função para validar número de telefone brasileiro
 export const isAValidNumber = (phoneNumber: string): boolean => {
@@ -19,6 +19,15 @@ export const isAValidNumber = (phoneNumber: string): boolean => {
   
   return true;
 };
+
+const phoneSchema = z.object({
+  number: z.string().refine(isAValidNumber, {
+    message: "O telefone deve ser um número brasileiro válido."
+  }),
+  type: z.nativeEnum(PhoneType, {
+    errorMap: () => ({ message: "Selecione um tipo de telefone válido." })
+  })
+});
 
 export const registerSchema = z.object({
   firstName: z.string().min(2, {
@@ -44,10 +53,9 @@ export const registerSchema = z.object({
     .regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, {
       message: "O CPF deve estar no formato 000.000.000-00."
     }),
-  phoneNumber: z.string()
-    .refine(isAValidNumber, {
-      message: "O telefone deve ser um número brasileiro válido."
-    }),
+  phoneNumbers: z.array(phoneSchema).min(1, {
+    message: "É necessário informar pelo menos um telefone."
+  }),
   department: z.enum(["TI", "RH", "Financeiro", "Marketing", "Vendas"], {
     errorMap: () => ({ message: "Selecione um departamento válido." })
   }),

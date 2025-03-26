@@ -1,68 +1,120 @@
 "use client";
 
-import { useState } from "react";
-import { useCurrentUser } from '@/services/auth/queries';
+import { useState, useEffect } from "react";
+import { useCurrentUser, useDetailedUserInfo } from '@/services/auth/queries';
 import { useUpdateEmployeeProfile, useUpdateEmployeePassword } from '@/services/employee/queries';
+import { normalizeUserData, toISODateString } from '@/lib/utils';
 import { toast } from "sonner";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PhoneType } from "@/types/employee";
 
 import { ProfileHeader } from "@/components/pages/profile/profile-header";
 import { PersonalInfoForm, PersonalInfoFormValues } from "@/components/pages/profile/personal-info-form";
 import { PasswordForm, PasswordFormValues } from "@/components/pages/profile/password-form";
 
 export default function ProfilePage() {
-  const { data: user, isLoading, isError } = useCurrentUser();
+  // Usar um estado para controlar a fase de hidratação
+  const [isHydrated, setIsHydrated] = useState(false);
+  const { data: user, isLoading: isLoadingUser, isError: isUserError } = useCurrentUser();
+  const { data: detailedUser, isLoading: isLoadingDetails, isError: isDetailsError } = useDetailedUserInfo();
   const [activeTab, setActiveTab] = useState("profile");
+  
+  const isLoading = isLoadingUser || isLoadingDetails;
+  const isError = isUserError || isDetailsError;
+  
+  // Marcar que a página foi hidratada após a renderização inicial
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
   
   const updateProfile = useUpdateEmployeeProfile();
   const updatePassword = useUpdateEmployeePassword();
 
   const onPersonalInfoSubmit = async (data: PersonalInfoFormValues) => {
-    if (!user || !user.id) return;
+    // Normalizar dados do usuário para ter um formato consistente
+    const normalizedUser = normalizeUserData(detailedUser || user);
+    
+    if (!normalizedUser || !normalizedUser.id) {
+      toast.error("Dados do usuário não disponíveis. Tente novamente.");
+      return;
+    }
 
     try {
-      // Garantir que phoneNumbers seja um array válido
-      const phoneNumbers = data.phoneNumbers?.map(phone => ({
-        id: phone.id || undefined, // Garantir que IDs vazios sejam undefined
-        number: phone.number || "",
-        type: phone.type || 1
-      })) || [];
+      // Processamento seguro dos telefones com validação adicional
+      const processedPhoneNumbers = (data.phoneNumbers || [])
+        .filter(phone => phone && typeof phone === 'object') // Garantir que sejam objetos válidos
+        .map(phone => {
+          // Se o ID for vazio, nulo ou undefined, omitir completamente a propriedade id
+          // Em vez de enviar undefined, que pode causar problemas de serialização
+          const phoneObj: any = {
+            number: (phone.number || "").trim(),
+            type: Number(phone.type) || PhoneType.Mobile
+          };
+          
+          // Adicionar ID apenas se for uma string válida não vazia
+          if (phone.id && typeof phone.id === 'string' && phone.id.trim() !== '') {
+            phoneObj.id = phone.id.trim();
+          }
+          
+          return phoneObj;
+        })
+        .filter(phone => phone.number.length >= 8); // Filtrar telefones com número válido
 
+      // Tratar datas de forma segura
+      const birthDateISOString = toISODateString(data.birthDate);
+      
+      // Dados validados prontos para envio
       await updateProfile.mutateAsync({
-        id: user.id,
+        id: normalizedUser.id,
         data: {
-          firstName: data.firstName,
-          lastName: data.lastName,
-          email: data.email,
-          birthDate: data.birthDate.toISOString(),
-          phoneNumbers
+          firstName: data.firstName.trim(),
+          lastName: data.lastName.trim(),
+          email: data.email.trim(),
+          birthDate: birthDateISOString || (new Date()).toISOString(),
+          phoneNumbers: processedPhoneNumbers
         }
       });
 
-      // Recarregar os dados do usuário explicitamente para garantir que a UI esteja atualizada
       toast.success("Informações pessoais atualizadas com sucesso!");
     } catch (error) {
       toast.error("Erro ao atualizar informações pessoais.");
-      console.error(error);
+      console.error("Erro na atualização do perfil:", error);
     }
   };
 
   const onPasswordSubmit = async (data: PasswordFormValues) => {
-    if (!user || !user.id) return;
+    // Normalizar dados do usuário para ter um formato consistente
+    const normalizedUser = normalizeUserData(detailedUser || user);
+    
+    if (!normalizedUser || !normalizedUser.id) {
+      toast.error("Dados do usuário não disponíveis. Tente novamente.");
+      return;
+    }
 
     try {
+      // Validar dados da senha antes de enviar
+      if (data.newPassword !== data.confirmNewPassword) {
+        toast.error("As senhas não coincidem.");
+        return;
+      }
+      
+      if (data.newPassword.length < 6) {
+        toast.error("A nova senha deve ter pelo menos 6 caracteres.");
+        return;
+      }
+
       await updatePassword.mutateAsync({
-        employeeId: user.id,
-        currentPassword: data.currentPassword,
-        newPassword: data.newPassword,
-        confirmNewPassword: data.confirmNewPassword,
+        employeeId: normalizedUser.id,
+        currentPassword: data.currentPassword.trim(),
+        newPassword: data.newPassword.trim(),
+        confirmNewPassword: data.confirmNewPassword.trim(),
       });
 
       toast.success("Senha atualizada com sucesso!");
     } catch (error) {
       toast.error("Erro ao atualizar senha.");
-      console.error(error);
+      console.error("Erro na atualização de senha:", error);
     }
   };
 
@@ -81,10 +133,32 @@ export default function ProfilePage() {
     );
   }
 
+  // Renderizar um esqueleto até que a hidratação esteja completa
+  if (!isHydrated) {
+    return (
+      <div className="bg-background min-h-screen">
+        <div className="bg-gradient-to-r from-primary/10 to-primary/5 py-8">
+          <div className="container px-6">
+            <div className="flex flex-col md:flex-row items-center gap-6">
+              <div className="w-24 h-24 rounded-full bg-muted animate-pulse" />
+              <div className="space-y-2 text-center md:text-left">
+                <div className="h-8 w-48 bg-muted animate-pulse rounded" />
+                <div className="h-6 w-32 bg-muted animate-pulse rounded" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="container px-6 py-8">
+          <div className="w-full h-[500px] bg-card rounded-lg animate-pulse" />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-background min-h-screen">
+    <div className="bg-background min-h-screen" suppressHydrationWarning>
       {/* Profile Header */}
-      <ProfileHeader user={user} isLoading={isLoading} />
+      <ProfileHeader user={detailedUser || user} isLoading={isLoading} />
 
       {/* Main Content */}
       <div className="container px-6 py-8">
@@ -105,7 +179,7 @@ export default function ProfilePage() {
 
           <TabsContent value="profile" className="space-y-6">
             <PersonalInfoForm 
-              user={user} 
+              user={detailedUser || user} 
               onSubmit={onPersonalInfoSubmit} 
               isLoading={updateProfile.isPending} 
             />

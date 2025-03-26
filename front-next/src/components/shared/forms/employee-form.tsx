@@ -14,7 +14,7 @@ import {
   createEmployeeSchema,
   formValuesToCreateEmployeeDTO
 } from "@/lib/validations/employee";
-import { employeeService } from "@/services/employee-service";
+import { employeeService } from "@/services/employee";
 import { useAuth } from "@/hooks/use-auth";
 import { PhoneFieldArray } from "@/components/shared/forms/phone-field";
 
@@ -97,7 +97,15 @@ export function EmployeeForm({ onSuccess, className }: EmployeeFormProps) {
         ]);
         
         setDepartments(departmentsData);
-        setManagers(managersData);
+        // Filtrar e mapear apenas gerentes com ID válido
+        const validManagers: Manager[] = managersData
+          .filter(manager => manager.id) // Filtra apenas gerentes com ID
+          .map(manager => ({
+            id: manager.id as string, // Cast para string não-opcional
+            name: manager.name || `${manager.firstName} ${manager.lastName}`
+          }));
+        
+        setManagers(validManagers);
       } catch (error) {
         console.error("Error fetching form data:", error);
         toast.error("Erro ao carregar dados do formulário");
@@ -154,7 +162,7 @@ export function EmployeeForm({ onSuccess, className }: EmployeeFormProps) {
       // Convert form values to API DTO
       const employeeDTO = formValuesToCreateEmployeeDTO(data);
       
-      await employeeService.create(employeeDTO);
+      await employeeService.createEmployee(employeeDTO);
       
       toast.success("Funcionário cadastrado com sucesso!");
       form.reset();

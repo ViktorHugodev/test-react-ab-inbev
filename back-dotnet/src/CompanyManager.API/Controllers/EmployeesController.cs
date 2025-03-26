@@ -194,6 +194,58 @@ namespace CompanyManager.API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        
+        [HttpPatch("{id:guid}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<EmployeeDto>> UpdatePartial(
+            Guid id,
+            [FromBody] EmployeePartialUpdateDto partialUpdateDto,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                // Atualizar o ID com o valor da URL
+                partialUpdateDto.Id = id;
+                
+                // Obtém o funcionário atual
+                var currentEmployee = await _employeeService.GetByIdAsync(id, cancellationToken);
+                if (currentEmployee == null)
+                    return NotFound(new { message = $"Funcionário com ID {id} não encontrado." });
+
+                // Verifica permissões
+                var currentUserRole = GetCurrentUserRole();
+                var currentUserId = GetCurrentUserId();
+
+                // Diretores podem editar qualquer funcionário
+                // Líderes só podem editar funcionários comuns
+                // Funcionários só podem editar a si mesmos
+                var roleToCheck = partialUpdateDto.Role ?? currentEmployee.Role;
+                if (currentUserRole == Role.Director ||
+                    (currentUserRole == Role.Leader && roleToCheck != Role.Director) ||
+                    (currentUserId == id))
+                {
+                    var updatedEmployee = await _employeeService.UpdatePartialAsync(partialUpdateDto, cancellationToken);
+                    return Ok(updatedEmployee);
+                }
+
+                return Forbid();
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (DomainException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (ApplicationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
 
         [HttpPut("{id:guid}/password")]
         [ProducesResponseType(StatusCodes.Status200OK)]

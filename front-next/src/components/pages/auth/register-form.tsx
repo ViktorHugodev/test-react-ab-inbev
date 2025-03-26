@@ -9,7 +9,7 @@ import Link from "next/link";
 import { Loader2, Mail, Lock, User, Phone, Building, UserCog, AlertTriangle } from "lucide-react";
 
 import { useAuth } from "@/hooks/use-auth";
-import { EmployeeRole } from "@/types/employee";
+import { EmployeeRole, PhoneType } from "@/types/employee";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { RegisterFormValues, registerSchema } from '@/lib/validations/register';
+import { PhoneFieldArray } from "@/components/shared/forms/phone-field";
 
 export function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -51,7 +52,7 @@ export function RegisterForm() {
       password: "",
       confirmPassword: "",
       documentNumber: "",
-      phoneNumber: "",
+      phoneNumbers: [{ number: "", type: PhoneType.Mobile }],
       department: "TI",
       role: EmployeeRole.Employee,
     },
@@ -69,13 +70,25 @@ export function RegisterForm() {
         throw new Error("Você não pode criar funcionários com este nível de acesso");
       }
 
+      // Garantir que phoneNumbers tenha todos os campos obrigatórios preenchidos
+      const validPhoneNumbers = values.phoneNumbers
+        .filter(phone => phone.number && phone.type) // Filtra apenas os telefones com number e type preenchidos
+        .map(phone => ({
+          number: phone.number as string, // Cast para string não-opcional
+          type: phone.type as PhoneType   // Cast para PhoneType não-opcional
+        }));
+
+      if (validPhoneNumbers.length === 0) {
+        throw new Error("É necessário informar pelo menos um telefone válido");
+      }
+
       await registerEmployee({
         firstName: values.firstName,
         lastName: values.lastName,
         email: values.email,
         password: values.password,
         documentNumber: values.documentNumber,
-        phoneNumber: values.phoneNumber,
+        phoneNumbers: validPhoneNumbers,
         department: values.department,
         role: values.role
       });
@@ -238,7 +251,7 @@ export function RegisterForm() {
               />
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <FormField
                 control={form.control}
                 name="documentNumber"
@@ -246,28 +259,10 @@ export function RegisterForm() {
                   <FormItem>
                     <FormLabel className="text-foreground">CPF</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="000.000.000-00" 
-                        className="rounded-xl border-input" 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="phoneNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-foreground">Telefone</FormLabel>
-                    <FormControl>
                       <div className="relative">
-                        <Phone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input 
-                          placeholder="(00) 00000-0000" 
+                          placeholder="000.000.000-00" 
                           className="pl-10 rounded-xl border-input" 
                           {...field} 
                         />
@@ -277,6 +272,8 @@ export function RegisterForm() {
                   </FormItem>
                 )}
               />
+              
+              <PhoneFieldArray />
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

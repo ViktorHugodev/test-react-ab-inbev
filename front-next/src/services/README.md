@@ -1,0 +1,1 @@
+Os serviços foram reorganizados em diretórios correspondentes (api, auth, employee, department, user, etc.). Cada serviço possui seu próprio diretório com index.ts para a camada de acesso a dados e queries.ts para hooks do React Query. Isto resolve a duplicação de código e padroniza a estrutura do projeto.

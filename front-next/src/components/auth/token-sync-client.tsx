@@ -12,35 +12,50 @@ export function TokenSyncClient(): React.ReactNode {
     const syncTokenToCookie = () => {
       if (typeof window === 'undefined') return;
       
-      const token = localStorage.getItem('auth_token');
-      
-      if (token) {
-        Cookies.set('auth_token', token, {
-          expires: 1, // 1 dia
-          path: '/',
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax'
-        });
-      } else {
-        Cookies.remove('auth_token', { path: '/' });
+      try {
+        const token = localStorage.getItem('auth_token');
+        
+        if (token) {
+          Cookies.set('auth_token', token, {
+            expires: 1, // 1 dia
+            path: '/',
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax'
+          });
+          return true;
+        } else {
+          Cookies.remove('auth_token', { path: '/' });
+          return false;
+        }
+      } catch (error) {
+        console.error('Erro ao sincronizar token:', error);
+        return false;
       }
     };
 
     // Sincroniza o token imediatamente
-    syncTokenToCookie();
+    const syncResult = syncTokenToCookie();
+    console.log('Token sincronizado do localStorage para cookie:', syncResult);
 
     // Configura um listener para mudanças no localStorage
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === 'auth_token') {
-        syncTokenToCookie();
+        const syncResult = syncTokenToCookie();
+        console.log('Token atualizado do localStorage para cookie:', syncResult);
       }
     };
+
+    // Verificar periodicamente (a cada 30 segundos) se o token ainda está válido
+    const intervalId = setInterval(() => {
+      syncTokenToCookie();
+    }, 30000); // 30 segundos
 
     window.addEventListener('storage', handleStorageChange);
     
     // Cleanup
     return () => {
       window.removeEventListener('storage', handleStorageChange);
+      clearInterval(intervalId);
     };
   }, []);
 

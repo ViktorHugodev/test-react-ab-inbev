@@ -1,3 +1,5 @@
+import { CurrentUserResponse } from "@/services/auth";
+
 export enum EmployeeRole {
   Employee = 1,
   Leader = 2,
@@ -24,15 +26,17 @@ export interface Employee {
   fullName?: string;
   email: string;
   documentNumber: string;
-  birthDate: Date;
+  birthDate: Date | string;
   age?: number;
-  role: EmployeeRole;
+  role: EmployeeRole | number;
   department?: string;
   managerId?: string;
   managerName?: string;
   phoneNumbers: Phone[];
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  // Para compatibilidade com CurrentUserResponse
+  name?: string;
 }
 
 
@@ -58,7 +62,10 @@ export interface RegisterEmployeeDTO {
   email: string;
   password: string;
   documentNumber: string;
-  phoneNumber: string;
+  phoneNumbers: {
+    number: string;
+    type: PhoneType;
+  }[];
   department: string;
   role: EmployeeRole;
 }
@@ -68,14 +75,15 @@ export interface UpdateEmployeeDTO {
   firstName: string;
   lastName: string;
   email: string;
-  role: EmployeeRole;
+  role: EmployeeRole | number;
   department?: string;
   managerId?: string;
   birthDate: string | Date
   phoneNumbers: {
+    // id deve ser um GUID válido para a API .NET, deve ser omitido se não for válido
     id?: string;
     number: string;
-    type: PhoneType;
+    type: PhoneType | number;
   }[];
 }
 
@@ -106,6 +114,29 @@ export interface PagedResult<T> {
   hasPreviousPage: boolean;
   hasNextPage: boolean;
 }
+
+/**
+ * Interface unificada que combina propriedades de Employee e CurrentUserResponse
+ * para garantir compatibilidade e segurança de tipos em componentes que usam ambos
+ */
+export interface UnifiedUserData {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  fullName: string;
+  role: number;
+  documentNumber?: string;
+  birthDate?: Date;
+  age?: number;
+  department?: string;
+  phoneNumbers: Phone[];
+}
+
+/**
+ * Tipo utilitário para facilitar operações com usuários
+ */
+export type UserDataSource = Employee | CurrentUserResponse | UnifiedUserData | null | undefined;
 
 
 export interface EmployeeFormValues {

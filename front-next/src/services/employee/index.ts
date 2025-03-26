@@ -79,7 +79,6 @@ export const employeeService = {
     return adaptEmployeeResponse(response);
   },
   
-
   getEmployeeById: async (id: string): Promise<Employee> => {
     const response = await api.get<any>(`/Employees/${id}`);
     return adaptEmployee(response);
@@ -87,7 +86,19 @@ export const employeeService = {
 
   getManagers: async (): Promise<Employee[]> => {
     const response = await api.get<any>('/Employees/leaders-directors');
-    return Array.isArray(response) ? response.map(adaptEmployee) : [];
+    return Array.isArray(response) 
+      ? response.map(emp => ({ 
+          id: emp.id, 
+          name: emp.fullName || `${emp.firstName} ${emp.lastName}`,
+          firstName: emp.firstName || "",
+          lastName: emp.lastName || "",
+          email: emp.email || "",
+          documentNumber: emp.documentNumber || "",
+          birthDate: emp.birthDate || new Date(),
+          role: emp.role || EmployeeRole.Employee,
+          phoneNumbers: emp.phoneNumbers || []
+        })) 
+      : [];
   },
 
   createEmployee: async (data: CreateEmployeeDTO): Promise<Employee> => {
@@ -100,7 +111,6 @@ export const employeeService = {
     return adaptEmployee(response);
   },
   
-
   changePassword: async (data: UpdatePasswordDTO): Promise<void> => {
     await api.put<void>(`/Employees/${data.employeeId}/password`, data);
   },
@@ -109,21 +119,47 @@ export const employeeService = {
     await api.delete<void>(`/Employees/${id}`);
   },
 
- getByDepartment: async (departmentId: string): Promise<Employee[]> => {
-  try {
-
-    const department = await api.get<any>(`/Departments/${departmentId}`);
-    
-    if (!department || !department.name) {
-      console.error("Departamento não encontrado ou sem nome");
+  getByDepartment: async (departmentId: string): Promise<Employee[]> => {
+    try {
+      const department = await api.get<any>(`/Departments/${departmentId}`);
+      
+      if (!department || !department.name) {
+        console.error("Departamento não encontrado ou sem nome");
+        return [];
+      }
+      
+      const response = await api.get<any>(`/Employees/department/${department.name}`);
+      return Array.isArray(response) ? response.map(adaptEmployee) : [];
+    } catch (error) {
+      console.error("Erro ao buscar funcionários por departamento:", error);
       return [];
     }
-    
-    const response = await api.get<any>(`/Employees/department/${department.name}`);
+  },
+  
+  // Adicionando funções que existiam no employee-service.ts
+  getDepartments: async (): Promise<{ id: string; name: string }[]> => {
+    try {
+      const response = await api.get<any>('/Departments');
+      return Array.isArray(response) 
+        ? response.map(dept => ({ id: dept.id, name: dept.name }))
+        : [];
+    } catch (error) {
+      console.error("Erro ao buscar departamentos:", error);
+      return [];
+    }
+  },
+
+  getAll: async (): Promise<Employee[]> => {
+    const response = await api.get<any>('/Employees');
     return Array.isArray(response) ? response.map(adaptEmployee) : [];
-  } catch (error) {
-    console.error("Erro ao buscar funcionários por departamento:", error);
-    return [];
-  }
-},
+  },
+  
+  validateDocument: async (document: string): Promise<boolean> => {
+    try {
+      await api.get<any>(`/Employees/validate-document/${document}`);
+      return true;
+    } catch {
+      return false;
+    }
+  },
 };

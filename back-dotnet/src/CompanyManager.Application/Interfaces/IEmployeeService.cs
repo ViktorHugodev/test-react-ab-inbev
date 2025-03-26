@@ -38,6 +38,10 @@ namespace CompanyManager.Application.Interfaces
         Task<EmployeeDto> UpdateAsync(
             UpdateEmployeeDto updateEmployeeDto, 
             CancellationToken cancellationToken = default);
+            
+        Task<EmployeeDto> UpdatePartialAsync(
+            EmployeePartialUpdateDto partialUpdateDto, 
+            CancellationToken cancellationToken = default);
         
         Task<bool> UpdatePasswordAsync(
             UpdatePasswordDto updatePasswordDto, 

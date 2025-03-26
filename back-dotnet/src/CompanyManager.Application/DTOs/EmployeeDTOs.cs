@@ -24,14 +24,28 @@ namespace CompanyManager.Application.DTOs
     public class UpdateEmployeeDto
     {
         public Guid Id { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string Email { get; set; }
-        public DateTime BirthDate { get; set; }
-        public Role Role { get; set; }
-        public string Department { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string? Email { get; set; }
+        public DateTime? BirthDate { get; set; }
+        public Role? Role { get; set; }
+        public string? Department { get; set; }
         public Guid? ManagerId { get; set; }
-        public List<PhoneNumberDto> PhoneNumbers { get; set; } = new List<PhoneNumberDto>();
+        public List<PhoneNumberDto>? PhoneNumbers { get; set; }
+    }
+    
+    // DTO para atualização parcial de funcionário
+    public class EmployeePartialUpdateDto
+    {
+        public Guid Id { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string? Email { get; set; }
+        public DateTime? BirthDate { get; set; }
+        public Role? Role { get; set; }
+        public string? Department { get; set; }
+        public Guid? ManagerId { get; set; }
+        public List<PhoneNumberDto>? PhoneNumbers { get; set; }
     }
 
     // DTO para atualizar a senha

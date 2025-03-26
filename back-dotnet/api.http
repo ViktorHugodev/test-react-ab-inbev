@@ -1,5 +1,5 @@
-@baseUrl = http://localhost:5000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4YjY3ODI0OC1mZDQyLTRlN2MtYjRhZS04ZmMwY2U1YmUxY2IiLCJlbWFpbCI6ImFkbWluQGNvbXBhbnltYW5hZ2VyLmNvbSIsImp0aSI6IjIwM2ZiNTIyLTQ5OTAtNDIzZS04MzExLTAxMGI4OTBhOTU0ZiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJWaWN0b3IgU2lzdGVtYSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkRpcmVjdG9yIiwiZXhwIjoxNzQyOTQzNjc4LCJpc3MiOiJDb21wYW55TWFuYWdlciIsImF1ZCI6IkNvbXBhbnlNYW5hZ2VyQXBpIn0.1_4pu5xs7xtmaDcucD-ffIQcQe5jVF8vaUdDn9D7Ppg
+@baseUrl = http://localhost:5422
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlNjRiMTJjMC03MDZiLTQ1MDktOTA5MC03NGI5NTVjZDhhNGIiLCJlbWFpbCI6ImFkbWluQGNvbXBhbnltYW5hZ2VyLmNvbSIsImp0aSI6ImEzNTViYmNkLWViMGMtNDYxOC1iYzY2LTQ4MDExOTNjNjk3YyIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJBZG1pbiBTaXN0ZW1hIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiRGlyZWN0b3IiLCJleHAiOjE3NDMwMjM3NzEsImlzcyI6IkNvbXBhbnlNYW5hZ2VyIiwiYXVkIjoiQ29tcGFueU1hbmFnZXJBcGkifQ.rILgQBv6ReaEx9KNwKHGIbBP3-D3yW7O9smQTkejhK0
 
 ###
 # @name login
@@ -30,7 +30,7 @@ Authorization: Bearer {{token}}
 
 ###
 # Obtém um funcionário pelo ID
-GET {{baseUrl}}/api/Employees/f88ea326-bcd7-4c4f-b3e2-c5e2f3bdb7df
+GET {{baseUrl}}/api/Employees/e64b12c0-706b-4509-9090-74b955cd8a4b
 Authorization: Bearer {{token}}
 
 ###
@@ -73,15 +73,28 @@ Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-    "id": "f88ea326-bcd7-4c4f-b3e2-c5e2f3bdb7df",
-    "FirstName": "Alessandra",
-    "LastName": "Ruas",
-    "email": "viktorhug2o.dev@gmail.com",
-    "department": "Engenharia",
-    "managerName": "Lucas Ferreira",
-    "role": 2
+    "phoneNumbers": [
+      {
+        "number": "(31) 91234-5678",
+        "type": 1
+      }
+    ]
 }
 
+###
+# Atualiza os telefones de um funcionário
+PATCH {{baseUrl}}/api/Employees/f88ea326-bcd7-4c4f-b3e2-c5e2f3bdb7df
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "phoneNumbers": [
+      {
+        "number": "(31) 91234-5678",
+        "type": 1
+      }
+    ]
+}
 ###
 # Atualiza a senha de um funcionário
 PUT {{baseUrl}}/api/Employees/3fa85f64-5717-4562-b3fc-2c963f66afa6/password

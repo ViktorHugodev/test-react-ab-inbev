@@ -9,7 +9,13 @@ import {
   PagedResult
 } from "@/types/employee";
 import { ApiError } from '..';
+import { isValidGuid } from '@/lib/utils';
 
+// Interface para o contexto de rollback
+interface RollbackContext {
+  previousData?: Employee;
+  previousDetailedData?: Employee;
+}
 
 const handleApiError = (error: unknown, defaultMessage: string) => {
   if (error instanceof ApiError) {
@@ -91,69 +97,148 @@ export const useUpdateEmployeeProfile = () => {
     ApiError, 
     { id: string; data: Partial<UpdateEmployeeDTO> }
   >({
+    // Usar o contexto da mutação para implementar optimistic updates
     mutationFn: async ({ id, data }) => {
       try {
-        // Obter versão mais recente do funcionário antes de atualizar
-        const currentEmployee = await employeeService.getEmployeeById(id);
+        // Implementar um mecanismo de retry com backoff exponencial
+        const maxRetries = 3;
+        let retryCount = 0;
+        let lastError = null;
         
-        // Preservar os IDs de telefone existentes ou adicionar novos conforme necessário
-        let updatedPhoneNumbers = [];
-        
-        if (data.phoneNumbers && data.phoneNumbers.length > 0) {
-          // Mapear por número de telefone para preservar os IDs
-          const currentPhoneMap = new Map();
-          
-          // Indexar os telefones atuais pelo número
-          if (currentEmployee.phoneNumbers && currentEmployee.phoneNumbers.length > 0) {
-            currentEmployee.phoneNumbers.forEach(phone => {
-              if (phone.id) {
-                currentPhoneMap.set(phone.number, phone.id);
+        const executeWithRetry = async (): Promise<Employee> => {
+          try {
+            // Obter versão mais recente do funcionário antes de atualizar
+            const currentEmployee = await employeeService.getEmployeeById(id);
+            
+            // Preservar os IDs de telefone existentes ou adicionar novos conforme necessário
+            let updatedPhoneNumbers = [];
+            
+            if (data.phoneNumbers && data.phoneNumbers.length > 0) {
+              // Mapear por número de telefone para preservar os IDs
+              const currentPhoneMap = new Map();
+              
+              // Indexar os telefones atuais pelo número
+              if (currentEmployee.phoneNumbers && currentEmployee.phoneNumbers.length > 0) {
+                currentEmployee.phoneNumbers.forEach(phone => {
+                  if (phone.id) {
+                    currentPhoneMap.set(phone.number, phone.id);
+                  }
+                });
               }
-            });
+              
+              // Atualizar ou manter os IDs existentes
+              updatedPhoneNumbers = data.phoneNumbers.map(phone => {
+                // Criar um objeto sem ID
+                const phoneObj: any = {
+                  number: phone.number,
+                  type: phone.type
+                };
+                
+                // Se tiver ID e for uma string válida, incluir no objeto
+                if (phone.id && typeof phone.id === 'string' && phone.id.trim() !== '') {
+                  // Verificar se é um GUID válido (usando função utilitária)
+                  const isValidId = isValidGuid(phone.id.trim());
+                  if (isValidId) {
+                    phoneObj.id = phone.id.trim();
+                  }
+                }
+                
+                return phoneObj;
+              });
+            } else {
+              // Se não houver telefones no payload, manter os existentes
+              updatedPhoneNumbers = currentEmployee.phoneNumbers || [];
+            }
+
+            const completeData: UpdateEmployeeDTO = {
+              id,
+              firstName: data.firstName || currentEmployee.firstName,
+              lastName: data.lastName || currentEmployee.lastName,
+              email: data.email || currentEmployee.email,
+              role: data.role || currentEmployee.role,
+              department: data.department || currentEmployee.department || "",
+              managerId: data.managerId || currentEmployee.managerId,
+              birthDate: data.birthDate || currentEmployee.birthDate,
+              phoneNumbers: updatedPhoneNumbers
+            };
+
+            return employeeService.updateEmployee(id, completeData);
+          } catch (error) {
+            // Se for um erro de concorrência e ainda não atingimos o número máximo de tentativas
+            if (error instanceof ApiError && 
+                error.message.includes('concorrência') && 
+                retryCount < maxRetries) {
+              
+              retryCount++;
+              lastError = error;
+              
+              // Aguardar um tempo crescente antes de tentar novamente (backoff exponencial)
+              const waitTime = Math.pow(2, retryCount) * 1000; // 2s, 4s, 8s
+              await new Promise(resolve => setTimeout(resolve, waitTime));
+              
+              // Tentar novamente
+              return executeWithRetry();
+            }
+            
+            // Se não for erro de concorrência ou atingiu máximo de tentativas, propagar o erro
+            throw error;
           }
-          
-          // Atualizar ou manter os IDs existentes
-          updatedPhoneNumbers = data.phoneNumbers.map(phone => ({
-            id: phone.id || currentPhoneMap.get(phone.number) || undefined,
-            number: phone.number,
-            type: phone.type
-          }));
-        } else {
-          // Se não houver telefones no payload, manter os existentes
-          updatedPhoneNumbers = currentEmployee.phoneNumbers || [];
-        }
-
-        const completeData: UpdateEmployeeDTO = {
-          id,
-          firstName: data.firstName || currentEmployee.firstName,
-          lastName: data.lastName || currentEmployee.lastName,
-          email: data.email || currentEmployee.email,
-          role: data.role || currentEmployee.role,
-          department: data.department || currentEmployee.department || "",
-          managerId: data.managerId || currentEmployee.managerId,
-          birthDate: data.birthDate || currentEmployee.birthDate,
-          phoneNumbers: updatedPhoneNumbers
         };
-
-        return employeeService.updateEmployee(id, completeData);
+        
+        return executeWithRetry();
       } catch (error) {
         console.error("Error in update profile mutation:", error);
         throw error;
       }
     },
-    onSuccess: (updatedEmployee) => {
-      queryClient.invalidateQueries({ queryKey: ["currentUser"] });
-      queryClient.invalidateQueries({ queryKey: ["employee", updatedEmployee.id] });
+    onMutate: async ({ id, data }) => {
+      // Cancelar consultas em andamento para evitar sobrescrever nossa atualização otimista
+      await queryClient.cancelQueries({ queryKey: ["employee", id] });
+      await queryClient.cancelQueries({ queryKey: ["detailedUserInfo"] });
       
-      // Forçar atualização dos dados na UI
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ["currentUser"] });
-      }, 500);
+      // Guardar o estado anterior para rollback em caso de erro
+      const previousData = queryClient.getQueryData(["employee", id]);
+      const previousDetailedData = queryClient.getQueryData(["detailedUserInfo"]);
+      
+      // Retornar o contexto com os dados anteriores para rollback se necessário
+      return { previousData, previousDetailedData };
     },
-    onError: (error) => {
+    onSuccess: (updatedEmployee) => {
+      // Atualizar o cache com os novos dados
+      queryClient.setQueryData(["employee", updatedEmployee.id], updatedEmployee);
+      queryClient.setQueryData(["detailedUserInfo"], updatedEmployee);
+      
+      // Invalidar outras queries relacionadas para forçar recarregamento
+      queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+      queryClient.invalidateQueries({ queryKey: ["employees"] });
+      
+      toast.success("Perfil atualizado com sucesso!");
+    },
+    onError: (error, _variables, context: RollbackContext) => {
       console.error("Profile update error:", error);
-      handleApiError(error, "Erro ao atualizar perfil.");
+      
+      // Restaurar os dados anteriores do cache para rollback em caso de erro
+      if (context?.previousData && context.previousDetailedData) {
+        queryClient.setQueryData(["employee", _variables.id], context.previousData);
+        queryClient.setQueryData(["detailedUserInfo"], context.previousDetailedData);
+      }
+      
+      // Tratar o erro específico
+      if (error instanceof ApiError && error.message.includes('concorrência')) {
+        toast.error("Erro de concorrência: Outra pessoa pode ter editado os dados. Tente novamente.");
+        
+        // Recarregar dados atualizados
+        queryClient.invalidateQueries({ queryKey: ["employee", _variables.id] });
+        queryClient.invalidateQueries({ queryKey: ["detailedUserInfo"] });
+      } else {
+        handleApiError(error, "Erro ao atualizar perfil.");
+      }
     },
+    onSettled: (_data, _error, variables) => {
+      // Independentemente do resultado (sucesso ou falha), garantir que os dados estejam atualizados
+      queryClient.invalidateQueries({ queryKey: ["employee", variables.id] });
+      queryClient.invalidateQueries({ queryKey: ["detailedUserInfo"] });
+    }
   });
 };
 

@@ -54,6 +54,24 @@ export const useCurrentUser = () => {
   });
 };
 
+export const useDetailedUserInfo = () => {
+  return useQuery<any, ApiError>({
+    queryKey: ["detailedUserInfo"],
+    queryFn: () => authService.getDetailedUserInfo(),
+    staleTime: 1000 * 60 * 2, // 2 minutes (menor para reduzir problemas de concorrência)
+    enabled: authService.isAuthenticated(), // Only run if user is authenticated
+    refetchOnWindowFocus: true, // Recarregar quando a janela ganhar foco
+    refetchOnMount: true, // Recarregar quando o componente for montado
+    retry: (failureCount, error) => {
+      // Don't retry on 401 (Unauthorized)
+      if (error instanceof ApiError && error.status === 401) {
+        return false;
+      }
+      return failureCount < 3;
+    },
+  });
+};
+
 
 export const useLogout = () => {
   const queryClient = useQueryClient();

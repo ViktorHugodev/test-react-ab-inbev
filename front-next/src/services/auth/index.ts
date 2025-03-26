@@ -1,5 +1,5 @@
 import { api } from "../index";
-import { AuthResponseDTO, LoginDTO } from "@/types/employee";
+import { AuthResponseDTO, Employee, LoginDTO } from "@/types/employee";
 
 export interface CurrentUserResponse {
   id: string;
@@ -20,7 +20,41 @@ export const authService = {
    * Get currently authenticated user info
    */
   getCurrentUser: async (): Promise<CurrentUserResponse> => {
+    // Busca apenas as informações básicas do usuário
     return api.get<CurrentUserResponse>("/Auth/me");
+  },
+  
+  /**
+   * Get detailed user info with employee data
+   */
+  getDetailedUserInfo: async (): Promise<Employee | CurrentUserResponse> => {
+    try {
+      // Primeiro tenta obter o ID do usuário atual pelo endpoint /Auth/me
+      const basicUserInfo = await api.get<CurrentUserResponse>("/Auth/me");
+      
+      if (basicUserInfo && basicUserInfo.id) {
+        // Se tiver ID, busca informações completas pelo endpoint /Employees/{id}
+        try {
+          const employeeData = await api.get<Employee>(`/Employees/${basicUserInfo.id}`);
+          // Certifique-se de que o empregado tem pelo menos o ID e email
+          if (!employeeData.id) {
+            employeeData.id = basicUserInfo.id;
+          }
+          if (!employeeData.email) {
+            employeeData.email = basicUserInfo.email;
+          }
+          return employeeData;
+        } catch (error) {
+          console.error("Erro ao buscar dados completos do usuário:", error);
+          return basicUserInfo;
+        }
+      }
+      
+      return basicUserInfo;
+    } catch (error) {
+      console.error("Erro ao buscar informações do usuário:", error);
+      throw error;
+    }
   },
   
   /**

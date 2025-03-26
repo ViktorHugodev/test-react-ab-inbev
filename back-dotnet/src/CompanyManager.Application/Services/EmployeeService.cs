@@ -175,7 +175,7 @@ namespace CompanyManager.Application.Services
                     throw new EntityNotFoundException("Funcionário", updateEmployeeDto.Id.ToString());
 
                 // Verifica se o e-mail foi alterado e se já existe
-                if (employee.Email != updateEmployeeDto.Email &&
+                if (updateEmployeeDto.Email != null && employee.Email != updateEmployeeDto.Email &&
                     await _unitOfWork.Employees.ExistsByEmailAsync(updateEmployeeDto.Email, cancellationToken))
                 {
                     throw new DuplicateEntityException($"Já existe um funcionário com o e-mail '{updateEmployeeDto.Email}'.");
@@ -193,13 +193,14 @@ namespace CompanyManager.Application.Services
                         throw new EntityNotFoundException("Gerente", updateEmployeeDto.ManagerId.Value.ToString());
 
                     // Verifica se o gerente tem permissão para gerenciar funcionários com este cargo
-                    if (!manager.CanManage(updateEmployeeDto.Role))
+                    var role = updateEmployeeDto.Role ?? employee.Role;
+                    if (!manager.CanManage(role))
                         throw new InsufficientPermissionException(
-                            $"Um {manager.Role} não pode gerenciar um {updateEmployeeDto.Role}.");
+                            $"Um {manager.Role} não pode gerenciar um {role}.");
                 }
 
-                // Atualiza dados básicos
-                employee.Update(
+                // Atualiza dados básicos de forma parcial
+                employee.UpdatePartial(
                     updateEmployeeDto.FirstName,
                     updateEmployeeDto.LastName,
                     updateEmployeeDto.Email,
@@ -208,15 +209,15 @@ namespace CompanyManager.Application.Services
                     updateEmployeeDto.Department,
                     updateEmployeeDto.ManagerId);
 
-                // Atualização de telefones
-                var phoneList = employee.PhoneNumbers.ToList();
-                
-                // Rastreie quais telefones foram processados para saber quais remover depois
-                var processedPhoneIds = new List<Guid>();
-                
-                // Atualiza ou adiciona telefones
+                // Atualização de telefones, apenas se foram fornecidos
                 if (updateEmployeeDto.PhoneNumbers != null)
                 {
+                    var phoneList = employee.PhoneNumbers.ToList();
+                    
+                    // Rastreie quais telefones foram processados para saber quais remover depois
+                    var processedPhoneIds = new List<Guid>();
+                    
+                    // Atualiza ou adiciona telefones
                     foreach (var phoneDto in updateEmployeeDto.PhoneNumbers)
                     {
                         // Se o telefone tiver ID, atualize o existente
@@ -239,14 +240,14 @@ namespace CompanyManager.Application.Services
                         // Se não tiver ID ou não encontrar o telefone, adiciona um novo
                         employee.AddPhoneNumber(phoneDto.Number, phoneDto.Type);
                     }
-                }
-                
-                // Remove telefones que não foram processados (não estavam no DTO)
-                foreach (var phone in phoneList)
-                {
-                    if (!processedPhoneIds.Contains(phone.Id))
+                    
+                    // Remove telefones que não foram processados (não estavam no DTO)
+                    foreach (var phone in phoneList)
                     {
-                        employee.RemovePhoneNumber(phone.Id);
+                        if (!processedPhoneIds.Contains(phone.Id))
+                        {
+                            employee.RemovePhoneNumber(phone.Id);
+                        }
                     }
                 }
 
@@ -350,6 +351,120 @@ namespace CompanyManager.Application.Services
         public async Task<bool> ExistsByDocumentNumberAsync(string documentNumber, CancellationToken cancellationToken = default)
         {
             return await _unitOfWork.Employees.ExistsByDocumentNumberAsync(documentNumber, cancellationToken);
+        }
+        
+        public async Task<EmployeeDto> UpdatePartialAsync(
+            EmployeePartialUpdateDto partialUpdateDto,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var employee = await _unitOfWork.Employees.GetByIdAsync(partialUpdateDto.Id, cancellationToken);
+                if (employee == null)
+                    throw new EntityNotFoundException("Funcionário", partialUpdateDto.Id.ToString());
+
+                // Verifica se o e-mail foi alterado e se já existe
+                if (partialUpdateDto.Email != null && employee.Email != partialUpdateDto.Email &&
+                    await _unitOfWork.Employees.ExistsByEmailAsync(partialUpdateDto.Email, cancellationToken))
+                {
+                    throw new DuplicateEntityException($"Já existe um funcionário com o e-mail '{partialUpdateDto.Email}'.");
+                }
+
+                // Verificações de gerente apenas se o campo ManagerId foi fornecido
+                if (partialUpdateDto.ManagerId != null)
+                {
+                    // Não permitir ciclos na hierarquia
+                    if (partialUpdateDto.ManagerId == employee.Id)
+                        throw new DomainException("Um funcionário não pode ser gerente de si mesmo.");
+
+                    // Verificar se o gerente existe
+                    if (partialUpdateDto.ManagerId.Value != Guid.Empty)
+                    {
+                        var manager = await _unitOfWork.Employees.GetByIdAsync(partialUpdateDto.ManagerId.Value, cancellationToken);
+                        if (manager == null)
+                            throw new EntityNotFoundException("Gerente", partialUpdateDto.ManagerId.Value.ToString());
+
+                        // Verifica se o gerente tem permissão para gerenciar funcionários com este cargo
+                        var role = partialUpdateDto.Role ?? employee.Role;
+                        if (!manager.CanManage(role))
+                            throw new InsufficientPermissionException(
+                                $"Um {manager.Role} não pode gerenciar um {role}.");
+                    }
+                }
+
+                // Atualiza dados básicos com método parcial
+                employee.UpdatePartial(
+                    partialUpdateDto.FirstName,
+                    partialUpdateDto.LastName,
+                    partialUpdateDto.Email,
+                    partialUpdateDto.BirthDate,
+                    partialUpdateDto.Role,
+                    partialUpdateDto.Department,
+                    partialUpdateDto.ManagerId);
+
+                // Atualiza telefones se fornecidos
+                if (partialUpdateDto.PhoneNumbers != null)
+                {
+                    var phoneList = employee.PhoneNumbers.ToList();
+                    
+                    // Rastreia quais telefones foram processados para saber quais remover depois
+                    var processedPhoneIds = new List<Guid>();
+                    
+                    // Atualiza ou adiciona telefones
+                    foreach (var phoneDto in partialUpdateDto.PhoneNumbers)
+                    {
+                        // Se o telefone tiver ID, atualize o existente
+                        if (phoneDto.Id.HasValue && phoneDto.Id.Value != Guid.Empty)
+                        {
+                            var existingPhone = phoneList.FirstOrDefault(p => p.Id == phoneDto.Id.Value);
+                            if (existingPhone != null)
+                            {
+                                // Marca como processado
+                                processedPhoneIds.Add(existingPhone.Id);
+                                
+                                // Para atualizar um telefone existente, removemos e adicionamos um novo
+                                // (já que PhoneNumber é um Value Object imutável)
+                                employee.RemovePhoneNumber(existingPhone.Id);
+                                employee.AddPhoneNumber(phoneDto.Number, phoneDto.Type);
+                                continue;
+                            }
+                        }
+                        
+                        // Se não tiver ID ou não encontrar o telefone, adiciona um novo
+                        employee.AddPhoneNumber(phoneDto.Number, phoneDto.Type);
+                    }
+                    
+                    // Remove telefones que não foram processados (não estavam no DTO)
+                    foreach (var phone in phoneList)
+                    {
+                        if (!processedPhoneIds.Contains(phone.Id))
+                        {
+                            employee.RemovePhoneNumber(phone.Id);
+                        }
+                    }
+                }
+
+                // Persistência
+                await _unitOfWork.Employees.UpdateAsync(employee, cancellationToken);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                _logger.LogInformation("Funcionário atualizado parcialmente com sucesso: {EmployeeId} - {EmployeeName}",
+                    employee.Id, employee.FullName);
+
+                return MapToEmployeeDto(employee);
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                _logger.LogError(ex, "Erro de concorrência ao atualizar funcionário ID {EmployeeId}: {ErrorMessage}", 
+                    partialUpdateDto.Id, ex.Message);
+                throw new ApplicationException("Erro de concorrência: Os dados foram modificados por outro usuário. Por favor, recarregue e tente novamente.", ex);
+            }
+            catch (Exception ex) when (ex is not ApplicationException && ex is not DomainException)
+            {
+                _logger.LogError(ex, "Erro ao atualizar funcionário ID {EmployeeId}: {ErrorMessage}", 
+                    partialUpdateDto.Id, ex.Message);
+                throw new ApplicationException("Ocorreu um erro ao atualizar o funcionário. Por favor, tente novamente.", ex);
+            }
         }
 
         // Métodos auxiliares para mapeamento de entidades para DTOs

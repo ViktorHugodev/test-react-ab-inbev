@@ -148,6 +148,62 @@ namespace CompanyManager.Domain.Aggregates.Employee
             ManagerId = managerId;
             UpdatedAt = DateTime.UtcNow;
         }
+        
+        // Método para atualização parcial
+        public void UpdatePartial(
+            string? firstName = null,
+            string? lastName = null,
+            string? email = null,
+            DateTime? birthDate = null,
+            Role? role = null,
+            string? department = null,
+            Guid? managerId = null)
+        {
+            // Valida e atualiza apenas os campos que foram fornecidos
+            if (firstName != null && lastName != null)
+            {
+                ValidateName(firstName, lastName);
+                FirstName = firstName;
+                LastName = lastName;
+            }
+            else if (firstName != null)
+            {
+                ValidateName(firstName, LastName);
+                FirstName = firstName;
+            }
+            else if (lastName != null)
+            {
+                ValidateName(FirstName, lastName);
+                LastName = lastName;
+            }
+            
+            if (email != null)
+            {
+                ValidateEmail(email);
+                Email = email.ToLower();
+            }
+            
+            if (birthDate.HasValue)
+            {
+                ValidateAge(birthDate.Value);
+                BirthDate = birthDate.Value;
+            }
+            
+            if (role.HasValue)
+            {
+                Role = role.Value;
+            }
+            
+            if (department != null)
+            {
+                Department = department;
+            }
+            
+            // ManagerId pode ser atualizado para null (remover gerente) ou para outro valor
+            ManagerId = managerId;
+            
+            UpdatedAt = DateTime.UtcNow;
+        }
 
         public void UpdatePassword(string newPasswordHash)
         {

@@ -106,13 +106,7 @@ export async function registerEmployee(employeeData: RegisterEmployeeDTO): Promi
         birthDate: new Date(),
         role: employeeData.role,
         department: employeeData.department,
-        phoneNumbers: [
-          { 
-            id: "1", 
-            number: employeeData.phoneNumber, 
-            type: 1
-          }
-        ],
+        phoneNumbers: employeeData.phoneNumbers,
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -121,13 +115,7 @@ export async function registerEmployee(employeeData: RegisterEmployeeDTO): Promi
 
     const apiPayload = {
       ...employeeData,
-      birthDate: new Date().toISOString(), 
-      phoneNumbers: [
-        {
-          number: employeeData.phoneNumber,
-          type: 1 
-        }
-      ]
+      birthDate: new Date().toISOString()
     };
     
     return await api.post<Employee>("/Auth/register", apiPayload);

@@ -368,10 +368,53 @@ public static class SeedData
             CompanyManager.Domain.Aggregates.Employee.Employee.Create(
                 "Ricardo", "Machado", "ricardo.machado@companymanager.com", "12121212121", 
                 new DateTime(1984, 10, 15), authService.HashPassword("Employee@123"),
+                CompanyManager.Domain.Enums.Role.Employee, "Diretoria", leaderDiretoria.Id),
+                
+            // Novos funcionários adicionais com 2 telefones cada
+            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
+                "Amanda", "Santos", "amanda.santos@companymanager.com", "13131313131", 
+                new DateTime(1988, 3, 14), authService.HashPassword("Employee@123"),
+                CompanyManager.Domain.Enums.Role.Employee, "TI", leaderTI.Id),
+                
+            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
+                "Bruno", "Oliveira", "bruno.oliveira@companymanager.com", "14141414141", 
+                new DateTime(1991, 8, 27), authService.HashPassword("Employee@123"),
+                CompanyManager.Domain.Enums.Role.Employee, "RH", leaderRH.Id),
+                
+            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
+                "Carolina", "Pereira", "carolina.pereira@companymanager.com", "15151515151", 
+                new DateTime(1986, 5, 19), authService.HashPassword("Employee@123"),
+                CompanyManager.Domain.Enums.Role.Employee, "Marketing", leaderMarketing.Id),
+                
+            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
+                "Daniel", "Martins", "daniel.martins@companymanager.com", "16161616161", 
+                new DateTime(1990, 11, 3), authService.HashPassword("Employee@123"),
+                CompanyManager.Domain.Enums.Role.Employee, "TI", leaderTI.Id),
+                
+            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
+                "Eduarda", "Ribeiro", "eduarda.ribeiro@companymanager.com", "17171717171", 
+                new DateTime(1992, 7, 8), authService.HashPassword("Employee@123"),
+                CompanyManager.Domain.Enums.Role.Employee, "RH", leaderRH.Id),
+                
+            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
+                "Fábio", "Almeida", "fabio.almeida@companymanager.com", "18181818181", 
+                new DateTime(1989, 2, 12), authService.HashPassword("Employee@123"),
                 CompanyManager.Domain.Enums.Role.Employee, "Diretoria", leaderDiretoria.Id)
         };
         
+        // Adicionar funcionários ao contexto
         context.Employees.AddRange(employees);
+        context.SaveChanges();
+        
+        // Adicionar telefones para os funcionários
+        foreach (var employee in employees)
+        {
+            // Adicionar 2 telefones para cada funcionário
+            employee.AddPhoneNumber("119" + employee.DocumentNumber.Substring(0, 8), CompanyManager.Domain.ValueObjects.PhoneType.Mobile);
+            employee.AddPhoneNumber("113" + employee.DocumentNumber.Substring(0, 8), CompanyManager.Domain.ValueObjects.PhoneType.Home);
+        }
+        
+        // Atualizar os funcionários com os telefones
         context.SaveChanges();
     }
 }

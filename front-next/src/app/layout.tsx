@@ -31,6 +31,7 @@ export default function RootLayout({
     <html lang="pt-BR" className="antialiased" suppressHydrationWarning>
       <body
         className={`${poppins.variable} min-h-screen bg-background font-sans text-foreground`}
+        suppressHydrationWarning
       >
         <ReduxProvider>
           <QueryProvider>

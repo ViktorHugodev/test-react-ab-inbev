@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarIcon, Pencil, PlusCircle, Trash2 } from "lucide-react";
@@ -6,8 +6,9 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import * as z from "zod";
 
-import { Employee, PhoneType } from "@/types/employee";
-import { CurrentUserResponse } from "@/lib/api/auth";
+import { Employee, EmployeeRole, PhoneType, UnifiedUserData, UserDataSource } from "@/types/employee";
+import { CurrentUserResponse } from "@/services/auth";
+import { normalizeUserData } from "@/lib/utils";
 
 import {
   Form,
@@ -34,6 +35,9 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
+// Não usamos mais IDs no frontend para novos telefones
+// Deixamos a API gerar IDs apropriados no formato GUID
+
 // Personal information form schema
 const personalInfoSchema = z.object({
   firstName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
@@ -42,6 +46,10 @@ const personalInfoSchema = z.object({
   birthDate: z.date({
     required_error: "Data de nascimento é obrigatória",
   }),
+  documentNumber: z.string().optional(),
+  age: z.number().nullable().optional(),
+  role: z.number().optional(),
+  department: z.string().optional(),
   phoneNumbers: z.array(
     z.object({
       id: z.string().optional(),
@@ -54,7 +62,7 @@ const personalInfoSchema = z.object({
 export type PersonalInfoFormValues = z.infer<typeof personalInfoSchema>;
 
 interface PersonalInfoFormProps {
-  user: Employee | CurrentUserResponse | null | undefined;
+  user: UserDataSource;
   onSubmit: (data: PersonalInfoFormValues) => Promise<void>;
   isLoading: boolean;
 }
@@ -62,45 +70,42 @@ interface PersonalInfoFormProps {
 export function PersonalInfoForm({ user, onSubmit, isLoading }: PersonalInfoFormProps) {
   const [isEditing, setIsEditing] = useState(false);
 
-  // Adaptar os dados do usuário para o formulário
-  const adaptUserData = () => {
-    if (!user) return null;
-    
-    // Se for CurrentUserResponse, adaptar para o formato esperado pelo formulário
-    if ('name' in user) {
-      const nameParts = user.name.split(' ');
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || '';
-      
-      return {
-        firstName,
-        lastName,
-        email: user.email,
-        birthDate: new Date(),
-        phoneNumbers: []
-      };
+  // Usar a função utilitária para normalizar dados do usuário
+  const normalizedUser = useMemo(() => {
+    // Verificar se user é do tipo UnifiedUserData
+    if (user && 'id' in user && 'firstName' in user && 'lastName' in user && 'email' in user && 'fullName' in user) {
+      // Se já for UnifiedUserData, retornar diretamente
+      return user as UnifiedUserData;
     }
-    
-    // Se for Employee, usar diretamente
-    return {
-      firstName: user.firstName || '',
-      lastName: user.lastName || '',
-      email: user.email || '',
-      birthDate: user.birthDate ? new Date(user.birthDate) : new Date(),
-      phoneNumbers: user.phoneNumbers?.map(phone => ({
-        id: phone.id,
-        number: phone.number || '',
-        type: phone.type || PhoneType.Mobile
-      })) || []
-    };
-  };
+    // Caso contrário, normalizar usando a função
+    return normalizeUserData(user as (Employee | CurrentUserResponse | null | undefined));
+  }, [user]);
   
-  const userData = adaptUserData();
+  // Adaptar os dados normalizados para o formato do formulário
+  const userData = useMemo(() => {
+    if (!normalizedUser) return null;
+    
+    return {
+      firstName: normalizedUser.firstName,
+      lastName: normalizedUser.lastName,
+      email: normalizedUser.email,
+      birthDate: normalizedUser.birthDate || new Date(),
+      documentNumber: normalizedUser.documentNumber || '',
+      age: normalizedUser.age || null,
+      role: normalizedUser.role || EmployeeRole.Employee,
+      department: normalizedUser.department || '',
+      phoneNumbers: normalizedUser.phoneNumbers.map(phone => ({
+        id: phone.id,
+        number: phone.number,
+        type: phone.type
+      }))
+    };
+  }, [normalizedUser]);
 
   // Form for personal information
   const form = useForm<PersonalInfoFormValues>({
     resolver: zodResolver(personalInfoSchema),
-    defaultValues: userData || {
+    defaultValues: {
       firstName: "",
       lastName: "",
       email: "",
@@ -108,39 +113,91 @@ export function PersonalInfoForm({ user, onSubmit, isLoading }: PersonalInfoForm
       phoneNumbers: [],
     },
   });
-
+  
+  // Atualizar o formulário quando os dados do usuário mudarem - apenas uma vez
+  useEffect(() => {
+    if (userData) {
+      form.reset(userData);
+    }
+  }, [form, userData]);
+  
   const handleSubmit = async (data: PersonalInfoFormValues) => {
-    await onSubmit(data);
-    setIsEditing(false);
+    try {
+      await onSubmit(data);
+      setIsEditing(false);
+    } catch (error) {
+      // Erro já tratado pelo componente pai
+      console.error("Erro ao submeter formulário:", error);
+    }
   };
 
+  // Gerenciamento seguro de arrays no React Hook Form
   const handleAddPhone = () => {
+    // Obter o valor atual dos telefones de forma segura
     const currentPhones = form.getValues("phoneNumbers") || [];
-    form.setValue("phoneNumbers", [
-      ...currentPhones,
-      // Telefone novo sem ID para que o backend crie um novo
-      { number: "", type: PhoneType.Mobile },
-    ]);
+    
+    // Criar um novo telefone com valores iniciais seguros
+    // SEM ID PARA PERMITIR QUE A API GERE UM GUID VÁLIDO
+    const newPhone = {
+      number: "",
+      type: PhoneType.Mobile
+    };
+    
+    // Criar um novo array para evitar mutações
+    const newPhones = [...currentPhones, newPhone];
+    
+    // Atualizar o formulário com o novo array
+    form.setValue("phoneNumbers", newPhones, { 
+      shouldValidate: false, // Não validar imediatamente para evitar erros
+      shouldDirty: true,
+      shouldTouch: true
+    });
+    
+    // Focar no campo de número do novo telefone após um pequeno delay
+    // para garantir que o componente foi renderizado
+    const newIndex = newPhones.length - 1;
+    setTimeout(() => {
+      form.setFocus(`phoneNumbers.${newIndex}.number`);
+    }, 50);
   };
 
   const handleRemovePhone = (index: number) => {
     const currentPhones = form.getValues("phoneNumbers") || [];
     
+    // Verificar se o índice é válido
+    if (index < 0 || index >= currentPhones.length) {
+      console.error(`Índice inválido para remoção: ${index}, tamanho do array: ${currentPhones.length}`);
+      return;
+    }
+    
     // Verificar se o telefone tem um ID (existente no banco)
     const phoneToRemove = currentPhones[index];
     
     // Se o telefone já existe no banco (tem ID) e é o único, apenas limpar o número
-    // para evitar erros, mas manter o registro para evitar inconsistências no backend
-    if (phoneToRemove.id && currentPhones.length === 1) {
-      form.setValue("phoneNumbers", [{ id: phoneToRemove.id, number: "", type: PhoneType.Mobile }]);
+    if (phoneToRemove?.id && currentPhones.length === 1) {
+      const resetPhone = { 
+        id: phoneToRemove.id, 
+        number: "", 
+        type: PhoneType.Mobile 
+      };
+      
+      form.setValue("phoneNumbers", [resetPhone], {
+        shouldValidate: false, // Não validar imediatamente para evitar erros
+        shouldDirty: true,
+        shouldTouch: true
+      });
       return;
     }
     
     // Caso contrário, remover normalmente
-    form.setValue(
-      "phoneNumbers",
-      currentPhones.filter((_, i) => i !== index)
-    );
+    const newPhones = currentPhones.filter((_, i) => i !== index);
+    
+    // Atualizar o formulário com o novo array
+    form.setValue("phoneNumbers", newPhones, {
+      shouldValidate: false, // Não validar imediatamente para evitar erros
+      shouldDirty: true,
+      shouldTouch: true
+    });
   };
 
   const getPhoneTypeLabel = (type: PhoneType): string => {
@@ -176,7 +233,10 @@ export function PersonalInfoForm({ user, onSubmit, isLoading }: PersonalInfoForm
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form 
+            onSubmit={form.handleSubmit(handleSubmit)} 
+            className="space-y-4"
+          >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -274,6 +334,64 @@ export function PersonalInfoForm({ user, onSubmit, isLoading }: PersonalInfoForm
                 </FormItem>
               )}
             />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="documentNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>CPF/CNPJ</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        value={field.value || ''}
+                        disabled={true}
+                        className="rounded-full"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="age"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Idade</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        value={field.value?.toString() || ''}
+                        disabled={true}
+                        className="rounded-full"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <FormField
+              control={form.control}
+              name="department"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Departamento</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value || ''}
+                      disabled={true}
+                      className="rounded-full"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -292,70 +410,82 @@ export function PersonalInfoForm({ user, onSubmit, isLoading }: PersonalInfoForm
                 )}
               </div>
 
-              {form.watch("phoneNumbers")?.map((phone, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <div className="grid grid-cols-3 gap-2 flex-1">
-                    <FormField
-                      control={form.control}
-                      name={`phoneNumbers.${index}.type`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <Select
-                            disabled={!isEditing}
-                            onValueChange={(value) => field.onChange(Number(value))}
-                            value={String(field.value)}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="rounded-full">
-                                <SelectValue placeholder="Tipo" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {Object.entries(PhoneType)
-                                .filter(([key]) => !isNaN(Number(key)))
-                                .map(([key, value]) => (
-                                  <SelectItem key={key} value={key}>
-                                    {getPhoneTypeLabel(Number(key) as PhoneType)}
-                                  </SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name={`phoneNumbers.${index}.number`}
-                      render={({ field }) => (
-                        <FormItem className="col-span-2">
-                          <FormControl>
-                            <Input
-                              {...field}
+              {form.watch("phoneNumbers")?.map((phone, index) => {
+                // Usar índice estável como chave
+                const phoneId = phone.id || `phone-${index}`;
+                
+                return (
+                  <div 
+                    key={phoneId}
+                    className="flex items-center gap-2"
+                    data-phone-index={index}
+                  >
+                    <div className="grid grid-cols-3 gap-2 flex-1">
+                      <FormField
+                        control={form.control}
+                        name={`phoneNumbers.${index}.type`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <Select
                               disabled={!isEditing}
-                              placeholder="Número"
-                              className="rounded-full"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                              onValueChange={(value) => {
+                                field.onChange(Number(value));
+                              }}
+                              value={String(field.value)}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="rounded-full">
+                                  <SelectValue placeholder="Tipo" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {Object.entries(PhoneType)
+                                  .filter(([key]) => !isNaN(Number(key)))
+                                  .map(([key, value]) => (
+                                    <SelectItem key={key} value={key}>
+                                      {getPhoneTypeLabel(Number(key) as PhoneType)}
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`phoneNumbers.${index}.number`}
+                        render={({ field }) => (
+                          <FormItem className="col-span-2">
+                            <FormControl>
+                              <Input
+                                {...field}
+                                value={field.value || ''}
+                                disabled={!isEditing}
+                                placeholder="Número"
+                                className="rounded-full"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    {isEditing && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleRemovePhone(index)}
+                        className="h-8 w-8 rounded-full text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Remover</span>
+                      </Button>
+                    )}
                   </div>
-                  {isEditing && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleRemovePhone(index)}
-                      className="h-8 w-8 rounded-full text-destructive hover:text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      <span className="sr-only">Remover</span>
-                    </Button>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {isEditing && (
