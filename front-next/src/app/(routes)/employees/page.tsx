@@ -16,8 +16,8 @@ import { useGetDepartments } from '@/services/department/queries';
 
 import { EmployeeHeader } from "@/components/pages/employees/employee-header";
 import { EmployeeTable } from "@/components/pages/employees/employee-table";
-import { FilterBar } from "@/components/pages/employees/filter-bar";
-import { DeleteDialog } from "@/components/pages/employees/delete-dialog";
+import { FilterBar } from "@/components/shared/filters/filter-bar";
+import { ConfirmDeleteDialog } from "@/components/shared/dialogs/confirm-delete-dialog";
 import { EmployeeStatsData, EmployeeStatsOverview } from "@/components/pages/employees/stats-overview";
 
 export default function EmployeesPage() {
@@ -166,12 +166,31 @@ export default function EmployeesPage() {
           <FilterBar 
             searchTerm={filters.searchTerm || ""}
             onSearchChange={handleSearch}
-            selectedDepartment={filters.department}
-            onDepartmentChange={handleDepartmentChange}
-            selectedManager={filters.managerId}
-            onManagerChange={handleManagerChange}
-            departments={departments}
-            managers={managers}
+            searchPlaceholder="Buscar funcionários..."
+            filters={[
+              {
+                name: "Departamentos",
+                placeholder: "Departamento",
+                value: filters.department,
+                onChange: handleDepartmentChange,
+                options: departments ? departments.map(dept => ({
+                  id: dept.id,
+                  name: dept.name,
+                  value: dept.name
+                })) : []
+              },
+              {
+                name: "Gerentes",
+                placeholder: "Gerente",
+                value: filters.managerId,
+                onChange: handleManagerChange,
+                options: managers ? managers.map(manager => ({
+                  id: manager.id || "",
+                  name: `${manager.firstName} ${manager.lastName}`,
+                  value: manager.id || ""
+                })) : []
+              }
+            ]}
           />
           
           {isDirector && (
@@ -219,10 +238,11 @@ export default function EmployeesPage() {
       </div>
 
       {/* Delete Confirmation Dialog */}
-      <DeleteDialog
+      <ConfirmDeleteDialog
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
-        employeeName={employeeToDelete ? `${employeeToDelete.firstName} ${employeeToDelete.lastName}` : ""}
+        title="Excluir Funcionário"
+        itemName={employeeToDelete ? `${employeeToDelete.firstName} ${employeeToDelete.lastName}` : ""}
         onConfirm={confirmDelete}
         isLoading={deleteEmployee.isPending}
       />

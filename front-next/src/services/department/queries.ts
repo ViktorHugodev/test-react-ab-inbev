@@ -4,7 +4,6 @@ import { ApiError } from "../index";
 import { CreateDepartmentDto, Department, UpdateDepartmentDto } from '@/types/deparment';
 import { departmentService } from '.';
 
-// Error handler utility
 const handleApiError = (error: unknown, defaultMessage: string) => {
   if (error instanceof ApiError) {
     toast.error(error.message);
@@ -14,9 +13,7 @@ const handleApiError = (error: unknown, defaultMessage: string) => {
   console.error(error);
 };
 
-/**
- * Get all departments hook
- */
+
 export const useGetDepartments = () => {
   return useQuery<Department[], ApiError>({
     queryKey: ["departments"],
@@ -25,21 +22,17 @@ export const useGetDepartments = () => {
   });
 };
 
-/**
- * Get department by ID hook
- */
+
 export const useGetDepartment = (id: string) => {
   return useQuery<Department, ApiError>({
     queryKey: ["department", id],
     queryFn: () => departmentService.getById(id),
     staleTime: 1000 * 60 * 5, // 5 minutes
-    enabled: !!id, // Only run if id is provided
+    enabled: !!id,
   });
 };
 
-/**
- * Create department hook
- */
+
 export const useCreateDepartment = () => {
   const queryClient = useQueryClient();
 
@@ -55,9 +48,7 @@ export const useCreateDepartment = () => {
   });
 };
 
-/**
- * Update department hook
- */
+
 export const useUpdateDepartment = (id: string) => {
   const queryClient = useQueryClient();
 
@@ -66,10 +57,8 @@ export const useUpdateDepartment = (id: string) => {
     onSuccess: (updatedDepartment) => {
       toast.success("Departamento atualizado com sucesso!");
       
-      // Update specific department query
       queryClient.setQueryData(["department", id], updatedDepartment);
       
-      // Invalidate all department lists
       queryClient.invalidateQueries({ queryKey: ["departments"] });
     },
     onError: (error) => {
@@ -78,9 +67,7 @@ export const useUpdateDepartment = (id: string) => {
   });
 };
 
-/**
- * Delete department hook
- */
+
 export const useDeleteDepartment = () => {
   const queryClient = useQueryClient();
 
@@ -89,7 +76,7 @@ export const useDeleteDepartment = () => {
     onSuccess: () => {
       toast.success("Departamento excluído com sucesso!");
       
-      // Invalidate cached data
+      
       queryClient.invalidateQueries({ queryKey: ["departments"] });
     },
     onError: (error) => {

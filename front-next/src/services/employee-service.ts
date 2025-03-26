@@ -8,22 +8,22 @@ import {
   UpdatePasswordDTO
 } from "@/types/employee";
 
-// Mock delay for testing
+
 const mockDelay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-// Mock para validação de documento
+
 const isDocumentUnique = async (document: string): Promise<boolean> => {
-  // Em uma aplicação real, isso seria uma chamada à API
+
   await mockDelay(500);
   
-  // Para testes, considere apenas estes documentos como "já em uso"
+
   const takenDocuments = ["12345678900", "98765432100"];
   return !takenDocuments.includes(document);
 };
 
 export const employeeService = {
   getAll: async (): Promise<Employee[]> => {
-    // Em desenvolvimento, usando mock ou API real dependendo da configuração
+
     if (process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_USE_MOCK === "true") {
       await mockDelay(800);
       return mockEmployees;
@@ -39,7 +39,7 @@ export const employeeService = {
     department?: string, 
     managerId?: string
   ): Promise<PagedResult<Employee>> => {
-    // Em desenvolvimento, usando mock ou API real dependendo da configuração
+
     if (process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_USE_MOCK === "true") {
       await mockDelay(800);
       
@@ -88,7 +88,7 @@ export const employeeService = {
   },
   
   getById: async (id: string): Promise<Employee> => {
-    // Em desenvolvimento, usando mock ou API real dependendo da configuração
+
     if (process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_USE_MOCK === "true") {
       await mockDelay(500);
       const employee = mockEmployees.find(e => e.id === id);
@@ -100,7 +100,7 @@ export const employeeService = {
   },
   
   getByDepartment: async (department: string): Promise<Employee[]> => {
-    // Em desenvolvimento, usando mock ou API real dependendo da configuração
+
     if (process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_USE_MOCK === "true") {
       await mockDelay(500);
       return mockEmployees.filter(e => e.department?.toLowerCase() === department.toLowerCase());
@@ -110,7 +110,7 @@ export const employeeService = {
   },
   
   getByManager: async (managerId: string): Promise<Employee[]> => {
-    // Em desenvolvimento, usando mock ou API real dependendo da configuração
+
     if (process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_USE_MOCK === "true") {
       await mockDelay(500);
       return mockEmployees.filter(e => e.managerId === managerId);
@@ -120,17 +120,17 @@ export const employeeService = {
   },
   
   create: async (employeeData: CreateEmployeeDTO): Promise<Employee> => {
-    // Em desenvolvimento, usando mock ou API real dependendo da configuração
+
     if (process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_USE_MOCK === "true") {
       await mockDelay(1000);
       
-      // Verifica se o documento é único
+
       const isUnique = await isDocumentUnique(employeeData.documentNumber);
       if (!isUnique) {
         throw new Error("Documento já cadastrado no sistema");
       }
       
-      // Simula criação do funcionário
+
       const newEmployee: Employee = {
         id: Math.random().toString(36).substring(2, 9),
         firstName: employeeData.firstName,
@@ -151,7 +151,7 @@ export const employeeService = {
         updatedAt: new Date(),
       };
       
-      // Adicionar ao mock
+
       mockEmployees.push(newEmployee);
       
       return newEmployee;
@@ -161,14 +161,14 @@ export const employeeService = {
   },
   
   update: async (employeeData: UpdateEmployeeDTO): Promise<Employee> => {
-    // Em desenvolvimento, usando mock ou API real dependendo da configuração
+    
     if (process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_USE_MOCK === "true") {
       await mockDelay(1000);
       
       const index = mockEmployees.findIndex(e => e.id === employeeData.id);
       if (index === -1) throw new Error("Funcionário não encontrado");
       
-      // Atualiza o funcionário
+
       const updatedEmployee: Employee = {
         ...mockEmployees[index],
         firstName: employeeData.firstName,
@@ -196,21 +196,21 @@ export const employeeService = {
   },
   
   updatePassword: async (passwordData: UpdatePasswordDTO): Promise<boolean> => {
-    // Em desenvolvimento, usando mock ou API real dependendo da configuração
+
     if (process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_USE_MOCK === "true") {
       await mockDelay(800);
       
-      // Simula a validação da senha atual
+     
       if (passwordData.currentPassword !== "password123") {
         throw new Error("Senha atual incorreta");
       }
       
-      // Simula a validação das senhas
+
       if (passwordData.newPassword !== passwordData.confirmNewPassword) {
         throw new Error("As senhas não coincidem");
       }
       
-      // Simula validação de complexidade
+    
       if (passwordData.newPassword.length < 8) {
         throw new Error("A nova senha deve ter pelo menos 8 caracteres");
       }
@@ -223,7 +223,7 @@ export const employeeService = {
   },
   
   delete: async (id: string): Promise<boolean> => {
-    // Em desenvolvimento, usando mock ou API real dependendo da configuração
+
     if (process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_USE_MOCK === "true") {
       await mockDelay(800);
       
@@ -247,12 +247,11 @@ export const employeeService = {
   },
   
   validateDocument: async (document: string): Promise<boolean> => {
-    // Em desenvolvimento, usando mock ou API real dependendo da configuração
+
     if (process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_USE_MOCK === "true") {
       return isDocumentUnique(document);
     }
     
-    // Em produção, chama o endpoint de validação
     try {
       await api.get<{ isValid: boolean }>(`/Employees/validate-document/${document}`);
       return true;
@@ -262,16 +261,15 @@ export const employeeService = {
   },
   
   getDepartments: async (): Promise<{ id: string; name: string }[]> => {
-    // Em desenvolvimento, usando mock ou API real dependendo da configuração
+
     if (process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_USE_MOCK === "true") {
       await mockDelay(300);
       return mockDepartments;
     }
     
-    // No backend real, pode haver um endpoint específico para departamentos
-    // ou você pode extrair dos funcionários
+
     const employees = await api.get<Employee[]>("/Employees");
-    // Create a unique list of departments without using spread on Set
+  
     const departmentSet = new Set<string>();
     employees.forEach(e => {
       if (e.department) {
@@ -283,7 +281,7 @@ export const employeeService = {
   },
   
   getManagers: async (): Promise<{ id: string; name: string }[]> => {
-    // Em desenvolvimento, usando mock ou API real dependendo da configuração
+
     if (process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_USE_MOCK === "true") {
       await mockDelay(300);
       return mockEmployees
@@ -294,7 +292,6 @@ export const employeeService = {
         }));
     }
     
-    // No backend real, poderia haver um endpoint específico para gerentes
     const employees = await api.get<Employee[]>("/Employees");
     return employees
       .filter(e => e.role !== EmployeeRole.Employee)
@@ -305,7 +302,7 @@ export const employeeService = {
   }
 };
 
-// Mock data para desenvolvimento
+
 const mockDepartments = [
   { id: "TI", name: "TI" },
   { id: "RH", name: "RH" },

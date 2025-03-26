@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
-import { LoginForm } from "@/components/forms/login-form";
+import { LoginForm } from "@/components/shared/forms/login-form";
 import { toast } from "sonner";
 
 export default function LoginContent() {
@@ -29,5 +29,5 @@ export default function LoginContent() {
     return <div className="text-center py-4">Carregando...</div>;
   }
 
-  return <LoginForm />;
+  return <LoginForm variant="card" />;
 }

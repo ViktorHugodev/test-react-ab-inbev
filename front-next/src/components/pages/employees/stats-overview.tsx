@@ -1,5 +1,5 @@
 import { Users, UserCheck, Building2, Award, Clock } from "lucide-react";
-import { StatCard } from "./stat-card";
+import { StatCard } from "@/components/shared/data-display/stat-card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export interface EmployeeStatsData {

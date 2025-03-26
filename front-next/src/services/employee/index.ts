@@ -16,14 +16,13 @@ export interface EmployeeFilters {
   managerId?: string;
 }
 
-// Adapta os dados do funcionário da API para o formato esperado pela UI
+
 const adaptEmployee = (apiEmployee: any): Employee => {
-  // Verifica se já está no formato esperado
+
   if (apiEmployee.firstName && apiEmployee.lastName) {
     return apiEmployee as Employee;
   }
   
-  // Se temos só fullName, extraímos o primeiro e último nome
   if (apiEmployee.fullName) {
     const nameParts = apiEmployee.fullName.split(' ');
     const firstName = nameParts[0];
@@ -35,14 +34,11 @@ const adaptEmployee = (apiEmployee: any): Employee => {
       lastName
     } as Employee;
   }
-  
-  // Caso não tenhamos nenhum dos dois, retornamos como está
+
   return apiEmployee as Employee;
 };
 
-// Adapta a resposta da API para o formato esperado pela UI
 const adaptEmployeeResponse = (apiResponse: any): PagedResult<Employee> => {
-  // Verifica se é uma lista simples ou uma resposta paginada
   if (Array.isArray(apiResponse)) {
     const adaptedEmployees = apiResponse.map(adaptEmployee);
     
@@ -57,19 +53,14 @@ const adaptEmployeeResponse = (apiResponse: any): PagedResult<Employee> => {
     };
   }
   
-  // Caso já seja uma resposta paginada
-  return {
+    return {
     ...apiResponse,
     items: apiResponse.items.map(adaptEmployee)
   };
 };
 
 export const employeeService = {
-  /**
-   * Get all employees with filters
-   */
   getEmployees: async (filters?: EmployeeFilters): Promise<PagedResult<Employee>> => {
-    // Verifica se temos filtros para usar paginação ou não
     if (filters && Object.keys(filters).length > 0) {
       const params = new URLSearchParams();
       
@@ -88,60 +79,39 @@ export const employeeService = {
     return adaptEmployeeResponse(response);
   },
   
-  /**
-   * Get employee by ID
-   */
+
   getEmployeeById: async (id: string): Promise<Employee> => {
     const response = await api.get<any>(`/Employees/${id}`);
     return adaptEmployee(response);
   },
-  
-  /**
-   * Get managers (Leaders and Directors)
-   */
+
   getManagers: async (): Promise<Employee[]> => {
     const response = await api.get<any>('/Employees/leaders-directors');
     return Array.isArray(response) ? response.map(adaptEmployee) : [];
   },
-  
-  /**
-   * Create a new employee
-   */
+
   createEmployee: async (data: CreateEmployeeDTO): Promise<Employee> => {
     const response = await api.post<any>('/Employees', data);
     return adaptEmployee(response);
   },
-  
-  /**
-   * Update an existing employee
-   */
+
   updateEmployee: async (id: string, data: UpdateEmployeeDTO): Promise<Employee> => {
     const response = await api.put<any>(`/Employees/${id}`, data);
     return adaptEmployee(response);
   },
   
-  /**
-   * Change employee password
-   */
+
   changePassword: async (data: UpdatePasswordDTO): Promise<void> => {
     await api.put<void>(`/Employees/${data.employeeId}/password`, data);
   },
   
-  /**
-   * Delete an employee
-   */
   deleteEmployee: async (id: string): Promise<void> => {
     await api.delete<void>(`/Employees/${id}`);
   },
-   /**
-   * Get employees by department
-   */
- /**
-   * Get employees by department ID
-   */
+
  getByDepartment: async (departmentId: string): Promise<Employee[]> => {
   try {
-    // Primeiro, precisamos obter o departamento pelo ID para ter acesso ao nome
+
     const department = await api.get<any>(`/Departments/${departmentId}`);
     
     if (!department || !department.name) {
@@ -149,7 +119,6 @@ export const employeeService = {
       return [];
     }
     
-    // Agora que temos o nome do departamento, podemos buscar os funcionários
     const response = await api.get<any>(`/Employees/department/${department.name}`);
     return Array.isArray(response) ? response.map(adaptEmployee) : [];
   } catch (error) {

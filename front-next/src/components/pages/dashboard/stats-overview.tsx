@@ -8,7 +8,7 @@ import {
   BarChart3 
 } from "lucide-react";
 import { EmployeeRole } from "@/types/employee";
-import { StatCard } from './stat-card';
+import { StatCard } from '@/components/shared/data-display/stat-card';
 import { Skeleton } from "@/components/ui/skeleton";
 
 export interface StatsData {

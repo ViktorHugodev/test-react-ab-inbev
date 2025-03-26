@@ -11,7 +11,6 @@ import {
 import { ApiError } from '..';
 
 
-// Error handler utility
 const handleApiError = (error: unknown, defaultMessage: string) => {
   if (error instanceof ApiError) {
     console.error('API Error Details:', error);
@@ -22,9 +21,6 @@ const handleApiError = (error: unknown, defaultMessage: string) => {
   }
 };
 
-/**
- * Get all employees hook with optional filters
- */
 export const useGetEmployees = (filters?: EmployeeFilters) => {
   return useQuery<PagedResult<Employee>, ApiError>({
     queryKey: ["employees", filters],
@@ -33,9 +29,6 @@ export const useGetEmployees = (filters?: EmployeeFilters) => {
   });
 };
 
-/**
- * Get employee by ID hook
- */
 export const useGetEmployee = (id: string) => {
   return useQuery<Employee, ApiError>({
     queryKey: ["employee", id],
@@ -45,9 +38,7 @@ export const useGetEmployee = (id: string) => {
   });
 };
 
-/**
- * Get managers (Leaders and Directors) hook
- */
+
 export const useGetManagers = () => {
   return useQuery<Employee[], ApiError>({
     queryKey: ["managers"],
@@ -56,9 +47,6 @@ export const useGetManagers = () => {
   });
 };
 
-/**
- * Create employee hook
- */
 export const useCreateEmployee = () => {
   const queryClient = useQueryClient();
   
@@ -74,9 +62,7 @@ export const useCreateEmployee = () => {
   });
 };
 
-/**
- * Update employee hook
- */
+
 export const useUpdateEmployee = () => {
   const queryClient = useQueryClient();
   
@@ -97,10 +83,6 @@ export const useUpdateEmployee = () => {
   });
 };
 
-/**
- * Update employee profile hook
- * Específico para atualização do perfil do próprio funcionário
- */
 export const useUpdateEmployeeProfile = () => {
   const queryClient = useQueryClient();
   
@@ -111,14 +93,10 @@ export const useUpdateEmployeeProfile = () => {
   >({
     mutationFn: async ({ id, data }) => {
       try {
-        // Primeiro obtemos os dados completos do funcionário
         const currentEmployee = await employeeService.getEmployeeById(id);
-        console.log("Current employee data:", currentEmployee);
+     
         
-        // Log de dados de entrada para debug
-        console.log("Update input data:", data);
-        
-        // Criamos um objeto completo de atualização mesclando os dados atuais com as alterações
+
         const completeData: UpdateEmployeeDTO = {
           id,
           firstName: data.firstName || currentEmployee.firstName,
@@ -130,10 +108,7 @@ export const useUpdateEmployeeProfile = () => {
           birthDate: data.birthDate || currentEmployee.birthDate,
           phoneNumbers: data.phoneNumbers || currentEmployee.phoneNumbers || []
         };
-        
-        console.log("Complete update data:", completeData);
-        
-        // Chamamos o serviço com os dados completos
+
         return employeeService.updateEmployee(id, completeData);
       } catch (error) {
         console.error("Error in update profile mutation:", error);
@@ -141,7 +116,6 @@ export const useUpdateEmployeeProfile = () => {
       }
     },
     onSuccess: (updatedEmployee) => {
-      console.log("Profile update successful:", updatedEmployee);
       queryClient.invalidateQueries({ queryKey: ["currentUser"] });
       queryClient.invalidateQueries({ queryKey: ["employee", updatedEmployee.id] });
     },
@@ -152,9 +126,7 @@ export const useUpdateEmployeeProfile = () => {
   });
 };
 
-/**
- * Change employee password hook
- */
+
 export const useChangePassword = () => {
   return useMutation<void, ApiError, UpdatePasswordDTO>({
     mutationFn: (data) => employeeService.changePassword(data),
@@ -164,10 +136,7 @@ export const useChangePassword = () => {
   });
 };
 
-/**
- * Update employee password hook
- * Específico para atualização da senha do próprio funcionário
- */
+
 export const useUpdateEmployeePassword = () => {
   return useMutation<void, ApiError, UpdatePasswordDTO>({
     mutationFn: (data) => employeeService.changePassword(data),
@@ -177,9 +146,7 @@ export const useUpdateEmployeePassword = () => {
   });
 };
 
-/**
- * Delete employee hook
- */
+
 export const useDeleteEmployee = () => {
   const queryClient = useQueryClient();
   

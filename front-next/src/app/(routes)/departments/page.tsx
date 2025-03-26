@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { EmployeeRole } from "@/types/employee";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { FilterBar } from "@/components/shared/filters/filter-bar";
 
 import { useGetEmployees } from '@/services/employee/queries';
 import { useCreateDepartment, useGetDepartments, useDeleteDepartment, useUpdateDepartment } from '@/services/department/queries';
@@ -16,7 +16,7 @@ import { Department, CreateDepartmentDto, UpdateDepartmentDto } from "@/types/de
 import { DepartmentHeader } from "@/components/pages/departments/department-header";
 import { DepartmentGrid } from "@/components/pages/departments/department-grid";
 import { DepartmentDialog } from "@/components/pages/departments/department-dialog";
-import { DeleteDialog } from "@/components/pages/departments/delete-dialog";
+import { ConfirmDeleteDialog } from "@/components/shared/dialogs/confirm-delete-dialog";
 import { DepartmentStatsData, DepartmentStatsOverview } from "@/components/pages/departments/stats-overview";
 
 export default function DepartmentsPage() {
@@ -172,16 +172,11 @@ export default function DepartmentsPage() {
 
         {/* Search and Add */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mt-8">
-          <div className="relative w-full max-w-sm">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Buscar departamentos..."
-              className="pl-8 rounded-full"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+          <FilterBar
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            searchPlaceholder="Buscar departamentos..."
+          />
           
           {canManageDepartments && (
             <Button 
@@ -219,10 +214,12 @@ export default function DepartmentsPage() {
       />
 
       {/* Delete Confirmation Dialog */}
-      <DeleteDialog
+      <ConfirmDeleteDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
-        departmentName={selectedDepartment?.name || ""}
+        title="Confirmar exclusão"
+        itemName={selectedDepartment?.name || ""}
+        description={`Tem certeza que deseja excluir o departamento <strong>${selectedDepartment?.name || ""}</strong>? Esta ação não pode ser desfeita e pode afetar funcionários vinculados a este departamento.`}
         onConfirm={handleDeleteDepartment}
         isLoading={deleteDepartment.isPending}
       />

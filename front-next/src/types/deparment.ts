@@ -1,5 +1,5 @@
 
-// DTOs para criação e atualização
+
 export interface CreateDepartmentDto {
   name: string;
   description?: string;
@@ -10,7 +10,7 @@ export interface UpdateDepartmentDto {
   name: string;
   description: string;
 }
-// Interfaces
+
 export interface Department {
   id: string;
   name: string;

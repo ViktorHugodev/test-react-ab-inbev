@@ -3,7 +3,7 @@ import { render, RenderOptions } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EmployeeRole } from '@/types/employee';
 
-// Create a mock AuthContext for testing
+
 const AuthContext = createContext({
   user: null,
   isLoading: false,
@@ -12,9 +12,9 @@ const AuthContext = createContext({
   canCreateRole: () => false
 });
 
-// Mock AuthProvider component
+
 const MockAuthProvider = ({ children, mockRole = EmployeeRole.Leader }: { children: React.ReactNode, mockRole?: EmployeeRole }) => {
-  // Mock implementation for testing purposes
+
   const mockLogin = jest.fn().mockImplementation(async () => {});
   const mockLogout = jest.fn();
   const mockCanCreateRole = jest.fn().mockImplementation(() => true);

@@ -1,4 +1,3 @@
-// Enums alinhados com o backend
 export enum EmployeeRole {
   Employee = 1,
   Leader = 2,
@@ -12,7 +11,6 @@ export enum PhoneType {
   Other = 4,
 }
 
-// Interfaces para representar o modelo de negócio
 export interface Phone {
   id?: string;
   number: string;
@@ -37,13 +35,13 @@ export interface Employee {
   updatedAt?: Date;
 }
 
-// DTOs para comunicação com a API
+
 export interface CreateEmployeeDTO {
   firstName: string;
   lastName: string;
   email: string;
   documentNumber: string;
-  birthDate: string; // ISO string format for API
+  birthDate: string; 
   password: string;
   role: EmployeeRole;
   department: string;
@@ -109,7 +107,7 @@ export interface PagedResult<T> {
   hasNextPage: boolean;
 }
 
-// UI state interfaces
+
 export interface EmployeeFormValues {
   firstName: string;
   lastName: string;

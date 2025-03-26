@@ -16,7 +16,7 @@ import {
 } from "@/lib/validations/employee";
 import { employeeService } from "@/services/employee-service";
 import { useAuth } from "@/hooks/use-auth";
-import { PhoneFieldArray } from "@/components/forms/phone-field";
+import { PhoneFieldArray } from "@/components/shared/forms/phone-field";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
