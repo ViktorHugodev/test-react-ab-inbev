@@ -4,10 +4,11 @@ import "./globals.css";
 
 import { AuthProvider } from "@/hooks/use-auth";
 import { QueryProvider } from "@/providers/query-provider";
+import { ReduxProvider } from "@/providers/redux-provider";
 import { Toaster } from "sonner";
 import { TokenSync } from "@/components/shared/auth/token-sync";
-import { ConditionalHeader } from "@/components/layout/conditional-header";
-import { ConditionalFooter } from "@/components/layout/conditional-footer";
+import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
 
 const poppins = Poppins({
   weight: ['300', '400', '500', '600', '700'],
@@ -27,33 +28,35 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className="antialiased">
+    <html lang="pt-BR" className="antialiased" suppressHydrationWarning>
       <body
         className={`${poppins.variable} min-h-screen bg-background font-sans text-foreground`}
       >
-        <QueryProvider>
-          <AuthProvider>
-            {/* Componente para sincronizar o token entre localStorage e cookies */}
-            <TokenSync>{children}</TokenSync>
-            
-            <div className="relative flex min-h-screen flex-col">
-              <ConditionalHeader />
-              <main className="flex-1">{children}</main>
-              <ConditionalFooter />
-            </div>
-            <Toaster 
-              position="top-center" 
-              richColors 
-              toastOptions={{
-                style: { 
-                  background: 'hsl(var(--background))',
-                  color: 'hsl(var(--foreground))',
-                  border: '1px solid hsl(var(--border))'
-                }
-              }}
-            />
-          </AuthProvider>
-        </QueryProvider>
+        <ReduxProvider>
+          <QueryProvider>
+            <AuthProvider>
+              {/* Componente para sincronizar o token entre localStorage e cookies */}
+              <TokenSync>
+                <div className="relative flex min-h-screen flex-col">
+                  <Header />
+                  <main className="flex-1">{children}</main>
+                  <Footer />
+                </div>
+              </TokenSync>
+              <Toaster 
+                position="top-center" 
+                richColors 
+                toastOptions={{
+                  style: { 
+                    background: 'hsl(var(--background))',
+                    color: 'hsl(var(--foreground))',
+                    border: '1px solid hsl(var(--border))'
+                  }
+                }}
+              />
+            </AuthProvider>
+          </QueryProvider>
+        </ReduxProvider>
       </body>
     </html>
   );

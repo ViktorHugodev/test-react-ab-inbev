@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
+import { WelcomeDialog } from "@/components/shared/onboarding/welcome-dialog";
 
 export const metadata: Metadata = {
   title: "AB InBev - Sistema de Gerenciamento",
@@ -14,6 +15,7 @@ export default function RootLayout({
   return (
     <>
       {children}
+      <WelcomeDialog />
       <Toaster position="top-center" richColors />
     </>
   );

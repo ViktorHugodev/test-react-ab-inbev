@@ -1,9 +1,9 @@
 import { http, HttpResponse } from 'msw';
 
-// Mock API URL
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5244/api';
 
-// Mock employee data
+
 const mockEmployee = {
   id: "123",
   firstName: "Usuário",
@@ -29,7 +29,7 @@ const mockAuthResponse = {
   employee: mockEmployee
 };
 
-// Mock current user response
+
 const mockCurrentUser = {
   id: "123",
   email: "test@example.com",

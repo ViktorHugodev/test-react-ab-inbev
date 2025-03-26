@@ -2,10 +2,9 @@
 
 import { useAuth } from "@/hooks/use-auth";
 
-export function ConditionalFooter() {
+export function Footer() {
   const { user } = useAuth();
   
-
   if (!user) {
     return null;
   }

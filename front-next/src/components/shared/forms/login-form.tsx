@@ -54,7 +54,10 @@ export function LoginForm({
       if (onSuccess) {
         onSuccess();
       } else {
-        router.push("/");
+        // Aguarde um momento antes de redirecionar para garantir que o estado de autenticação seja atualizado
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 500);
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Email ou senha inválidos");

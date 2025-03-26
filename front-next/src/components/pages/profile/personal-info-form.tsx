@@ -76,7 +76,7 @@ export function PersonalInfoForm({ user, onSubmit, isLoading }: PersonalInfoForm
         firstName,
         lastName,
         email: user.email,
-        birthDate: undefined,
+        birthDate: new Date(),
         phoneNumbers: []
       };
     }
@@ -87,7 +87,11 @@ export function PersonalInfoForm({ user, onSubmit, isLoading }: PersonalInfoForm
       lastName: user.lastName || '',
       email: user.email || '',
       birthDate: user.birthDate ? new Date(user.birthDate) : new Date(),
-      phoneNumbers: user.phoneNumbers || []
+      phoneNumbers: user.phoneNumbers?.map(phone => ({
+        id: phone.id,
+        number: phone.number || '',
+        type: phone.type || PhoneType.Mobile
+      })) || []
     };
   };
   
@@ -114,12 +118,25 @@ export function PersonalInfoForm({ user, onSubmit, isLoading }: PersonalInfoForm
     const currentPhones = form.getValues("phoneNumbers") || [];
     form.setValue("phoneNumbers", [
       ...currentPhones,
+      // Telefone novo sem ID para que o backend crie um novo
       { number: "", type: PhoneType.Mobile },
     ]);
   };
 
   const handleRemovePhone = (index: number) => {
     const currentPhones = form.getValues("phoneNumbers") || [];
+    
+    // Verificar se o telefone tem um ID (existente no banco)
+    const phoneToRemove = currentPhones[index];
+    
+    // Se o telefone já existe no banco (tem ID) e é o único, apenas limpar o número
+    // para evitar erros, mas manter o registro para evitar inconsistências no backend
+    if (phoneToRemove.id && currentPhones.length === 1) {
+      form.setValue("phoneNumbers", [{ id: phoneToRemove.id, number: "", type: PhoneType.Mobile }]);
+      return;
+    }
+    
+    // Caso contrário, remover normalmente
     form.setValue(
       "phoneNumbers",
       currentPhones.filter((_, i) => i !== index)

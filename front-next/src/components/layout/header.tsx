@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { 
   User, 
   LogOut, 
@@ -15,6 +15,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { setMobileMenuOpen } from "@/redux/features/ui/uiSlice";
+import type { RootState } from "@/redux/store";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,6 +32,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useLogout } from '@/services/auth/queries';
+import { ThemeToggle } from "@/components/shared/theme/theme-toggle";
+import { ThemeCustomizer } from "@/components/shared/theme/theme-customizer";
 
 type NavItem = {
   name: string;
@@ -39,8 +44,17 @@ type NavItem = {
 export function Header() {
   const pathname = usePathname();
   const { user } = useAuth();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const dispatch = useAppDispatch();
+  const isMobileMenuOpen = useAppSelector((state: RootState) => state.ui.isMobileMenuOpen);
   const logout = useLogout();
+  
+  const setIsMobileMenuOpen = (isOpen: boolean) => {
+    dispatch(setMobileMenuOpen(isOpen));
+  };
+  
+  // Se não houver usuário logado, não renderiza o header
+  if (!user) return null;
+  
   const navItems: NavItem[] = [
     {
       name: "Dashboard",
@@ -90,48 +104,45 @@ export function Header() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-4">
-            {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                    <Avatar className="h-8 w-8 border">
-                    <AvatarImage src="https://avatar.iran.liara.run/public" alt={user.name} />
-                      <AvatarFallback className="bg-primary text-primary-foreground">
-                        {user.name.substring(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="rounded-xl" align="end">
-                  <DropdownMenuLabel>
-                    <div className="flex flex-col">
-                      <p className="text-sm font-medium">{user.name}</p>
-                      <p className="text-xs text-muted-foreground">{user.email}</p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile" className="cursor-pointer">
-                      <User className="mr-2 h-4 w-4" />
-                      Perfil
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    className="text-destructive focus:text-destructive cursor-pointer"
-                    onClick={() => logout()}
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sair
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Button variant="default" size="sm" asChild>
-                <Link href="/login">Entrar</Link>
-              </Button>
-            )}
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <ThemeCustomizer />
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                  <Avatar className="h-8 w-8 border">
+                  <AvatarImage src="https://avatar.iran.liara.run/public" alt={user.name} />
+                    <AvatarFallback className="bg-primary text-primary-foreground">
+                      {user.name.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="rounded-xl" align="end">
+                <DropdownMenuLabel>
+                  <div className="flex flex-col">
+                    <p className="text-sm font-medium">{user.name}</p>
+                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/profile" className="cursor-pointer">
+                    <User className="mr-2 h-4 w-4" />
+                    Perfil
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  className="text-destructive focus:text-destructive cursor-pointer"
+                  onClick={() => logout()}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sair
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
@@ -163,37 +174,34 @@ export function Header() {
                     </Link>
                   ))}
                 </div>
-                {user && (
-                  <>
-                    <div className="border-t mt-4 pt-4 px-4">
-                      <div className="flex items-center gap-3 p-2">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src="https://avatar.iran.liara.run/public" alt={user.name} />
-                          <AvatarFallback className="bg-primary text-primary-foreground">
-                            {user.name.substring(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col">
-                          <p className="text-sm font-medium">{user.name}</p>
-                          <p className="text-xs text-muted-foreground">{user.email}</p>
-                        </div>
-                      </div>
+                
+                <div className="border-t mt-4 pt-4 px-4">
+                  <div className="flex items-center gap-3 p-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src="https://avatar.iran.liara.run/public" alt={user.name} />
+                      <AvatarFallback className="bg-primary text-primary-foreground">
+                        {user.name.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                      <p className="text-sm font-medium">{user.name}</p>
+                      <p className="text-xs text-muted-foreground">{user.email}</p>
                     </div>
-                    <div className="px-4 mt-2">
-                      <Button 
-                        variant="ghost" 
-                        className="w-full justify-start text-destructive"
-                        onClick={() => {
-                          logout();
-                          setIsMobileMenuOpen(false);
-                        }}
-                      >
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Sair
-                      </Button>
-                    </div>
-                  </>
-                )}
+                  </div>
+                </div>
+                <div className="px-4 mt-2">
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start text-destructive"
+                    onClick={() => {
+                      logout();
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sair
+                  </Button>
+                </div>
               </SheetContent>
             </Sheet>
           </div>

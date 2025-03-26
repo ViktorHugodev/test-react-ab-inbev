@@ -22,6 +22,13 @@ export default function ProfilePage() {
     if (!user || !user.id) return;
 
     try {
+      // Garantir que phoneNumbers seja um array válido
+      const phoneNumbers = data.phoneNumbers?.map(phone => ({
+        id: phone.id || undefined, // Garantir que IDs vazios sejam undefined
+        number: phone.number || "",
+        type: phone.type || 1
+      })) || [];
+
       await updateProfile.mutateAsync({
         id: user.id,
         data: {
@@ -29,14 +36,11 @@ export default function ProfilePage() {
           lastName: data.lastName,
           email: data.email,
           birthDate: data.birthDate.toISOString(),
-          phoneNumbers: data.phoneNumbers?.map(phone => ({
-            id: phone.id,
-            number: phone.number || "",
-            type: phone.type || 1
-          })) || []
+          phoneNumbers
         }
       });
 
+      // Recarregar os dados do usuário explicitamente para garantir que a UI esteja atualizada
       toast.success("Informações pessoais atualizadas com sucesso!");
     } catch (error) {
       toast.error("Erro ao atualizar informações pessoais.");

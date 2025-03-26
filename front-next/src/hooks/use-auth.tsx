@@ -118,12 +118,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
       
       const userData = authResponse.employee;
       
-      setUser({
+      // Certifique-se de que o usuário é definido corretamente
+      const userInfo = {
         id: userData.id!,
         name: `${userData.firstName} ${userData.lastName}`,
         email: userData.email,
         role: convertRoleToEnum(userData.role)
-      });
+      };
+      
+      setUser(userInfo);
+      
+      // Atualizar também o estado de authChecked para evitar verificações redundantes
+      setAuthChecked(true);
     } catch (error) {
       console.error("Login error:", error);
       throw error;

@@ -34,7 +34,7 @@ export const useGetEmployee = (id: string) => {
     queryKey: ["employee", id],
     queryFn: () => employeeService.getEmployeeById(id),
     staleTime: 1000 * 60 * 5, // 5 minutes
-    enabled: !!id, // Only run if id is provided
+    enabled: !!id, 
   });
 };
 
@@ -93,9 +93,35 @@ export const useUpdateEmployeeProfile = () => {
   >({
     mutationFn: async ({ id, data }) => {
       try {
+        // Obter versão mais recente do funcionário antes de atualizar
         const currentEmployee = await employeeService.getEmployeeById(id);
-     
         
+        // Preservar os IDs de telefone existentes ou adicionar novos conforme necessário
+        let updatedPhoneNumbers = [];
+        
+        if (data.phoneNumbers && data.phoneNumbers.length > 0) {
+          // Mapear por número de telefone para preservar os IDs
+          const currentPhoneMap = new Map();
+          
+          // Indexar os telefones atuais pelo número
+          if (currentEmployee.phoneNumbers && currentEmployee.phoneNumbers.length > 0) {
+            currentEmployee.phoneNumbers.forEach(phone => {
+              if (phone.id) {
+                currentPhoneMap.set(phone.number, phone.id);
+              }
+            });
+          }
+          
+          // Atualizar ou manter os IDs existentes
+          updatedPhoneNumbers = data.phoneNumbers.map(phone => ({
+            id: phone.id || currentPhoneMap.get(phone.number) || undefined,
+            number: phone.number,
+            type: phone.type
+          }));
+        } else {
+          // Se não houver telefones no payload, manter os existentes
+          updatedPhoneNumbers = currentEmployee.phoneNumbers || [];
+        }
 
         const completeData: UpdateEmployeeDTO = {
           id,
@@ -106,7 +132,7 @@ export const useUpdateEmployeeProfile = () => {
           department: data.department || currentEmployee.department || "",
           managerId: data.managerId || currentEmployee.managerId,
           birthDate: data.birthDate || currentEmployee.birthDate,
-          phoneNumbers: data.phoneNumbers || currentEmployee.phoneNumbers || []
+          phoneNumbers: updatedPhoneNumbers
         };
 
         return employeeService.updateEmployee(id, completeData);
@@ -118,6 +144,11 @@ export const useUpdateEmployeeProfile = () => {
     onSuccess: (updatedEmployee) => {
       queryClient.invalidateQueries({ queryKey: ["currentUser"] });
       queryClient.invalidateQueries({ queryKey: ["employee", updatedEmployee.id] });
+      
+      // Forçar atualização dos dados na UI
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+      }, 500);
     },
     onError: (error) => {
       console.error("Profile update error:", error);

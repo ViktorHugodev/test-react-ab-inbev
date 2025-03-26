@@ -57,9 +57,7 @@ export const passwordsMatch = (
 };
 
 
-export function isValidPhoneNumber(phoneNumber: string): boolean {
-  return phoneRegex.test(phoneNumber);
-}
+
 
 
 export function isValidDocument(document: string): boolean {
