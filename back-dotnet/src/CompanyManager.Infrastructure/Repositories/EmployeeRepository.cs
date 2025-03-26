@@ -148,11 +148,18 @@ namespace CompanyManager.Infrastructure.Repositories
 
         public Task UpdateAsync(Employee employee, CancellationToken cancellationToken = default)
         {
-            // Garante que o Employee está sendo rastreado corretamente
-            _context.Entry(employee).State = EntityState.Modified;
+            // Desativa a detecção de concorrência
+            var entry = _context.Entry(employee);
+            entry.State = EntityState.Modified;
             
-            // Importante: Não devemos alterar o estado da coleção PhoneNumbers diretamente,
-            // pois o Entity Framework Core irá tratá-los com base nas navegações
+            // Remove a propriedade de concorrência para evitar o erro de DbUpdateConcurrencyException
+            foreach (var property in entry.Metadata.GetProperties())
+            {
+                if (property.IsConcurrencyToken)
+                {
+                    entry.Property(property.Name).IsModified = false;
+                }
+            }
             
             return Task.CompletedTask;
         }

@@ -238,16 +238,19 @@ public static class SeedData
         ");
         
         // Limpa todos os dados existentes para garantir o seed completo
-        if (context.Employees.Any())
+        try 
         {
-            context.Employees.RemoveRange(context.Employees);
-            context.SaveChanges();
+            // Verificar se o banco já tem dados
+            if (context.Employees.Any())
+            {
+                Console.WriteLine("Banco de dados já possui dados. Pulando seed...");
+                // Se já tem dados, não faz seed novamente
+                return;
+            }
         }
-        
-        if (context.Departments.Any())
+        catch (Exception ex)
         {
-            context.Departments.RemoveRange(context.Departments);
-            context.SaveChanges();
+            Console.WriteLine($"Erro ao verificar dados: {ex.Message}");
         }
 
         // Adicionar departamentos
@@ -399,7 +402,33 @@ public static class SeedData
             CompanyManager.Domain.Aggregates.Employee.Employee.Create(
                 "Fábio", "Almeida", "fabio.almeida@companymanager.com", "18181818181", 
                 new DateTime(1989, 2, 12), authService.HashPassword("Employee@123"),
-                CompanyManager.Domain.Enums.Role.Employee, "Diretoria", leaderDiretoria.Id)
+                CompanyManager.Domain.Enums.Role.Employee, "Diretoria", leaderDiretoria.Id),
+                
+            // Mais 5 funcionários adicionais com 2 telefones cada
+            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
+                "Gabriela", "Moreira", "gabriela.moreira@companymanager.com", "19191919191", 
+                new DateTime(1993, 9, 21), authService.HashPassword("Employee@123"),
+                CompanyManager.Domain.Enums.Role.Employee, "Marketing", leaderMarketing.Id),
+                
+            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
+                "Henrique", "Gomes", "henrique.gomes@companymanager.com", "20202020202", 
+                new DateTime(1985, 12, 5), authService.HashPassword("Employee@123"),
+                CompanyManager.Domain.Enums.Role.Employee, "TI", leaderTI.Id),
+                
+            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
+                "Isabela", "Cardoso", "isabela.cardoso@companymanager.com", "21212121212", 
+                new DateTime(1990, 4, 28), authService.HashPassword("Employee@123"),
+                CompanyManager.Domain.Enums.Role.Employee, "RH", leaderRH.Id),
+                
+            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
+                "João Paulo", "Mendes", "joao.mendes@companymanager.com", "29292929292", 
+                new DateTime(1987, 6, 17), authService.HashPassword("Employee@123"),
+                CompanyManager.Domain.Enums.Role.Employee, "Diretoria", leaderDiretoria.Id),
+                
+            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
+                "Karina", "Fernandes", "karina.fernandes@companymanager.com", "23232323232", 
+                new DateTime(1994, 2, 9), authService.HashPassword("Employee@123"),
+                CompanyManager.Domain.Enums.Role.Employee, "Marketing", leaderMarketing.Id)
         };
         
         // Adicionar funcionários ao contexto

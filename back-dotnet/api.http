@@ -1,6 +1,5 @@
-@baseUrl = http://localhost:5422
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlNjRiMTJjMC03MDZiLTQ1MDktOTA5MC03NGI5NTVjZDhhNGIiLCJlbWFpbCI6ImFkbWluQGNvbXBhbnltYW5hZ2VyLmNvbSIsImp0aSI6ImEzNTViYmNkLWViMGMtNDYxOC1iYzY2LTQ4MDExOTNjNjk3YyIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJBZG1pbiBTaXN0ZW1hIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiRGlyZWN0b3IiLCJleHAiOjE3NDMwMjM3NzEsImlzcyI6IkNvbXBhbnlNYW5hZ2VyIiwiYXVkIjoiQ29tcGFueU1hbmFnZXJBcGkifQ.rILgQBv6ReaEx9KNwKHGIbBP3-D3yW7O9smQTkejhK0
-
+@baseUrl = http://localhost:5000
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjUzZWExOS00NjZmLTQxYzMtOGZiOS1jOTAzZWE4YTRiOTEiLCJlbWFpbCI6ImFkbWluQGNvbXBhbnltYW5hZ2VyLmNvbSIsImp0aSI6IjEzYTcxZTExLTllMzAtNDI2Ni1iZGM1LTY4ODAxNzhiYTBjNiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJBZG1pbiBTaXN0ZW1hIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiRGlyZWN0b3IiLCJleHAiOjE3NDMwMjc1OTcsImlzcyI6IkNvbXBhbnlNYW5hZ2VyIiwiYXVkIjoiQ29tcGFueU1hbmFnZXJBcGkifQ.OmvJwHizMY_ZdZ06HHYGQqCW8Z4F0udAscdIea1uMwM
 ###
 # @name login
 # Realiza login e obtém token JWT
@@ -30,7 +29,7 @@ Authorization: Bearer {{token}}
 
 ###
 # Obtém um funcionário pelo ID
-GET {{baseUrl}}/api/Employees/e64b12c0-706b-4509-9090-74b955cd8a4b
+GET {{baseUrl}}/api/Employees/2d04ab14-3518-411b-9917-a0469ac96425
 Authorization: Bearer {{token}}
 
 ###
@@ -58,7 +57,6 @@ Authorization: Bearer {{token}}
     "password": "AlineSecure#33",
     "role": 1,
     "department": "Marketing",
-    "managerId":"91dd6987-e396-4415-b7a3-542b251d7e5c",
     "phoneNumbers": [
       {
         "number": "(31) 91234-5678",
@@ -68,14 +66,15 @@ Authorization: Bearer {{token}}
   }
 ###
 # Atualiza um funcionário existente (requer permissão de Líder ou Diretor)
-PUT {{baseUrl}}/api/Employees/f88ea326-bcd7-4c4f-b3e2-c5e2f3bdb7df
+PUT {{baseUrl}}/api/Employees/018cb1f2-b7f5-471d-8561-bda432d8ab93
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
+
     "phoneNumbers": [
       {
-        "number": "(31) 91234-5678",
+        "number": "(31) 91234-3678",
         "type": 1
       }
     ]
@@ -83,14 +82,15 @@ Authorization: Bearer {{token}}
 
 ###
 # Atualiza os telefones de um funcionário
-PATCH {{baseUrl}}/api/Employees/f88ea326-bcd7-4c4f-b3e2-c5e2f3bdb7df
+PATCH {{baseUrl}}/api/Employees/018cb1f2-b7f5-471d-8561-bda432d8ab93
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-    "phoneNumbers": [
+  "id": "018cb1f2-b7f5-471d-8561-bda432d8ab93",
+  "phoneNumbers": [
       {
-        "number": "(31) 91234-5678",
+        "number": "(31) 91254-5678",
         "type": 1
       }
     ]
