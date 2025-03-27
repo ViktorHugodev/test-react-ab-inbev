@@ -24,7 +24,7 @@ export function EmployeeList({
   onDeleteEmployee,
   className
 }: EmployeeListProps) {
-  // State for filters
+  
   const [filters, setFilters] = useState<EmployeeFilters>({
     pageNumber: 1,
     pageSize: 10,
@@ -32,7 +32,7 @@ export function EmployeeList({
     ...externalFilters
   });
 
-  // Update internal filters when external filters change
+  
   useEffect(() => {
     if (externalFilters) {
       setFilters(prev => ({
@@ -42,20 +42,20 @@ export function EmployeeList({
     }
   }, [externalFilters]);
 
-  // Use the query hook
+  
   const { data, isLoading, isError, error } = useGetEmployees(filters);
   
-  // Handle pagination
+  
   const handlePageChange = (page: number) => {
     setFilters((prev) => ({ ...prev, pageNumber: page }));
   };
   
-  // Handle search
+  
   const handleSearch = (term: string) => {
     setFilters((prev) => ({ ...prev, searchTerm: term, pageNumber: 1 }));
   };
   
-  // Get the role as string
+  
   const getRoleDisplay = (role: EmployeeRole): string => {
     switch (role) {
       case EmployeeRole.Director:
@@ -83,7 +83,7 @@ export function EmployeeList({
   
   return (
     <div className={`space-y-4 ${className}`}>
-      {/* Search input */}
+      {}
       <div className="relative">
         <div className="relative">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -97,7 +97,7 @@ export function EmployeeList({
         </div>
       </div>
       
-      {/* Employees table */}
+      {}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -169,7 +169,7 @@ export function EmployeeList({
         </Table>
       </div>
       
-      {/* Pagination */}
+      {}
       {data && data.totalPages > 1 && (
         <div className="flex justify-between items-center mt-4">
           <div className="text-sm text-muted-foreground">
@@ -194,7 +194,7 @@ export function EmployeeList({
                        (page >= currentPage - 1 && page <= currentPage + 1);
               })
               .map((page, index, array) => {
-                // Add ellipsis
+                
                 if (index > 0 && array[index - 1] !== page - 1) {
                   return (
                     <span key={`ellipsis-${page}`} className="flex items-center px-3">

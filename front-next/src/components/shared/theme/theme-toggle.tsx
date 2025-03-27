@@ -18,7 +18,7 @@ export function ThemeToggle() {
   const dispatch = useAppDispatch();
   const themeMode = useAppSelector((state: RootState) => state.theme.mode);
   
-  // Update the document theme when the theme mode changes
+  
   useEffect(() => {
     const isDark = 
       themeMode === "dark" || 

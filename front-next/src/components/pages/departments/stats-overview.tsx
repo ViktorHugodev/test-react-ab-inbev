@@ -1,14 +1,12 @@
-import React from "react";
-import { 
-  Building, 
-  Users, 
-  CalendarDays, 
-  Clock, 
-  Briefcase,
-  CheckCircle
-} from "lucide-react";
 import { StatCard } from '@/components/shared/data-display/stat-card';
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Briefcase,
+  Building,
+  CalendarDays,
+  CheckCircle,
+  Users
+} from "lucide-react";
 
 export interface DepartmentStatsData {
   totalDepartments: number;

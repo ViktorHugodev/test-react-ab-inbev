@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { ApiError } from 'next/dist/server/api-utils';
 
 
-// Error handler utility
+
 const handleApiError = (error: unknown, defaultMessage: string) => {
   if (error instanceof ApiError) {
     toast.error(error.message);
@@ -21,16 +21,14 @@ const handleApiError = (error: unknown, defaultMessage: string) => {
   console.error(error);
 };
 
-/**
- * Hook para obter dados do usuário atual
- */
+
 export const useCurrentUser = () => {
   return useQuery<Employee, ApiError>({
     queryKey: ["currentUser"],
     queryFn: () => userService.getCurrentUser(),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5, 
     retry: (failureCount, error) => {
-      // Não tentar novamente em caso de erro 401 (não autenticado)
+      
       if (error instanceof ApiError && error.statusCode === 401) {
         return false;
       }
@@ -40,9 +38,7 @@ export const useCurrentUser = () => {
   });
 };
 
-/**
- * Hook para atualizar o perfil do usuário atual
- */
+
 export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
 
@@ -55,7 +51,7 @@ export const useUpdateProfile = () => {
     onSuccess: (updatedUser) => {
       toast.success("Perfil atualizado com sucesso!");
       
-      // Atualizar dados em cache
+      
       queryClient.setQueryData(["currentUser"], updatedUser);
       queryClient.setQueryData(["employee", updatedUser.id], updatedUser);
     },
@@ -65,9 +61,7 @@ export const useUpdateProfile = () => {
   });
 };
 
-/**
- * Hook para alteração de senha do usuário atual
- */
+
 export const useChangePassword = () => {
   return useMutation<void, ApiError, UpdatePasswordDTO>({
     mutationFn: (data) => userService.changePassword(data),

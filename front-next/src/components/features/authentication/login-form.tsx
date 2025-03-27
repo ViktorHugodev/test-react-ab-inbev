@@ -16,7 +16,7 @@ export function LoginForm({ onSuccess, redirectUrl = '/dashboard' }: ILoginFormP
   const [error, setError] = useState<string | null>(null);
   const { login, isLoading } = useAuth();
   
-  // Limpar erro quando usuário começa a digitar
+  
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
     if (error) setError(null);
@@ -31,7 +31,7 @@ export function LoginForm({ onSuccess, redirectUrl = '/dashboard' }: ILoginFormP
     e.preventDefault();
     setError(null);
     
-    // Validate form fields
+    
     if (!email || !password) {
       setError('Por favor, preencha todos os campos');
       return;
@@ -45,6 +45,7 @@ export function LoginForm({ onSuccess, redirectUrl = '/dashboard' }: ILoginFormP
         window.location.href = redirectUrl;
       }
     } catch (err) {
+      console.error("🚀 ~ file: login-form.tsx:48 ~ handleSubmit ~ err:", err)
       setError('Credenciais inválidas. Por favor, tente novamente.');
     }
   };

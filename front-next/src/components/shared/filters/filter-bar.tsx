@@ -14,7 +14,7 @@ type FilterOption = {
   id: string;
   name: string;
   value: string;
-};
+}
 
 interface FilterBarProps {
   searchTerm: string;

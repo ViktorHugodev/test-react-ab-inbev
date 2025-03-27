@@ -18,7 +18,7 @@ export const useGetDepartments = () => {
   return useQuery<Department[], ApiError>({
     queryKey: ["departments"],
     queryFn: () => departmentService.getAll(),
-    staleTime: 1000 * 60 * 15, // 15 minutes
+    staleTime: 1000 * 60 * 15, 
   });
 };
 
@@ -27,7 +27,7 @@ export const useGetDepartment = (id: string) => {
   return useQuery<Department, ApiError>({
     queryKey: ["department", id],
     queryFn: () => departmentService.getById(id),
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5, 
     enabled: !!id,
   });
 };

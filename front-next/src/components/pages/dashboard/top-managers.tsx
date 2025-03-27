@@ -8,18 +8,18 @@ import { EmployeeRole } from "@/types/employee";
 export function TopManagers() {
   const { data, isLoading, isError } = useGetEmployees({
     pageNumber: 1,
-    pageSize: 100, // Get a larger sample
+    pageSize: 100, 
   });
 
-  // Count employees reporting to each manager
+  
   const getManagersList = () => {
     if (!data?.items?.length) return [];
 
-    // Count subordinates for each manager
+    
     const managerSubordinates: Record<string, number> = {};
     const managerInfo: Record<string, { name: string; role: EmployeeRole }> = {};
 
-    // First, get all managers and their info
+    
     data.items.forEach(employee => {
       if (employee.role === EmployeeRole.Leader || employee.role === EmployeeRole.Director) {
         managerInfo[employee.id!] = {
@@ -29,7 +29,7 @@ export function TopManagers() {
       }
     });
 
-    // Then count subordinates
+    
     data.items.forEach(employee => {
       if (employee.managerId && managerInfo[employee.managerId]) {
         if (!managerSubordinates[employee.managerId]) {
@@ -39,7 +39,7 @@ export function TopManagers() {
       }
     });
 
-    // Create the result array
+    
     const result = Object.entries(managerSubordinates).map(([id, count]) => ({
       id,
       name: managerInfo[id].name,
@@ -47,7 +47,7 @@ export function TopManagers() {
       subordinateCount: count
     }));
 
-    // Sort by number of subordinates (descending)
+    
     return result.sort((a, b) => b.subordinateCount - a.subordinateCount).slice(0, 5);
   };
 

@@ -13,7 +13,7 @@ interface ProfileHeaderProps {
 }
 
 export function ProfileHeader({ user, isLoading }: ProfileHeaderProps) {
-  // Get role display name and badge variant
+  
   const getRoleInfo = (role: number) => {
     let label = 'Desconhecido';
     let variant: 'default' | 'secondary' | 'outline' = 'outline';
@@ -36,14 +36,14 @@ export function ProfileHeader({ user, isLoading }: ProfileHeaderProps) {
     return { label, variant };
   };
   
-  // Usar o hook useMemo para evitar recálculos desnecessários
+  
   const normalizedUser = React.useMemo(() => {
-    // Verificar se user é do tipo UnifiedUserData
+    
     if (user && 'id' in user && 'firstName' in user && 'lastName' in user && 'email' in user && 'fullName' in user) {
-      // Se já for UnifiedUserData, retornar diretamente
+      
       return user as UnifiedUserData;
     }
-    // Caso contrário, normalizar usando a função
+    
     return normalizeUserData(user as (Employee | CurrentUserResponse | null | undefined));
   }, [user]);
   

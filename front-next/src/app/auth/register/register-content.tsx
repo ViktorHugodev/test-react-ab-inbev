@@ -12,7 +12,7 @@ export default function RegisterContent() {
   const callbackUrl = searchParams.get("callbackUrl") || "/";
 
   useEffect(() => {
-    // Exibe mensagem de erro se houver
+    
     if (error) {
       toast.error(error);
     }

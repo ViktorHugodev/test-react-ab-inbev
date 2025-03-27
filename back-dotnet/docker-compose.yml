@@ -33,20 +33,20 @@ services:
       - company-network
     restart: unless-stopped
 
-  frontend:
-    build:
-      context: ./front-next
-      dockerfile: Dockerfile
-    container_name: company-manager-frontend
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:5000/api
-    ports:
-      - "3000:3000"
-    depends_on:
-      - api
-    networks:
-      - company-network
-    restart: unless-stopped
+  # frontend:
+  #   build:
+  #     context: ./front-next
+  #     dockerfile: Dockerfile
+  #   container_name: company-manager-frontend
+  #   environment:
+  #     - NEXT_PUBLIC_API_URL=http://localhost:5000/api
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - api
+  #   networks:
+  #     - company-network
+  #   restart: unless-stopped
 
 networks:
   company-network:

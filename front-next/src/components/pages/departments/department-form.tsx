@@ -1,7 +1,6 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { Department, CreateDepartmentDto, UpdateDepartmentDto } from "@/types/deparment";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,19 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Loader2 } from "lucide-react";
-
-// Schema for department form validation
-const departmentFormSchema = z.object({
-  name: z.string().min(2, {
-    message: "O nome do departamento deve ter pelo menos 2 caracteres.",
-  }),
-  description: z.string().min(5, {
-    message: "A descrição deve ter pelo menos 5 caracteres.",
-  }),
-  isActive: z.boolean().default(true),
-});
-
-type DepartmentFormValues = z.infer<typeof departmentFormSchema>;
+import { departmentFormSchema, DepartmentFormValues } from "@/schemas/department";
 
 interface DepartmentFormProps {
   department?: Department;
@@ -37,7 +24,7 @@ interface DepartmentFormProps {
 }
 
 export function DepartmentForm({ department, onSubmit, isLoading }: DepartmentFormProps) {
-  // Initialize form with default values or existing department data
+  
   const form = useForm<DepartmentFormValues>({
     resolver: zodResolver(departmentFormSchema),
     defaultValues: {
@@ -47,16 +34,16 @@ export function DepartmentForm({ department, onSubmit, isLoading }: DepartmentFo
     },
   });
 
-  // Handle form submission
+  
   function handleSubmit(data: DepartmentFormValues) {
     if (department) {
-      // If editing existing department
+      
       onSubmit({
         id: department.id,
         ...data,
       } as UpdateDepartmentDto);
     } else {
-      // If creating new department
+      
       onSubmit({
         ...data,
       } as CreateDepartmentDto);

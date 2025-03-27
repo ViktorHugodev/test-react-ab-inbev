@@ -31,7 +31,7 @@ export function EmployeeTable({
   canEdit,
   canDelete,
 }: EmployeeTableProps) {
-  // Get role display name
+  
   const getRoleDisplay = (role: EmployeeRole): string => {
     switch (role) {
       case EmployeeRole.Director:
@@ -45,7 +45,7 @@ export function EmployeeTable({
     }
   };
 
-  // Get role badge variant
+  
   const getRoleBadgeVariant = (role: EmployeeRole) => {
     switch (role) {
       case EmployeeRole.Director:
@@ -59,7 +59,7 @@ export function EmployeeTable({
     }
   };
 
-  // Get full name
+  
   const getFullName = (employee: Employee): string => {
     if (employee.fullName) return employee.fullName;
     return `${employee.firstName || ''} ${employee.lastName || ''}`.trim();

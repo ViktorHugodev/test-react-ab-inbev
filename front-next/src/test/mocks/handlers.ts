@@ -13,7 +13,7 @@ const mockEmployee = {
   documentNumber: "12345678900",
   birthDate: new Date("1990-01-01").toISOString(),
   age: 33,
-  role: 2, // Leader
+  role: 2, 
   department: "TI",
   phoneNumbers: [
     { id: "1", number: "11999999999", type: 1 }
@@ -22,7 +22,7 @@ const mockEmployee = {
   updatedAt: new Date().toISOString()
 };
 
-// Mock auth response
+
 const mockAuthResponse = {
   token: "mock-jwt-token",
   expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
@@ -37,10 +37,10 @@ const mockCurrentUser = {
   role: "Leader"
 };
 
-// Define handlers for API endpoints
+
 export const handlers = [
-  // Auth endpoints
-  http.post(`${API_URL}/Auth/login`, async ({ request }) => {
+  
+  http.post(`${API_URL}/auth/login`, async ({ request }) => {
     const body = await request.json() as { email: string; password: string };
     
     if (body.email === "test@example.com" && body.password === "password123") {
@@ -57,7 +57,7 @@ export const handlers = [
     return HttpResponse.json(mockCurrentUser);
   }),
   
-  // Employee endpoints
+  
   http.get(`${API_URL}/Employees`, () => {
     return HttpResponse.json([mockEmployee]);
   }),
@@ -115,7 +115,7 @@ export const handlers = [
     return new HttpResponse(null, { status: 404 });
   }),
   
-  // Department endpoints
+  
   http.get(`${API_URL}/Departments`, () => {
     return HttpResponse.json([
       { id: "1", name: "TI", description: "Tecnologia da Informação" },

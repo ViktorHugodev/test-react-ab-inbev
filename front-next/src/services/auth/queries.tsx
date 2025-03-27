@@ -41,12 +41,12 @@ export const useCurrentUser = () => {
   return useQuery<CurrentUserResponse, ApiError>({
     queryKey: ["currentUser"],
     queryFn: () => authService.getCurrentUser(),
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    enabled: authService.isAuthenticated(), // Only run if user is authenticated
+    staleTime: 1000 * 60 * 5, 
+    enabled: authService.isAuthenticated(), 
     retry: (failureCount, error) => {
-      // Don't retry on 401 (Unauthorized)
+      
       if (error instanceof ApiError && error.status === 401) {
-        authService.removeToken(); // Clear invalid token
+        authService.removeToken(); 
         return false;
       }
       return failureCount < 3;
@@ -58,12 +58,12 @@ export const useDetailedUserInfo = () => {
   return useQuery<any, ApiError>({
     queryKey: ["detailedUserInfo"],
     queryFn: () => authService.getDetailedUserInfo(),
-    staleTime: 1000 * 60 * 2, // 2 minutes (menor para reduzir problemas de concorrência)
-    enabled: authService.isAuthenticated(), // Only run if user is authenticated
-    refetchOnWindowFocus: true, // Recarregar quando a janela ganhar foco
-    refetchOnMount: true, // Recarregar quando o componente for montado
+    staleTime: 1000 * 60 * 2, 
+    enabled: authService.isAuthenticated(), 
+    refetchOnWindowFocus: true, 
+    refetchOnMount: true, 
     retry: (failureCount, error) => {
-      // Don't retry on 401 (Unauthorized)
+      
       if (error instanceof ApiError && error.status === 401) {
         return false;
       }

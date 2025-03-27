@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Loader2, Mail, Lock } from "lucide-react";
 
-import { loginSchema, LoginFormValues } from "@/lib/validations/auth";
+import { loginSchema, LoginFormValues } from "@/schemas/auth";
 import { useAuth } from "@/hooks/use-auth";
 
 import { Button } from "@/components/ui/button";
@@ -54,7 +54,7 @@ export function LoginForm({
       if (onSuccess) {
         onSuccess();
       } else {
-        // Aguarde um momento antes de redirecionar para garantir que o estado de autenticação seja atualizado
+        
         setTimeout(() => {
           router.push("/dashboard");
         }, 500);
@@ -67,7 +67,7 @@ export function LoginForm({
     }
   }
 
-  // Simple version
+  
   if (variant === "simple") {
     return (
       <div className={containerClassName}>
@@ -111,7 +111,7 @@ export function LoginForm({
     );
   }
 
-  // Card version with icons
+  
   return (
     <div className={containerClassName}>
       <Form {...form}>
@@ -174,7 +174,6 @@ export function LoginForm({
         </form>
       </Form>
       <div className="text-center text-sm text-muted-foreground mt-4">
-
         <p>Credenciais de exemplo: admin@companymanager.com / Admin@123</p>
       </div>
     </div>

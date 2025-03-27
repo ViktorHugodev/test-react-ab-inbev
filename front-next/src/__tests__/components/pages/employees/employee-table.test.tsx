@@ -5,7 +5,7 @@ import { EmployeeRole } from '@/types/employee';
 import { renderWithProviders } from '@/test/utils/test-utils';
 
 describe('EmployeeTable', () => {
-  // Mock data
+  
   const mockEmployees = [
     {
       id: '1',
@@ -60,7 +60,7 @@ describe('EmployeeTable', () => {
     }
   ];
 
-  // Mock functions
+  
   const mockOnView = jest.fn();
   const mockOnEdit = jest.fn();
   const mockOnDelete = jest.fn();
@@ -84,12 +84,12 @@ describe('EmployeeTable', () => {
       />
     );
 
-    // Check if skeletons are rendered
+    
     const skeletons = screen.getAllByRole('row');
-    // Header row + 5 skeleton rows
+    
     expect(skeletons.length).toBe(6);
     
-    // Check for skeleton UI elements - looking for animate-pulse class which is used by Skeleton component
+    
     const skeletonElements = document.querySelectorAll('.animate-pulse');
     expect(skeletonElements.length).toBeGreaterThan(0);
   });
@@ -107,7 +107,7 @@ describe('EmployeeTable', () => {
       />
     );
 
-    // Check if empty state message is displayed
+    
     expect(screen.getByText('Nenhum funcionário encontrado.')).toBeInTheDocument();
   });
 
@@ -124,22 +124,22 @@ describe('EmployeeTable', () => {
       />
     );
 
-    // Check if all employees are displayed
+    
     expect(screen.getByText('John Doe')).toBeInTheDocument();
     expect(screen.getByText('Jane Smith')).toBeInTheDocument();
     expect(screen.getByText('Bob Johnson')).toBeInTheDocument();
 
-    // Check if emails are displayed
+    
     expect(screen.getByText('john.doe@example.com')).toBeInTheDocument();
     expect(screen.getByText('jane.smith@example.com')).toBeInTheDocument();
     expect(screen.getByText('bob.johnson@example.com')).toBeInTheDocument();
 
-    // Check if departments are displayed
+    
     const tiDepartments = screen.getAllByText('TI');
-    expect(tiDepartments.length).toBe(2); // Two employees in TI
+    expect(tiDepartments.length).toBe(2); 
     expect(screen.getByText('Marketing')).toBeInTheDocument();
 
-    // Check if roles are displayed with correct badge
+    
     expect(screen.getByText('Líder')).toBeInTheDocument();
     expect(screen.getByText('Diretor')).toBeInTheDocument();
     expect(screen.getByText('Funcionário')).toBeInTheDocument();
@@ -159,10 +159,10 @@ describe('EmployeeTable', () => {
       />
     );
 
-    // Get all view buttons
+    
     const viewButtons = screen.getAllByText('Ver');
     
-    // Click each view button and verify the correct ID is passed
+    
     await user.click(viewButtons[0]);
     expect(mockOnView).toHaveBeenCalledWith('1');
     
@@ -187,10 +187,10 @@ describe('EmployeeTable', () => {
       />
     );
 
-    // Get all edit buttons
+    
     const editButtons = screen.getAllByText('Editar');
     
-    // Click each edit button and verify the correct ID is passed
+    
     await user.click(editButtons[0]);
     expect(mockOnEdit).toHaveBeenCalledWith('1');
     
@@ -215,10 +215,10 @@ describe('EmployeeTable', () => {
       />
     );
 
-    // Get all delete buttons
+    
     const deleteButtons = screen.getAllByText('Excluir');
     
-    // Click each delete button and verify the correct ID is passed
+    
     await user.click(deleteButtons[0]);
     expect(mockOnDelete).toHaveBeenCalledWith('1');
     
@@ -242,7 +242,7 @@ describe('EmployeeTable', () => {
       />
     );
 
-    // Check if edit buttons are not rendered
+    
     const editButtons = screen.queryAllByText('Editar');
     expect(editButtons.length).toBe(0);
   });
@@ -260,7 +260,7 @@ describe('EmployeeTable', () => {
       />
     );
 
-    // Check if delete buttons are not rendered
+    
     const deleteButtons = screen.queryAllByText('Excluir');
     expect(deleteButtons.length).toBe(0);
   });
@@ -278,20 +278,20 @@ describe('EmployeeTable', () => {
       />
     );
 
-    // Check role badges
+    
     const directorBadge = screen.getByText('Diretor');
     expect(directorBadge.closest('div')).toHaveClass('bg-primary');
     
-    // Leader role should have secondary variant
+    
     const leaderBadge = screen.getByText('Líder');
     expect(leaderBadge.closest('div')).toHaveClass('bg-secondary');
     
-    // Employee role should have outline variant
+    
     const employeeBadge = screen.getByText('Funcionário');
     expect(employeeBadge.closest('div')).toHaveClass('border');
   });
 
-  // Test for accessibility
+  
   it('has proper accessibility attributes', () => {
     renderWithProviders(
       <EmployeeTable
@@ -305,29 +305,29 @@ describe('EmployeeTable', () => {
       />
     );
 
-    // Table should have accessible role
+    
     expect(screen.getByRole('table')).toBeInTheDocument();
     
-    // Table headers should have proper role
-    const headers = screen.getAllByRole('columnheader');
-    expect(headers.length).toBe(5); // 5 columns in table
     
-    // Action buttons should be present
-    // Using text instead of aria-label due to how the buttons are implemented
+    const headers = screen.getAllByRole('columnheader');
+    expect(headers.length).toBe(5); 
+    
+    
+    
     expect(screen.getAllByText('Ver').length).toBe(3);
     expect(screen.getAllByText('Editar').length).toBe(3);
     expect(screen.getAllByText('Excluir').length).toBe(3);
   });
 
-  // Note: The following tests would require adding pagination and sorting functionality to the component
+  
 
   it('should render pagination controls when implemented', () => {
-    // This would test pagination controls once implemented
+    
     expect(true).toBe(true);
   });
 
   it('should call onSort when column headers are clicked (once implemented)', () => {
-    // This would test sorting functionality once implemented
+    
     expect(true).toBe(true);
   });
 });

@@ -1,7 +1,7 @@
 import { api } from "@/services/api";
 import { AuthResponseDTO, LoginDTO, RegisterEmployeeDTO, EmployeeRole, Employee } from "@/types/employee";
 
-// Simula um erro de rede ou servidor
+
 const simulateNetworkDelay = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -11,10 +11,10 @@ export async function loginUser(credentials: LoginDTO): Promise<AuthResponseDTO>
     if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_MOCK === 'true') {
       await simulateNetworkDelay(Math.floor(Math.random() * 500) + 300);
       
-      // Credenciais de administrador
+      
       if (credentials.email === "admin@companymanager.com" && credentials.password === "Admin@123") {
         const now = new Date();
-        const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 horas depois
+        const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); 
         
         return {
           token: "mock-admin-jwt-token",
@@ -28,7 +28,7 @@ export async function loginUser(credentials: LoginDTO): Promise<AuthResponseDTO>
             documentNumber: "98765432100",
             birthDate: new Date("1985-01-01"),
             age: 40,
-            role: 3, // Director (Administrador)
+            role: 3, 
             department: "Diretoria",
             phoneNumbers: [
               { id: "1", number: "11988888888", type: 1 }
@@ -41,7 +41,7 @@ export async function loginUser(credentials: LoginDTO): Promise<AuthResponseDTO>
 
       if (credentials.email === "test@example.com" && credentials.password === "password123") {
         const now = new Date();
-        const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 horas depois
+        const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); 
         
         return {
           token: "mock-jwt-token",
@@ -55,7 +55,7 @@ export async function loginUser(credentials: LoginDTO): Promise<AuthResponseDTO>
             documentNumber: "12345678900",
             birthDate: new Date("1990-01-01"),
             age: 33,
-            role: 2, // Leader
+            role: 2, 
             department: "TI",
             phoneNumbers: [
               { id: "1", number: "11999999999", type: 1 }
@@ -70,7 +70,7 @@ export async function loginUser(credentials: LoginDTO): Promise<AuthResponseDTO>
     }
     
 
-    return await api.post<AuthResponseDTO>("/Auth/login", credentials);
+    return await api.post<AuthResponseDTO>("/auth/login", credentials);
   } catch (error) {
     console.error("Erro ao fazer login:", error);
     throw error;
@@ -89,7 +89,7 @@ export async function getCurrentUser(): Promise<CurrentUserResponse> {
     if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_MOCK === 'true') {
       await simulateNetworkDelay(Math.floor(Math.random() * 300) + 200);
       
-      // Verificar se o token é do administrador (simulação)
+      
       const token = typeof window !== 'undefined' ? localStorage.getItem("auth_token") : null;
       
       if (token === "mock-admin-jwt-token") {
@@ -131,11 +131,8 @@ export async function registerEmployee(employeeData: RegisterEmployeeDTO): Promi
       await simulateNetworkDelay(Math.floor(Math.random() * 800) + 500);
       
 
-      if (!employeeData.email.endsWith('@nossaempresa.com')) {
-        throw new Error("O email deve ser corporativo (@nossaempresa.com)");
-      }
+ 
       
-      // Simula um registro bem-sucedido
       return {
         id: Math.random().toString(36).substring(2, 15),
         firstName: employeeData.firstName,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, PlusCircle } from "lucide-react";
+import {  PlusCircle } from "lucide-react";
 
 import { useAuth } from "@/hooks/use-auth";
 import { EmployeeRole } from "@/types/employee";
@@ -23,19 +23,19 @@ export default function DepartmentsPage() {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   
-  // Dialog states
+  
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState<Department | undefined>(undefined);
   
-  // API hooks
+  
   const { data: departments, isLoading: isLoadingDepts } = useGetDepartments();
   const { data: employees, isLoading: isLoadingEmployees } = useGetEmployees();
   const createDepartment = useCreateDepartment();
   const updateDepartment = useUpdateDepartment(selectedDepartment?.id || "");
   const deleteDepartment = useDeleteDepartment();
 
-  // Stats calculations
+  
   const [stats, setStats] = useState<DepartmentStatsData>({
     totalDepartments: 0,
     activeDepartments: 0,
@@ -45,7 +45,7 @@ export default function DepartmentsPage() {
     oldestDepartment: "",
   });
 
-  // Calculate employee counts per department
+  
   const employeeCounts: Record<string, number> = {};
   if (departments && employees) {
     departments.forEach(dept => {
@@ -53,15 +53,15 @@ export default function DepartmentsPage() {
     });
   }
 
-  // Filter departments based on search term
+  
   const filteredDepartments = departments?.filter(
     (department) => department.name.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
-  // Only directors can create departments
+  
   const canManageDepartments = user?.role === EmployeeRole.Director;
 
-  // Handle department creation/update
+  
   const handleSubmitDepartment = async (data: CreateDepartmentDto | UpdateDepartmentDto) => {
     if ('id' in data) {
       await updateDepartment.mutateAsync(data);
@@ -72,7 +72,7 @@ export default function DepartmentsPage() {
     setIsCreateDialogOpen(false);
   };
 
-  // Handle department deletion
+  
   const handleDeleteDepartment = async () => {
     if (selectedDepartment) {
       await deleteDepartment.mutateAsync(selectedDepartment.id);
@@ -81,7 +81,7 @@ export default function DepartmentsPage() {
     }
   };
 
-  // Handle edit button click
+  
   const handleEditDepartment = (id: string) => {
     const department = departments?.find(d => d.id === id);
     if (department) {
@@ -90,7 +90,7 @@ export default function DepartmentsPage() {
     }
   };
 
-  // Handle delete button click
+  
   const handleDeleteClick = (id: string) => {
     const department = departments?.find(d => d.id === id);
     if (department) {
@@ -99,15 +99,15 @@ export default function DepartmentsPage() {
     }
   };
 
-  // Calculate stats
+  
   useEffect(() => {
     if (departments && employees) {
-      // Sort departments by creation date
+      
       const sortedDepartments = [...departments].sort((a, b) => 
         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
       );
 
-      // Calculate stats
+      
       const totalDepartments = departments.length;
       const activeDepartments = departments.filter(d => d.isActive).length;
       const totalEmployees = employees.totalCount;
@@ -128,7 +128,7 @@ export default function DepartmentsPage() {
     }
   }, [departments, employees]);
 
-  // Renderização condicional para estado de carregamento
+  
   if (isLoadingDepts || isLoadingEmployees) {
     return (
       <main className="bg-background min-h-screen">
@@ -156,21 +156,21 @@ export default function DepartmentsPage() {
 
   return (
     <main className="bg-background min-h-screen">
-      {/* Header */}
+      {}
       <DepartmentHeader 
         title="Gerenciamento de Departamentos" 
         subtitle="Visualize, crie e gerencie os departamentos da empresa" 
       />
 
-      {/* Main Content */}
+      {}
       <div className="container px-6 py-8">
-        {/* Stats Overview */}
+        {}
         <DepartmentStatsOverview 
           data={stats} 
           isLoading={false} 
         />
 
-        {/* Search and Add */}
+        {}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mt-8">
           <FilterBar
             searchTerm={searchTerm}
@@ -192,7 +192,7 @@ export default function DepartmentsPage() {
           )}
         </div>
 
-        {/* Departments Grid */}
+        {}
         <div className="mt-6">
           <DepartmentGrid 
             departments={filteredDepartments} 
@@ -204,7 +204,7 @@ export default function DepartmentsPage() {
         </div>
       </div>
 
-      {/* Department Create/Edit Dialog */}
+      {}
       <DepartmentDialog
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
@@ -213,7 +213,7 @@ export default function DepartmentsPage() {
         isLoading={createDepartment.isPending || updateDepartment.isPending}
       />
 
-      {/* Delete Confirmation Dialog */}
+      {}
       <ConfirmDeleteDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}

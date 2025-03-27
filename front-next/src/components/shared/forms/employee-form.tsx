@@ -13,7 +13,8 @@ import {
   CreateEmployeeFormValues, 
   createEmployeeSchema,
   formValuesToCreateEmployeeDTO
-} from "@/lib/validations/employee";
+} from "@/schemas/employee";
+import { getMinBirthDate } from "@/schemas/utils";
 import { employeeService } from "@/services/employee";
 import { useAuth } from "@/hooks/use-auth";
 import { PhoneFieldArray } from "@/components/shared/forms/phone-field";
@@ -46,7 +47,7 @@ import {
   RadioGroupItem,
 } from "@/components/ui/radio-group";
 
-// Interface para os departamentos e gerentes
+
 interface Department {
   id: string;
   name: string;
@@ -69,7 +70,7 @@ export function EmployeeForm({ onSuccess, className }: EmployeeFormProps) {
   const [managers, setManagers] = useState<Manager[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Form with validation
+  
   const form = useForm<CreateEmployeeFormValues>({
     resolver: zodResolver(createEmployeeSchema),
     defaultValues: {
@@ -87,7 +88,7 @@ export function EmployeeForm({ onSuccess, className }: EmployeeFormProps) {
     mode: "onBlur",
   });
 
-  // Fetch departments and managers on component mount
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -97,11 +98,11 @@ export function EmployeeForm({ onSuccess, className }: EmployeeFormProps) {
         ]);
         
         setDepartments(departmentsData);
-        // Filtrar e mapear apenas gerentes com ID válido
+        
         const validManagers: Manager[] = managersData
-          .filter(manager => manager.id) // Filtra apenas gerentes com ID
+          .filter(manager => manager.id) 
           .map(manager => ({
-            id: manager.id as string, // Cast para string não-opcional
+            id: manager.id as string, 
             name: manager.name || `${manager.firstName} ${manager.lastName}`
           }));
         
@@ -117,7 +118,7 @@ export function EmployeeForm({ onSuccess, className }: EmployeeFormProps) {
     fetchData();
   }, []);
 
-  // Custom document validation
+  
   const validateDocument = async (value: string) => {
     try {
       const isValid = await employeeService.validateDocument(value);
@@ -131,14 +132,14 @@ export function EmployeeForm({ onSuccess, className }: EmployeeFormProps) {
     }
   };
 
-  // Add custom document validation
+  
   useEffect(() => {
     const { register, trigger } = form;
     register("documentNumber", {
       validate: validateDocument,
     });
 
-    // Trigger validation when document changes
+    
     const subscription = form.watch((value, { name }) => {
       if (name === "documentNumber" && value.documentNumber && value.documentNumber.length >= 8) {
         trigger("documentNumber");
@@ -148,18 +149,18 @@ export function EmployeeForm({ onSuccess, className }: EmployeeFormProps) {
     return () => subscription.unsubscribe();
   }, [form]);
 
-  // Form submission
+  
   const onSubmit = async (data: CreateEmployeeFormValues) => {
     setIsSubmitting(true);
     
     try {
-      // Validate that the user can create this role
+      
       if (!canCreateRole(data.role)) {
         toast.error("Você não tem permissão para criar um funcionário com este cargo");
         return;
       }
       
-      // Convert form values to API DTO
+      
       const employeeDTO = formValuesToCreateEmployeeDTO(data);
       
       await employeeService.createEmployee(employeeDTO);
@@ -186,7 +187,7 @@ export function EmployeeForm({ onSuccess, className }: EmployeeFormProps) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className={`space-y-6 ${className}`}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Nome */}
+          {}
           <FormField
             control={form.control}
             name="firstName"
@@ -201,7 +202,7 @@ export function EmployeeForm({ onSuccess, className }: EmployeeFormProps) {
             )}
           />
 
-          {/* Sobrenome */}
+          {}
           <FormField
             control={form.control}
             name="lastName"
@@ -216,7 +217,7 @@ export function EmployeeForm({ onSuccess, className }: EmployeeFormProps) {
             )}
           />
 
-          {/* Email */}
+          {}
           <FormField
             control={form.control}
             name="email"
@@ -235,13 +236,13 @@ export function EmployeeForm({ onSuccess, className }: EmployeeFormProps) {
             )}
           />
 
-          {/* Documento */}
+          {}
           <FormField
             control={form.control}
             name="documentNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Número do Documento</FormLabel>
+                <FormLabel>CPF</FormLabel>
                 <FormControl>
                   <Input 
                     placeholder="123.456.789-00" 
@@ -253,7 +254,7 @@ export function EmployeeForm({ onSuccess, className }: EmployeeFormProps) {
             )}
           />
 
-          {/* Data de Nascimento */}
+          {}
           <FormField
             control={form.control}
             name="birthDate"
@@ -295,7 +296,7 @@ export function EmployeeForm({ onSuccess, className }: EmployeeFormProps) {
             )}
           />
 
-          {/* Departamento */}
+          {}
           <FormField
             control={form.control}
             name="department"
@@ -324,7 +325,7 @@ export function EmployeeForm({ onSuccess, className }: EmployeeFormProps) {
             )}
           />
 
-          {/* Gerente */}
+          {}
           <FormField
             control={form.control}
             name="managerId"
@@ -354,7 +355,7 @@ export function EmployeeForm({ onSuccess, className }: EmployeeFormProps) {
             )}
           />
 
-          {/* Senha */}
+          {}
           <FormField
             control={form.control}
             name="password"
@@ -373,7 +374,7 @@ export function EmployeeForm({ onSuccess, className }: EmployeeFormProps) {
             )}
           />
 
-          {/* Cargo */}
+          {}
           <FormField
             control={form.control}
             name="role"
@@ -442,7 +443,7 @@ export function EmployeeForm({ onSuccess, className }: EmployeeFormProps) {
           />
         </div>
 
-        {/* Telefones */}
+        {}
         <PhoneFieldArray />
 
         <Button 
@@ -457,9 +458,4 @@ export function EmployeeForm({ onSuccess, className }: EmployeeFormProps) {
   );
 }
 
-// Helper function to get minimum birth date (18 years ago)
-function getMinBirthDate() {
-  const date = new Date();
-  date.setFullYear(date.getFullYear() - 18);
-  return date;
-}
+

@@ -30,23 +30,23 @@ function Calendar({
   onMonthChange,
   ...props
 }: CalendarProps) {
-  // Estado local para controlar o mês atual se não for fornecido externamente
+  
   const [internalMonth, setInternalMonth] = useState<Date>(month || new Date())
   
-  // Sincronizar o estado interno com o prop external, se fornecido
+  
   useEffect(() => {
     if (month) {
       setInternalMonth(month)
     }
   }, [month])
   
-  // Função para atualizar o mês
+  
   const handleMonthChange = (date: Date) => {
-    // Se onMonthChange for fornecida, usamos ela
+    
     if (onMonthChange) {
       onMonthChange(date)
     } else {
-      // Caso contrário, atualizamos o estado interno
+      
       setInternalMonth(date)
     }
   }
@@ -61,7 +61,7 @@ function Calendar({
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
         caption: "flex justify-center pt-1 relative items-center",
-        caption_label: "hidden", // Esconder o label padrão
+        caption_label: "hidden", 
         nav: "space-x-1 flex items-center",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
@@ -112,18 +112,18 @@ function Calendar({
         )
       }}
       locale={ptBR}
-      disabled={props.disabled || { after: new Date() }} // Desabilitar datas futuras
+      disabled={props.disabled || { after: new Date() }} 
       {...props}
     />
   )
 }
 
-// Propriedades estendidas para o CustomCaption
+
 interface CustomCaptionProps extends CaptionProps {
   onMonthSelect: (date: Date) => void;
 }
 
-// Componente customizado para o cabeçalho do calendário
+
 function CustomCaption({ displayMonth, onMonthSelect }: CustomCaptionProps) {
   const months = [
     "Janeiro", "Fevereiro", "Março", "Abril", 
@@ -131,13 +131,13 @@ function CustomCaption({ displayMonth, onMonthSelect }: CustomCaptionProps) {
     "Setembro", "Outubro", "Novembro", "Dezembro"
   ];
   
-  // Calcular o ano atual e o intervalo de anos para seleção
-  // Considerar que a pessoa deve ter pelo menos 18 anos
-  const today = new Date();
-  const maxYear = today.getFullYear() - 18; // O ano máximo é 18 anos atrás
-  const minYear = maxYear - 82; // 100 anos de range (18 até 100 anos)
   
-  // Criar array de anos (do mais recente para o mais antigo)
+  
+  const today = new Date();
+  const maxYear = today.getFullYear() - 18; 
+  const minYear = maxYear - 82; 
+  
+  
   const years = Array.from(
     { length: (maxYear - minYear) + 1 }, 
     (_, i) => maxYear - i

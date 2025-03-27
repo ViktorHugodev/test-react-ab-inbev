@@ -25,16 +25,32 @@ export function getInitials(name: string): string {
   return `${firstInitial}${lastInitial}`.toUpperCase();
 }
 
-/**
- * Normaliza os dados do usuário em um formato unificado
- * para garantir consistência entre diferentes fontes de dados
- */
+// Function to validate phone numbers
+export function isAValidNumber(phoneNumber: string): boolean {
+  // Remove non-numeric characters
+  const cleanNumber = phoneNumber.replace(/\D/g, '');
+  
+  // Check if it has between 10 and 11 digits (with and without the 9)
+  if (cleanNumber.length < 10 || cleanNumber.length > 11) {
+    return false;
+  }
+  
+  // Check if the DDD is valid (between 11 and 99)
+  const ddd = parseInt(cleanNumber.substring(0, 2));
+  if (ddd < 11 || ddd > 99) {
+    return false;
+  }
+  
+  return true;
+}
+
+
 export function normalizeUserData(
   userData: Employee | CurrentUserResponse | null | undefined
 ): UnifiedUserData | null {
   if (!userData) return null;
 
-  // Determinar se é CurrentUserResponse (tem 'name' e não tem 'firstName')
+  
   if ('name' in userData && !('firstName' in userData)) {
     const nameParts = userData.name.split(' ');
     const firstName = nameParts[0] || '';
@@ -51,7 +67,7 @@ export function normalizeUserData(
     };
   }
   
-  // É um Employee
+  
   const employee = userData as Employee;
   
   return {
@@ -79,9 +95,7 @@ export function normalizeUserData(
   };
 }
 
-/**
- * Converte uma data para o formato ISO string com segurança
- */
+
 export function toISODateString(date: Date | string | undefined): string | undefined {
   if (!date) return undefined;
   
@@ -96,13 +110,11 @@ export function toISODateString(date: Date | string | undefined): string | undef
   return date.toISOString();
 }
 
-/**
- * Verifica se uma string é um GUID válido no formato usado pelo .NET
- */
+
 export function isValidGuid(str: string): boolean {
   if (!str) return false;
   
-  // Formato GUID padrão: 8-4-4-4-12 (total 36 caracteres incluindo hífens)
+  
   const guidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return guidRegex.test(str);
 }

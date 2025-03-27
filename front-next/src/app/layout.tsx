@@ -36,7 +36,7 @@ export default function RootLayout({
         <ReduxProvider>
           <QueryProvider>
             <AuthProvider>
-              {/* Componente para sincronizar o token entre localStorage e cookies */}
+              {}
               <TokenSync>
                 <div className="relative flex min-h-screen flex-col">
                   <Header />

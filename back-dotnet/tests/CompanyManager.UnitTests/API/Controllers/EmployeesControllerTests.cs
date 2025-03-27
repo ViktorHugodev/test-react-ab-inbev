@@ -9,6 +9,7 @@ using CompanyManager.Application.Exceptions;
 using CompanyManager.Application.Interfaces;
 using CompanyManager.Domain.Enums;
 using CompanyManager.Domain.Exceptions;
+using CompanyManager.Domain.ValueObjects;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -630,6 +631,113 @@ namespace CompanyManager.UnitTests.API.Controllers
             var notFoundResult = result.Should().BeOfType<NotFoundObjectResult>().Subject;
             var responseJson = System.Text.Json.JsonSerializer.Serialize(notFoundResult.Value);
             responseJson.Should().Contain(employeeId.ToString());
+        }
+
+        [Fact]
+        public async Task UpdatePartial_WithValidData_ReturnsOkWithEmployee()
+        {
+            // Arrange
+            var employeeId = Guid.NewGuid();
+            var partialUpdateDto = new EmployeePartialUpdateDto
+            {
+                Id = employeeId,
+                FirstName = "John",
+                LastName = "Doe Updated"
+                // Only updating names, other fields not included
+            };
+
+            var updatedEmployee = new EmployeeDto
+            {
+                Id = employeeId,
+                FirstName = partialUpdateDto.FirstName,
+                LastName = partialUpdateDto.LastName,
+                FullName = "John Doe Updated",
+                Email = "john@example.com",
+                BirthDate = new DateTime(1990, 1, 1),
+                Role = Role.Employee,
+                Department = "IT"
+            };
+
+            var currentEmployee = new EmployeeDto
+            {
+                Id = employeeId,
+                FirstName = "John",
+                LastName = "Doe",
+                FullName = "John Doe",
+                Email = "john@example.com",
+                BirthDate = new DateTime(1990, 1, 1),
+                Role = Role.Employee,
+                Department = "IT"
+            };
+
+            _mockEmployeeService.Setup(service =>
+                service.GetByIdAsync(employeeId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(currentEmployee);
+
+            _mockEmployeeService.Setup(service =>
+                service.UpdatePartialAsync(partialUpdateDto, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(updatedEmployee);
+
+            // Act
+            var result = await _controller.UpdatePartial(employeeId, partialUpdateDto, CancellationToken.None);
+
+            // Assert
+            var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+            var returnValue = okResult.Value.Should().BeOfType<EmployeeDto>().Subject;
+            returnValue.Should().BeEquivalentTo(updatedEmployee);
+        }
+
+        [Fact]
+        public async Task UpdatePhoneNumbers_WithValidData_ReturnsOkWithEmployee()
+        {
+            // Arrange
+            var employeeId = Guid.NewGuid();
+            var updatePhoneNumbersDto = new UpdatePhoneNumbersDto
+            {
+                Id = employeeId,
+                PhoneNumbers = new List<PhoneNumberDto>
+                {
+                    new PhoneNumberDto { Type = PhoneType.Mobile, Number = "11999999999" },
+                    new PhoneNumberDto { Type = PhoneType.Home, Number = "1134567890" }
+                }
+            };
+
+            var currentEmployee = new EmployeeDto
+            {
+                Id = employeeId,
+                FirstName = "John",
+                LastName = "Doe",
+                FullName = "John Doe",
+                Email = "john@example.com",
+                Role = Role.Employee
+            };
+
+            var updatedEmployee = new EmployeeDto
+            {
+                Id = employeeId,
+                FirstName = "John",
+                LastName = "Doe",
+                FullName = "John Doe",
+                Email = "john@example.com",
+                Role = Role.Employee,
+                PhoneNumbers = updatePhoneNumbersDto.PhoneNumbers
+            };
+
+            _mockEmployeeService.Setup(service =>
+                service.GetByIdAsync(employeeId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(currentEmployee);
+
+            _mockEmployeeService.Setup(service =>
+                service.UpdatePhoneNumbersAsync(updatePhoneNumbersDto, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(updatedEmployee);
+
+            // Act
+            var result = await _controller.UpdatePhoneNumbers(employeeId, updatePhoneNumbersDto, CancellationToken.None);
+
+            // Assert
+            var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+            var returnValue = okResult.Value.Should().BeOfType<EmployeeDto>().Subject;
+            returnValue.Should().BeEquivalentTo(updatedEmployee);
         }
 
         // Helper methods for setting up user context

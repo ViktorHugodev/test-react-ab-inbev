@@ -7,29 +7,29 @@ import { EmployeeRole } from "@/types/employee";
 export function RoleDistribution() {
   const { data, isLoading, isError } = useGetEmployees({
     pageNumber: 1,
-    pageSize: 100, // Get a larger sample for accurate role distribution
+    pageSize: 100, 
   });
 
   const getRoleData = () => {
     if (!data?.items?.length) return [];
 
-    // Initialize counters
+    
     const roleCount = {
       [EmployeeRole.Director]: 0,
       [EmployeeRole.Leader]: 0,
       [EmployeeRole.Employee]: 0,
     };
 
-    // Count by role
+    
     data.items.forEach(employee => {
-      // Verificar se o role é um valor válido do enum EmployeeRole
+      
       const role = employee.role as EmployeeRole;
       if (role in roleCount) {
         roleCount[role]++;
       }
     });
 
-    // Create the data array
+    
     return [
       {
         role: "Diretores",
@@ -70,17 +70,17 @@ export function RoleDistribution() {
           <div className="p-4 text-center text-red-500">Erro ao carregar dados</div>
         ) : (
           <div className="space-y-6">
-            {/* Pie chart visualization */}
+            {}
             <div className="flex justify-center items-center">
               <div className="relative h-40 w-40">
                 {roleData.map((item, index) => {
-                  // Calculate the total percentage of this role
+                  
                   const percentage = total === 0 ? 0 : (item.count / total) * 100;
                   const cumulativePercentage = roleData
                     .slice(0, index)
                     .reduce((sum, prevItem) => sum + (prevItem.count / total) * 100, 0);
                   
-                  // Skip if percentage is 0
+                  
                   if (percentage === 0) return null;
                   
                   return (
@@ -108,7 +108,7 @@ export function RoleDistribution() {
               </div>
             </div>
 
-            {/* Legend */}
+            {}
             <div className="grid grid-cols-3 gap-2">
               {roleData.map((item) => (
                 <div key={item.role} className="flex flex-col items-center">

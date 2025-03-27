@@ -11,7 +11,7 @@ interface ThemeState {
   highContrast: boolean;
 }
 
-// Get initial theme from local storage if available
+
 const getInitialTheme = (): ThemeMode => {
   if (typeof window !== 'undefined') {
     const savedTheme = localStorage.getItem('theme-mode') as ThemeMode;

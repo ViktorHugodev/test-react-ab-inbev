@@ -14,9 +14,6 @@ out/
 *.pfx
 *.publishsettings
 
-# Environment variables
-.env
-
 # Docker volumes
 **/volumes/
 

@@ -74,7 +74,7 @@ export const employeeService = {
       return adaptEmployeeResponse(response);
     }
     
-    // Sem filtros, buscamos todos
+    
     const response = await api.get<any>('/Employees');
     return adaptEmployeeResponse(response);
   },
@@ -136,7 +136,7 @@ export const employeeService = {
     }
   },
   
-  // Adicionando funções que existiam no employee-service.ts
+  
   getDepartments: async (): Promise<{ id: string; name: string }[]> => {
     try {
       const response = await api.get<any>('/Departments');

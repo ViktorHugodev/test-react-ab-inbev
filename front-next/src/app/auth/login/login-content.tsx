@@ -14,22 +14,22 @@ export default function LoginContent() {
   const callbackUrl = searchParams.get("callbackUrl") || "/";
   const [formReady, setFormReady] = useState(false);
 
-  // Otimização para renderização mais rápida
+  
   useEffect(() => {
-    // Marcar formulário como pronto após a primeira renderização
+    
     if (!formReady) {
       setFormReady(true);
     }
     
-    // Se já estiver autenticado, redireciona para a página inicial ou callback
+    
     if (!isLoading && user) {
-      // Forçar redirecionamento para dashboard quando já estiver autenticado
+      
       setTimeout(() => {
         router.push(callbackUrl === "/" ? "/dashboard" : callbackUrl);
       }, 300);
     }
 
-    // Exibe mensagem de erro se houver
+    
     if (error) {
       toast.error(error);
     }

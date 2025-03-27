@@ -21,7 +21,7 @@ export function WelcomeDialog() {
   const dispatch = useAppDispatch();
   const showWelcomeDialog = useAppSelector((state: RootState) => state.ui.showWelcomeDialog);
   
-  // Check if it's the first login - show the dialog on first visit
+  
   useEffect(() => {
     if (user) {
       const hasSeenWelcome = localStorage.getItem("hasSeenWelcome");
@@ -31,7 +31,7 @@ export function WelcomeDialog() {
     }
   }, [user, dispatch]);
   
-  // Close the dialog and set the flag in localStorage
+  
   const handleClose = () => {
     dispatch(setShowWelcomeDialog(false));
     localStorage.setItem("hasSeenWelcome", "true");

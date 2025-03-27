@@ -35,7 +35,7 @@ export interface Employee {
   phoneNumbers: Phone[];
   createdAt?: Date | string;
   updatedAt?: Date | string;
-  // Para compatibilidade com CurrentUserResponse
+  
   name?: string;
 }
 
@@ -80,7 +80,7 @@ export interface UpdateEmployeeDTO {
   managerId?: string;
   birthDate: string | Date
   phoneNumbers: {
-    // id deve ser um GUID válido para a API .NET, deve ser omitido se não for válido
+    
     id?: string;
     number: string;
     type: PhoneType | number;
@@ -115,10 +115,7 @@ export interface PagedResult<T> {
   hasNextPage: boolean;
 }
 
-/**
- * Interface unificada que combina propriedades de Employee e CurrentUserResponse
- * para garantir compatibilidade e segurança de tipos em componentes que usam ambos
- */
+
 export interface UnifiedUserData {
   id: string;
   firstName: string;
@@ -133,9 +130,7 @@ export interface UnifiedUserData {
   phoneNumbers: Phone[];
 }
 
-/**
- * Tipo utilitário para facilitar operações com usuários
- */
+
 export type UserDataSource = Employee | CurrentUserResponse | UnifiedUserData | null | undefined;
 
 

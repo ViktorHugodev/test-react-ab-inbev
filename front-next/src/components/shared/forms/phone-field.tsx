@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useFormContext, useFieldArray } from "react-hook-form";
 import { PhoneType } from "@/types/employee";
-import { CreateEmployeeFormValues } from "@/lib/validations/employee";
+import { CreateEmployeeFormValues } from "@/schemas/employee";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +30,7 @@ export function PhoneFieldArray() {
     control,
   });
 
-  // Add a phone if none exist initially
+  
   const [initialized, setInitialized] = useState(false);
   if (!initialized && fields.length === 0) {
     append({ number: "", type: PhoneType.Mobile });

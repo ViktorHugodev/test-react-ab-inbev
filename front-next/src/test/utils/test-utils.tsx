@@ -4,7 +4,20 @@ import userEvent from '@testing-library/user-event';
 import { EmployeeRole } from '@/types/employee';
 
 
-const AuthContext = createContext({
+interface AuthContextType {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: EmployeeRole;
+  } | null;
+  isLoading: boolean;
+  login: () => Promise<void>;
+  logout: () => void;
+  canCreateRole: (role: EmployeeRole) => boolean;
+}
+
+const AuthContext = createContext<AuthContextType>({
   user: null,
   isLoading: false,
   login: async () => {},
@@ -39,17 +52,12 @@ const MockAuthProvider = ({ children, mockRole = EmployeeRole.Leader }: { childr
   );
 };
 
-// Custom render function that includes providers
+
 interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
   mockRole?: EmployeeRole;
 }
 
-/**
- * Custom render function that wraps the component with necessary providers
- * @param ui - The React component to render
- * @param options - Custom render options including mockRole for AuthProvider
- * @returns The rendered component with user-event setup
- */
+
 export function renderWithProviders(
   ui: ReactElement,
   { mockRole, ...options }: CustomRenderOptions = {}
@@ -68,6 +76,6 @@ export function renderWithProviders(
   };
 }
 
-// Re-export everything from testing-library
+
 export * from '@testing-library/react';
 export { userEvent };

@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import Link from "next/link";
-import { Loader2, Mail, Lock, User, Phone, Building, UserCog, AlertTriangle } from "lucide-react";
+import { Loader2, Mail, Lock, User, Building, UserCog, AlertTriangle } from "lucide-react";
 
 import { useAuth } from "@/hooks/use-auth";
 import { EmployeeRole, PhoneType } from "@/types/employee";
@@ -30,7 +30,7 @@ import {
   SelectValue
 } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { RegisterFormValues, registerSchema } from '@/lib/validations/register';
+import { RegisterFormValues, registerSchema } from '@/schemas/register';
 import { PhoneFieldArray } from "@/components/shared/forms/phone-field";
 
 export function RegisterForm() {
@@ -70,12 +70,12 @@ export function RegisterForm() {
         throw new Error("Você não pode criar funcionários com este nível de acesso");
       }
 
-      // Garantir que phoneNumbers tenha todos os campos obrigatórios preenchidos
+      
       const validPhoneNumbers = values.phoneNumbers
-        .filter(phone => phone.number && phone.type) // Filtra apenas os telefones com number e type preenchidos
+        .filter(phone => phone.number && phone.type) 
         .map(phone => ({
-          number: phone.number as string, // Cast para string não-opcional
-          type: phone.type as PhoneType   // Cast para PhoneType não-opcional
+          number: phone.number as string, 
+          type: phone.type as PhoneType   
         }));
 
       if (validPhoneNumbers.length === 0) {

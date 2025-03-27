@@ -10,11 +10,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PhoneType } from "@/types/employee";
 
 import { ProfileHeader } from "@/components/pages/profile/profile-header";
-import { PersonalInfoForm, PersonalInfoFormValues } from "@/components/pages/profile/personal-info-form";
-import { PasswordForm, PasswordFormValues } from "@/components/pages/profile/password-form";
+import { PersonalInfoForm } from "@/components/pages/profile/personal-info-form";
+import { PasswordForm } from "@/components/pages/profile/password-form";
+import { PersonalInfoFormValues } from '@/schemas/employee';
+import { PasswordFormValues } from '@/schemas/auth';
 
 export default function ProfilePage() {
-  // Usar um estado para controlar a fase de hidratação
+  
   const [isHydrated, setIsHydrated] = useState(false);
   const { data: user, isLoading: isLoadingUser, isError: isUserError } = useCurrentUser();
   const { data: detailedUser, isLoading: isLoadingDetails, isError: isDetailsError } = useDetailedUserInfo();
@@ -23,7 +25,7 @@ export default function ProfilePage() {
   const isLoading = isLoadingUser || isLoadingDetails;
   const isError = isUserError || isDetailsError;
   
-  // Marcar que a página foi hidratada após a renderização inicial
+  
   useEffect(() => {
     setIsHydrated(true);
   }, []);
@@ -32,7 +34,7 @@ export default function ProfilePage() {
   const updatePassword = useUpdateEmployeePassword();
 
   const onPersonalInfoSubmit = async (data: PersonalInfoFormValues) => {
-    // Normalizar dados do usuário para ter um formato consistente
+    
     const normalizedUser = normalizeUserData(detailedUser || user);
     
     if (!normalizedUser || !normalizedUser.id) {
@@ -41,30 +43,30 @@ export default function ProfilePage() {
     }
 
     try {
-      // Processamento seguro dos telefones com validação adicional
+      
       const processedPhoneNumbers = (data.phoneNumbers || [])
-        .filter(phone => phone && typeof phone === 'object') // Garantir que sejam objetos válidos
+        .filter(phone => phone && typeof phone === 'object') 
         .map(phone => {
-          // Se o ID for vazio, nulo ou undefined, omitir completamente a propriedade id
-          // Em vez de enviar undefined, que pode causar problemas de serialização
+          
+          
           const phoneObj: any = {
             number: (phone.number || "").trim(),
             type: Number(phone.type) || PhoneType.Mobile
           };
           
-          // Adicionar ID apenas se for uma string válida não vazia
+          
           if (phone.id && typeof phone.id === 'string' && phone.id.trim() !== '') {
             phoneObj.id = phone.id.trim();
           }
           
           return phoneObj;
         })
-        .filter(phone => phone.number.length >= 8); // Filtrar telefones com número válido
+        .filter(phone => phone.number.length >= 8); 
 
-      // Tratar datas de forma segura
+      
       const birthDateISOString = toISODateString(data.birthDate);
       
-      // Dados validados prontos para envio
+      
       await updateProfile.mutateAsync({
         id: normalizedUser.id,
         data: {
@@ -84,7 +86,7 @@ export default function ProfilePage() {
   };
 
   const onPasswordSubmit = async (data: PasswordFormValues) => {
-    // Normalizar dados do usuário para ter um formato consistente
+    
     const normalizedUser = normalizeUserData(detailedUser || user);
     
     if (!normalizedUser || !normalizedUser.id) {
@@ -93,7 +95,7 @@ export default function ProfilePage() {
     }
 
     try {
-      // Validar dados da senha antes de enviar
+      
       if (data.newPassword !== data.confirmNewPassword) {
         toast.error("As senhas não coincidem.");
         return;
@@ -133,7 +135,7 @@ export default function ProfilePage() {
     );
   }
 
-  // Renderizar um esqueleto até que a hidratação esteja completa
+  
   if (!isHydrated) {
     return (
       <div className="bg-background min-h-screen">
@@ -157,10 +159,10 @@ export default function ProfilePage() {
 
   return (
     <div className="bg-background min-h-screen" suppressHydrationWarning>
-      {/* Profile Header */}
+      {}
       <ProfileHeader user={detailedUser || user} isLoading={isLoading} />
 
-      {/* Main Content */}
+      {}
       <div className="container px-6 py-8">
         <Tabs
           defaultValue="profile"

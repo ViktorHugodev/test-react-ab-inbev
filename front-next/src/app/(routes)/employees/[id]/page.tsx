@@ -1,65 +1,63 @@
   "use client";
 
-  import { useState, useEffect } from "react";
-  import { useRouter } from "next/navigation";
   import { zodResolver } from "@hookform/resolvers/zod";
-  import { useForm } from "react-hook-form";
-  import { CalendarIcon, ArrowLeft, Save, Trash2, UserCheck } from "lucide-react";
-  import { format } from "date-fns";
-  import { ptBR } from "date-fns/locale";
-  import * as z from "zod";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { ArrowLeft, CalendarIcon, UserCheck } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 
   import { useAuth } from "@/hooks/use-auth";
-  import { Employee, EmployeeRole, PhoneType } from "@/types/employee";
-  import { useGetEmployee, useUpdateEmployee, useDeleteEmployee } from "@/services/employee/queries";
-  import { useGetDepartments } from "@/services/department/queries";
-  import { useGetManagers } from "@/services/employee/queries";
+import { useGetDepartments } from "@/services/department/queries";
+import { useDeleteEmployee, useGetEmployee, useGetManagers, useUpdateEmployee } from "@/services/employee/queries";
+import { EmployeeRole, PhoneType } from "@/types/employee";
 
-  import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-  } from "@/components/ui/card";
-  import {
-    Form,
-    FormControl,
-    FormDescription,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-  } from "@/components/ui/form";
-  import { Input } from "@/components/ui/input";
-  import { Button } from "@/components/ui/button";
-  import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-  } from "@/components/ui/select";
-  import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-  } from "@/components/ui/dialog";
-  import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-  } from "@/components/ui/popover";
-  import { Calendar } from "@/components/ui/calendar";
   import { Badge } from "@/components/ui/badge";
-  import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-  import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
 
-  // Schema de validação do formulário
+  
   const employeeFormSchema = z.object({
     firstName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
     lastName: z.string().min(2, "Sobrenome deve ter pelo menos 2 caracteres"),
@@ -100,9 +98,9 @@
     const [activeTab, setActiveTab] = useState("profile");
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     
-    // Verifica se o modo de edição deve ser ativado automaticamente
+    
     useEffect(() => {
-      // Em ambiente cliente, podemos acessar a URL
+      
       if (typeof window !== "undefined") {
         const params = new URLSearchParams(window.location.search);
         const editMode = params.get("edit") === "true";
@@ -113,22 +111,22 @@
       }
     }, []);
     
-    // Fetch data from API
+    
     const { data: employee, isLoading, isError } = useGetEmployee(params.id);
     const { data: departments } = useGetDepartments();
     const { data: managers } = useGetManagers();
     
-    // Mutations
+    
     const updateEmployee = useUpdateEmployee();
     const deleteEmployee = useDeleteEmployee();
     
-    // Access control
+    
     const isDirector = user?.role === EmployeeRole.Director;
     const isLeaderOrDirector = user?.role === EmployeeRole.Leader || user?.role === EmployeeRole.Director;
     const canEdit = isLeaderOrDirector;
     const canDelete = isDirector;
     console.log('user', user);
-    // Form setup
+    
     const employeeForm = useForm<EmployeeFormValues>({
       resolver: zodResolver(employeeFormSchema),
       defaultValues: {
@@ -144,7 +142,7 @@
       }
     });
     
-    // Set form values when employee data is loaded
+    
     useEffect(() => {
       if (employee) {
         employeeForm.reset({
@@ -161,7 +159,7 @@
       }
     }, [employee, employeeForm]);
     
-    // Form submission
+    
     const onSubmit = async (data: EmployeeFormValues) => {
       if (!employee || !employee.id) return;
       
@@ -191,7 +189,7 @@
       }
     };
     
-    // Handle delete confirmation
+    
     const handleDelete = async () => {
       if (!employee || !employee.id) return;
       
@@ -205,7 +203,7 @@
       }
     };
     
-    // Get role display name
+    
     const getRoleDisplay = (role: EmployeeRole): string => {
       switch (role) {
         case EmployeeRole.Director:
@@ -219,7 +217,7 @@
       }
     };
     
-    // Get role badge variant
+    
     const getRoleBadgeVariant = (role: EmployeeRole) => {
       switch (role) {
         case EmployeeRole.Director:
@@ -233,7 +231,7 @@
       }
     };
     
-    // Get phone type label
+    
     const getPhoneTypeLabel = (type: PhoneType): string => {
       switch (type) {
         case PhoneType.Mobile:
@@ -247,7 +245,7 @@
       }
     };
     
-    // Loading state
+    
     if (isLoading) {
       return (
         <div className="container mx-auto py-6">
@@ -264,7 +262,7 @@
       );
     }
     
-    // Error state
+    
     if (isError || !employee) {
       return (
         <div className="container mx-auto py-6">
@@ -418,7 +416,7 @@
                   <Form {...employeeForm}>
                     <form onSubmit={employeeForm.handleSubmit(onSubmit)} className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* First Name */}
+                        {}
                         <FormField
                           control={employeeForm.control}
                           name="firstName"
@@ -433,7 +431,7 @@
                           )}
                         />
                         
-                        {/* Last Name */}
+                        {}
                         <FormField
                           control={employeeForm.control}
                           name="lastName"
@@ -448,7 +446,7 @@
                           )}
                         />
                         
-                        {/* Email */}
+                        {}
                         <FormField
                           control={employeeForm.control}
                           name="email"
@@ -463,7 +461,7 @@
                           )}
                         />
                         
-                        {/* Document Number */}
+                        {}
                         <FormField
                           control={employeeForm.control}
                           name="documentNumber"
@@ -478,7 +476,7 @@
                           )}
                         />
                         
-                        {/* Birth Date */}
+                        {}
                         <FormField
                           control={employeeForm.control}
                           name="birthDate"
@@ -521,7 +519,7 @@
                           )}
                         />
                         
-                        {/* Role */}
+                        {}
                         <FormField
                           control={employeeForm.control}
                           name="role"
@@ -552,7 +550,7 @@
                           )}
                         />
                         
-                        {/* Department */}
+                        {}
                         <FormField
                           control={employeeForm.control}
                           name="department"
@@ -581,7 +579,7 @@
                           )}
                         />
                         
-                        {/* Manager */}
+                        {}
                         <FormField
                           control={employeeForm.control}
                           name="managerId"
@@ -612,7 +610,7 @@
                         />
                       </div>
                       
-                      {/* Phone Numbers */}
+                      {}
                       <div className="space-y-2">
                         <FormLabel>Telefones</FormLabel>
                         {employeeForm.watch("phoneNumbers")?.map((phone, index) => (
@@ -757,7 +755,7 @@
           </TabsContent>
         </Tabs>
         
-        {/* Delete Confirmation Dialog */}
+        {}
         <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
           <DialogContent>
             <DialogHeader>

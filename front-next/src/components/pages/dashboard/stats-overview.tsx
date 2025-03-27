@@ -1,13 +1,12 @@
-import React from "react";
-import { 
-  Users, 
-  UserCog, 
-  Building, 
-  CalendarDays, 
-  TrendingUp, 
-  BarChart3 
+import {
+  BarChart3,
+  Building,
+  CalendarDays,
+  TrendingUp,
+  UserCog,
+  Users
 } from "lucide-react";
-import { EmployeeRole } from "@/types/employee";
+
 import { StatCard } from '@/components/shared/data-display/stat-card';
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -43,7 +42,7 @@ export function StatsOverview({
 
   return (
     <div className="space-y-6">
-      {/* Primeira linha de estatísticas */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 -mt-8">
         <StatCard
           title="Total de Funcionários"
@@ -78,7 +77,7 @@ export function StatsOverview({
         />
       </div>
 
-      {/* Segunda linha de estatísticas */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <StatCard
           title="Tamanho Médio de Equipe"

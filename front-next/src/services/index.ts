@@ -1,4 +1,4 @@
-// Serviços exportados por camada
+
 export { api, ApiError } from './api';
 export * from './auth';
 export * from './employee';

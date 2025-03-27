@@ -1,23 +1,10 @@
 "use client";
-
-import React from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { 
-  User, 
-  LogOut, 
-  Menu, 
-  LayoutDashboard,
-  Users,
-  Settings,
-  Building
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { usePathname } from "next/navigation";
+import { ThemeCustomizer } from "@/components/shared/theme/theme-customizer";
+import { ThemeToggle } from "@/components/shared/theme/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "@/hooks/use-auth";
-import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { setMobileMenuOpen } from "@/redux/features/ui/uiSlice";
-import type { RootState } from "@/redux/store";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,14 +13,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { useLogout } from '@/services/auth/queries';
-import { ThemeToggle } from "@/components/shared/theme/theme-toggle";
-import { ThemeCustomizer } from "@/components/shared/theme/theme-customizer";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useAuth } from "@/hooks/use-auth";
+import { setMobileMenuOpen } from "@/redux/features/ui/uiSlice";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import type { RootState } from "@/redux/store";
+import { useLogout } from "@/services/auth/queries";
+import { Building, LayoutDashboard, LogOut, Menu, User, Users } from "lucide-react";
 
 type NavItem = {
   name: string;
@@ -47,14 +33,13 @@ export function Header() {
   const dispatch = useAppDispatch();
   const isMobileMenuOpen = useAppSelector((state: RootState) => state.ui.isMobileMenuOpen);
   const logout = useLogout();
-  
+
   const setIsMobileMenuOpen = (isOpen: boolean) => {
     dispatch(setMobileMenuOpen(isOpen));
   };
-  
-  // Se não houver usuário logado, não renderiza o header
+
   if (!user) return null;
-  
+
   const navItems: NavItem[] = [
     {
       name: "Dashboard",
@@ -82,20 +67,21 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-background">
       <div className="px-6 mx-auto max-w-7xl">
         <div className="flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center">
-            <div className="font-bold text-2xl text-primary">
-              AB InBev
-            </div>
+          <Link
+            href="/"
+            className="flex items-center"
+          >
+            <div className="font-bold text-2xl text-primary">AB InBev</div>
           </Link>
 
           <nav className="hidden md:flex items-center gap-1">
-            {navItems.map((item) => (
-              <Link 
-                key={item.name} 
+            {navItems.map(item => (
+              <Link
+                key={item.name}
                 href={item.href}
                 className={`flex items-center px-4 py-2 mx-1 text-sm rounded-full ${
-                  isActiveLink(item.href) 
-                    ? "text-primary font-medium" 
+                  isActiveLink(item.href)
+                    ? "text-primary font-medium"
                     : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                 }`}
               >
@@ -107,19 +93,28 @@ export function Header() {
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <ThemeCustomizer />
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                <Button
+                  variant="ghost"
+                  className="relative h-9 w-9 rounded-full"
+                >
                   <Avatar className="h-8 w-8 border">
-                  <AvatarImage src="https://avatar.iran.liara.run/public" alt={user.name} />
+                    <AvatarImage
+                      src="https://avatar.iran.liara.run/public"
+                      alt={user.name}
+                    />
                     <AvatarFallback className="bg-primary text-primary-foreground">
                       {user.name.substring(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="rounded-xl" align="end">
+              <DropdownMenuContent
+                className="rounded-xl"
+                align="end"
+              >
                 <DropdownMenuLabel>
                   <div className="flex flex-col">
                     <p className="text-sm font-medium">{user.name}</p>
@@ -128,13 +123,16 @@ export function Header() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/profile" className="cursor-pointer">
+                  <Link
+                    href="/profile"
+                    className="cursor-pointer"
+                  >
                     <User className="mr-2 h-4 w-4" />
                     Perfil
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   className="text-destructive focus:text-destructive cursor-pointer"
                   onClick={() => logout()}
                 >
@@ -144,28 +142,36 @@ export function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+            <Sheet
+              open={isMobileMenuOpen}
+              onOpenChange={setIsMobileMenuOpen}
+            >
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="md:hidden"
+                >
                   <Menu className="h-6 w-6" />
                   <span className="sr-only">Abrir menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[280px] p-0">
+              <SheetContent
+                side="right"
+                className="w-[280px] p-0"
+              >
                 <div className="p-6">
-                  <span className="font-bold text-2xl text-primary">
-                    AB InBev
-                  </span>
+                  <span className="font-bold text-2xl text-primary">AB InBev</span>
                 </div>
                 <div className="flex flex-col space-y-1 px-4">
-                  {navItems.map((item) => (
+                  {navItems.map(item => (
                     <Link
                       key={item.name}
                       href={item.href}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={`flex items-center gap-3 p-2 rounded-lg ${
-                        isActiveLink(item.href) 
-                          ? "text-primary font-medium" 
+                        isActiveLink(item.href)
+                          ? "text-primary font-medium"
                           : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
@@ -174,11 +180,14 @@ export function Header() {
                     </Link>
                   ))}
                 </div>
-                
+
                 <div className="border-t mt-4 pt-4 px-4">
                   <div className="flex items-center gap-3 p-2">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src="https://avatar.iran.liara.run/public" alt={user.name} />
+                      <AvatarImage
+                        src="https://avatar.iran.liara.run/public"
+                        alt={user.name}
+                      />
                       <AvatarFallback className="bg-primary text-primary-foreground">
                         {user.name.substring(0, 2).toUpperCase()}
                       </AvatarFallback>
@@ -190,8 +199,8 @@ export function Header() {
                   </div>
                 </div>
                 <div className="px-4 mt-2">
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     className="w-full justify-start text-destructive"
                     onClick={() => {
                       logout();

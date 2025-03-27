@@ -13,7 +13,7 @@ export function RecentEmployees() {
     pageSize: 5,
   });
 
-  // Get the role as string
+  
   const getRoleDisplay = (role: EmployeeRole): string => {
     switch (role) {
       case EmployeeRole.Director:

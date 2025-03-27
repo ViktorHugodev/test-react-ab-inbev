@@ -1,9 +1,8 @@
-import React from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { RecentEmployees } from "@/components/pages/dashboard/recent-employees";
 import { DepartmentChart } from "@/components/pages/dashboard/department-chart";
+import { RecentEmployees } from "@/components/pages/dashboard/recent-employees";
 import { RoleDistribution } from "@/components/pages/dashboard/role-distribution";
-import { TopManagers } from "@/components/pages/dashboard/top-managers";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+
 
 export function DashboardCharts() {
   return (

@@ -13,10 +13,10 @@ interface DepartmentCount {
 export function DepartmentChart() {
   const { data, isLoading, isError } = useGetEmployees({
     pageNumber: 1,
-    pageSize: 100, // Get a larger sample for accurate department counts
+    pageSize: 100, 
   });
 
-  // Count employees by department and sort by count
+  
   const departmentCounts: DepartmentCount[] = [];
   
   if (data?.items) {
@@ -29,7 +29,7 @@ export function DepartmentChart() {
       return acc;
     }, {} as Record<string, number>);
 
-    // Colors for departments
+    
     const colors = [
       "bg-blue-500",
       "bg-green-500",
@@ -51,11 +51,11 @@ export function DepartmentChart() {
       colorIndex++;
     });
 
-    // Sort by count (highest first)
+    
     departmentCounts.sort((a, b) => b.count - a.count);
   }
 
-  // Calculate maximum count for percentage calculations
+  
   const maxCount = departmentCounts.length > 0 
     ? Math.max(...departmentCounts.map(dept => dept.count))
     : 0;

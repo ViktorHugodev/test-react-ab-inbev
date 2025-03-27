@@ -116,8 +116,15 @@ src/
    # ou
    yarn
    ```
+3. Testes
 
-3. Execute o ambiente de desenvolvimento
+- `npm test` - Run all tests
+- `npm test -- -t "test name"` - 
+- `npm test -- path/to/file.test.tsx` - 
+- `npm run test:watch` -
+- `npm run test:coverage` - 
+
+4. Execute o ambiente de desenvolvimento
    ```bash
    npm run dev
    # ou

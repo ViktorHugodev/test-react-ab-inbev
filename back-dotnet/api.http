@@ -1,5 +1,5 @@
-@baseUrl = http://localhost:5244
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0ZmU4M2I1NC1kZDQ5LTQyMTYtOWIyZS01NjVlNjhhN2JmZWMiLCJlbWFpbCI6ImpvYW8uc2lsdmFAZW1wcmVzYS5jb20iLCJqdGkiOiIxM2M0ZGUzNy01ZDM1LTRmYWUtYTg2NS1hN2MzNjEzYWZjZWUiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiSm_Do28gU2lsdmEiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJEaXJlY3RvciIsImV4cCI6MTc0MzAzOTE1NCwiaXNzIjoiQ29tcGFueU1hbmFnZXIiLCJhdWQiOiJDb21wYW55TWFuYWdlckFwaSJ9.OXRwTrJ4cYTlEgvcdkA3EVfRG2Rcv0486E-IksU1lDY
+@baseUrl = http://localhost:5000
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzNDAxYjM1Ni0yZDY0LTRiOGUtODMyZi1kMmQzODU5NDM3YzIiLCJlbWFpbCI6ImFkbWluQGNvbXBhbnltYW5hZ2VyLmNvbSIsImp0aSI6IjllZWE0OWIxLWY0ZTItNGUzYy04NjZhLTk3ZTM5NjM4MDQ5OCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJBZG1pbiBTaXN0ZW1hIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiRGlyZWN0b3IiLCJleHAiOjE3NDMwODM2NDksImlzcyI6IkNvbXBhbnlNYW5hZ2VyIiwiYXVkIjoiQ29tcGFueU1hbmFnZXJBcGkifQ.OOGz64Jj9hbUSsQx2F7EEJHo2totfbrAL7wbw6-fWKE
 
 ########################
 # Autenticação
@@ -11,8 +11,8 @@ POST {{baseUrl}}/api/Auth/login
 Content-Type: application/json
 
 {
-  "email": "joao.silva@empresa.com",
-  "password": "Senha@123"
+  "email": "admin@companymanager.com",
+  "password": "Admin@123"
 }
 
 ### Login com outro usuário, se necessário
@@ -79,7 +79,6 @@ Authorization: Bearer {{token}}
   "password": "AlineSecure#33",
   "role": 1,
   "department": "Marketing",
-  "managerId": "4fe83b54-dd49-4216-9b2e-565e68a7bfec",
   "phoneNumbers": [
     {
       "number": "(31) 91234-5678",
@@ -90,42 +89,79 @@ Authorization: Bearer {{token}}
 
 ### Atualizar um funcionário existente (requer permissão de Líder ou Diretor)
 # @name updateEmployee
-PUT {{baseUrl}}/api/Employees/4fe83b54-dd49-4216-9b2e-565e68a7bfec
+PUT {{baseUrl}}/api/Employees/21f75258-9e00-4fd5-b923-47a48b9e102e
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "id": "4fe83b54-dd49-4216-9b2e-565e68a7bfec",
-  "firstName": "João",
-  "lastName": "Silva",
-  "email": "joao.silva@empresa.com",
-  "documentNumber": "123.456.789-00",
-  "birthDate": "1980-01-01T00:00:00.000Z",
-  "role": 3,
-  "department": "Tecnologia",
-  "managerId": null
+  "id": "21f75258-9e00-4fd5-b923-47a48b9e102e",
+  "firstName": "Aline",
+  "lastName": "Souza",
+  "fullName": "Aline Souza",
+  "email": "aline.souza@empresa.com",
+  "documentNumber": "987.123.654-00",
+  "birthDate": "1993-10-12T00:00:00Z",
+  "age": 101,
+  "role": 1,
+  "department": "Marketing",
+  "managerId": null,
+  "managerName": null,
+  "phoneNumbers": [
+    {
+    
+      "number": "31912345678",
+      "type": 1
+    },
+    {
+  
+      "number": "31912345678",
+      "type": 2
+    },
+    {
+
+      "number": "31912345678",
+      "type": 3
+    }
+  ],
+  "createdAt": "2025-03-27T11:55:17.3654292Z",
+  "updatedAt": "2025-03-27T11:55:17.345989Z"
 }
 
 ### Atualizar parcialmente um funcionário
 # @name updateEmployeePartial
-PATCH {{baseUrl}}/api/Employees/4fe83b54-dd49-4216-9b2e-565e68a7bfec
+PATCH {{baseUrl}}/api/Employees/21f75258-9e00-4fd5-b923-47a48b9e102e
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "id": "4fe83b54-dd49-4216-9b2e-565e68a7bfec",
-  "firstName": "João",
-  "lastName": "Silva Atualizado"
+"phoneNumbers": [
+    {
+      "id": "9bfc5122-8449-431a-b994-e8bf24cd5479",
+      "number": "38991693666",
+      "type": 1
+    },
+    {
+      "id": "d4afc7b4-f8c9-45f6-b551-3df610a6f150",
+      "number": "38991683280",
+      "type": 2
+    },
+    {
+      "id": "6387d4bd-14ac-4adc-96d1-dad47a50d05c",
+      "number": "38858565454",
+      "type": 2
+    }
+  ]
 }
+
 
 ### Atualizar os números de telefone de um funcionário
 # @name updateEmployeePhones
-PUT {{baseUrl}}/api/Employees/4fe83b54-dd49-4216-9b2e-565e68a7bfec/phones
+PUT {{baseUrl}}/api/Employees/21f75258-9e00-4fd5-b923-47a48b9e102e/phones
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "id": "4fe83b54-dd49-4216-9b2e-565e68a7bfec",
+  "id": "21f75258-9e00-4fd5-b923-47a48b9e102e",
   "phoneNumbers": [
     {
       "number": "(11) 98765-4321",

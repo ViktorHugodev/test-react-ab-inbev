@@ -3,10 +3,7 @@
 import { useEffect } from 'react';
 import Cookies from 'js-cookie';
 
-/**
- * Componente do lado do cliente para sincronizar o token JWT entre localStorage e cookies.
- * Este componente não renderiza nada visualmente, apenas executa a lógica de sincronização.
- */
+
 export function TokenSyncClient(): React.ReactNode {
   useEffect(() => {
     const syncTokenToCookie = () => {
@@ -17,7 +14,7 @@ export function TokenSyncClient(): React.ReactNode {
         
         if (token) {
           Cookies.set('auth_token', token, {
-            expires: 1, // 1 dia
+            expires: 1, 
             path: '/',
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax'
@@ -33,11 +30,11 @@ export function TokenSyncClient(): React.ReactNode {
       }
     };
 
-    // Sincroniza o token imediatamente
+    
     const syncResult = syncTokenToCookie();
     console.log('Token sincronizado do localStorage para cookie:', syncResult);
 
-    // Configura um listener para mudanças no localStorage
+    
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === 'auth_token') {
         const syncResult = syncTokenToCookie();
@@ -45,20 +42,20 @@ export function TokenSyncClient(): React.ReactNode {
       }
     };
 
-    // Verificar periodicamente (a cada 30 segundos) se o token ainda está válido
+    
     const intervalId = setInterval(() => {
       syncTokenToCookie();
-    }, 30000); // 30 segundos
+    }, 30000); 
 
     window.addEventListener('storage', handleStorageChange);
     
-    // Cleanup
+    
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       clearInterval(intervalId);
     };
   }, []);
 
-  // Este componente não renderiza nada visualmente
+  
   return null;
 }

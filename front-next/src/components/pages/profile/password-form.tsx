@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
-import * as z from "zod";
 
 import {
   Form,
@@ -15,25 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-// Password update form schema
-const passwordSchema = z
-  .object({
-    currentPassword: z.string().min(8, "Senha atual deve ter pelo menos 8 caracteres"),
-    newPassword: z
-      .string()
-      .min(8, "Nova senha deve ter pelo menos 8 caracteres")
-      .regex(/[A-Z]/, "Senha deve conter pelo menos uma letra maiúscula")
-      .regex(/[0-9]/, "Senha deve conter pelo menos um número")
-      .regex(/[^a-zA-Z0-9]/, "Senha deve conter pelo menos um caractere especial"),
-    confirmNewPassword: z.string().min(8, "Confirmação de senha deve ter pelo menos 8 caracteres"),
-  })
-  .refine((data) => data.newPassword === data.confirmNewPassword, {
-    message: "Senhas não conferem",
-    path: ["confirmNewPassword"],
-  });
-
-export type PasswordFormValues = z.infer<typeof passwordSchema>;
+import { passwordChangeSchema, PasswordFormValues } from "@/schemas/auth";
 
 interface PasswordFormProps {
   onSubmit: (data: PasswordFormValues) => Promise<void>;
@@ -45,9 +26,9 @@ export function PasswordForm({ onSubmit, isLoading }: PasswordFormProps) {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Form for password update
+  
   const form = useForm<PasswordFormValues>({
-    resolver: zodResolver(passwordSchema),
+    resolver: zodResolver(passwordChangeSchema),
     defaultValues: {
       currentPassword: "",
       newPassword: "",

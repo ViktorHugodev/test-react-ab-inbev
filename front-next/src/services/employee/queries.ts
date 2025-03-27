@@ -11,7 +11,7 @@ import {
 import { ApiError } from '..';
 import { isValidGuid } from '@/lib/utils';
 
-// Interface para o contexto de rollback
+
 interface RollbackContext {
   previousData?: Employee;
   previousDetailedData?: Employee;
@@ -31,7 +31,7 @@ export const useGetEmployees = (filters?: EmployeeFilters) => {
   return useQuery<PagedResult<Employee>, ApiError>({
     queryKey: ["employees", filters],
     queryFn: () => employeeService.getEmployees(filters),
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5, 
   });
 };
 
@@ -39,7 +39,7 @@ export const useGetEmployee = (id: string) => {
   return useQuery<Employee, ApiError>({
     queryKey: ["employee", id],
     queryFn: () => employeeService.getEmployeeById(id),
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5, 
     enabled: !!id, 
   });
 };
@@ -49,7 +49,7 @@ export const useGetManagers = () => {
   return useQuery<Employee[], ApiError>({
     queryKey: ["managers"],
     queryFn: () => employeeService.getManagers(),
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5, 
   });
 };
 
@@ -97,27 +97,27 @@ export const useUpdateEmployeeProfile = () => {
     ApiError, 
     { id: string; data: Partial<UpdateEmployeeDTO> }
   >({
-    // Usar o contexto da mutação para implementar optimistic updates
+    
     mutationFn: async ({ id, data }) => {
       try {
-        // Implementar um mecanismo de retry com backoff exponencial
+        
         const maxRetries = 3;
         let retryCount = 0;
         let lastError = null;
         
         const executeWithRetry = async (): Promise<Employee> => {
           try {
-            // Obter versão mais recente do funcionário antes de atualizar
+            
             const currentEmployee = await employeeService.getEmployeeById(id);
             
-            // Preservar os IDs de telefone existentes ou adicionar novos conforme necessário
+            
             let updatedPhoneNumbers = [];
             
             if (data.phoneNumbers && data.phoneNumbers.length > 0) {
-              // Mapear por número de telefone para preservar os IDs
+              
               const currentPhoneMap = new Map();
               
-              // Indexar os telefones atuais pelo número
+              
               if (currentEmployee.phoneNumbers && currentEmployee.phoneNumbers.length > 0) {
                 currentEmployee.phoneNumbers.forEach(phone => {
                   if (phone.id) {
@@ -126,17 +126,17 @@ export const useUpdateEmployeeProfile = () => {
                 });
               }
               
-              // Atualizar ou manter os IDs existentes
+              
               updatedPhoneNumbers = data.phoneNumbers.map(phone => {
-                // Criar um objeto sem ID
+                
                 const phoneObj: any = {
                   number: phone.number,
                   type: phone.type
                 };
                 
-                // Se tiver ID e for uma string válida, incluir no objeto
+                
                 if (phone.id && typeof phone.id === 'string' && phone.id.trim() !== '') {
-                  // Verificar se é um GUID válido (usando função utilitária)
+                  
                   const isValidId = isValidGuid(phone.id.trim());
                   if (isValidId) {
                     phoneObj.id = phone.id.trim();
@@ -146,7 +146,7 @@ export const useUpdateEmployeeProfile = () => {
                 return phoneObj;
               });
             } else {
-              // Se não houver telefones no payload, manter os existentes
+              
               updatedPhoneNumbers = currentEmployee.phoneNumbers || [];
             }
 
@@ -164,7 +164,7 @@ export const useUpdateEmployeeProfile = () => {
 
             return employeeService.updateEmployee(id, completeData);
           } catch (error) {
-            // Se for um erro de concorrência e ainda não atingimos o número máximo de tentativas
+            
             if (error instanceof ApiError && 
                 error.message.includes('concorrência') && 
                 retryCount < maxRetries) {
@@ -172,15 +172,15 @@ export const useUpdateEmployeeProfile = () => {
               retryCount++;
               lastError = error;
               
-              // Aguardar um tempo crescente antes de tentar novamente (backoff exponencial)
-              const waitTime = Math.pow(2, retryCount) * 1000; // 2s, 4s, 8s
+              
+              const waitTime = Math.pow(2, retryCount) * 1000; 
               await new Promise(resolve => setTimeout(resolve, waitTime));
               
-              // Tentar novamente
+              
               return executeWithRetry();
             }
             
-            // Se não for erro de concorrência ou atingiu máximo de tentativas, propagar o erro
+            
             throw error;
           }
         };
@@ -192,42 +192,44 @@ export const useUpdateEmployeeProfile = () => {
       }
     },
     onMutate: async ({ id, data }) => {
-      // Cancelar consultas em andamento para evitar sobrescrever nossa atualização otimista
+      
       await queryClient.cancelQueries({ queryKey: ["employee", id] });
       await queryClient.cancelQueries({ queryKey: ["detailedUserInfo"] });
       
-      // Guardar o estado anterior para rollback em caso de erro
+      
       const previousData = queryClient.getQueryData(["employee", id]);
       const previousDetailedData = queryClient.getQueryData(["detailedUserInfo"]);
       
-      // Retornar o contexto com os dados anteriores para rollback se necessário
+      
       return { previousData, previousDetailedData };
     },
     onSuccess: (updatedEmployee) => {
-      // Atualizar o cache com os novos dados
+      
       queryClient.setQueryData(["employee", updatedEmployee.id], updatedEmployee);
       queryClient.setQueryData(["detailedUserInfo"], updatedEmployee);
       
-      // Invalidar outras queries relacionadas para forçar recarregamento
+      
       queryClient.invalidateQueries({ queryKey: ["currentUser"] });
       queryClient.invalidateQueries({ queryKey: ["employees"] });
       
       toast.success("Perfil atualizado com sucesso!");
     },
-    onError: (error, _variables, context: RollbackContext) => {
+    onError: (error, _variables, context) => {
       console.error("Profile update error:", error);
       
-      // Restaurar os dados anteriores do cache para rollback em caso de erro
-      if (context?.previousData && context.previousDetailedData) {
-        queryClient.setQueryData(["employee", _variables.id], context.previousData);
-        queryClient.setQueryData(["detailedUserInfo"], context.previousDetailedData);
+      // Type assertion for the context
+      const typedContext = context as RollbackContext | undefined;
+      
+      if (typedContext?.previousData && typedContext.previousDetailedData) {
+        queryClient.setQueryData(["employee", _variables.id], typedContext.previousData);
+        queryClient.setQueryData(["detailedUserInfo"], typedContext.previousDetailedData);
       }
       
-      // Tratar o erro específico
+      
       if (error instanceof ApiError && error.message.includes('concorrência')) {
         toast.error("Erro de concorrência: Outra pessoa pode ter editado os dados. Tente novamente.");
         
-        // Recarregar dados atualizados
+        
         queryClient.invalidateQueries({ queryKey: ["employee", _variables.id] });
         queryClient.invalidateQueries({ queryKey: ["detailedUserInfo"] });
       } else {
@@ -235,7 +237,7 @@ export const useUpdateEmployeeProfile = () => {
       }
     },
     onSettled: (_data, _error, variables) => {
-      // Independentemente do resultado (sucesso ou falha), garantir que os dados estejam atualizados
+      
       queryClient.invalidateQueries({ queryKey: ["employee", variables.id] });
       queryClient.invalidateQueries({ queryKey: ["detailedUserInfo"] });
     }
@@ -278,14 +280,12 @@ export const useDeleteEmployee = () => {
   });
 };
 
-/**
- * Get employees by department hook
- */
+
 export const useGetEmployeesByDepartment = (departmentId: string) => {
   return useQuery<Employee[], ApiError>({
     queryKey: ["employees", "department", departmentId],
     queryFn: () => employeeService.getByDepartment(departmentId),
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5, 
     enabled: !!departmentId,
   });
 };

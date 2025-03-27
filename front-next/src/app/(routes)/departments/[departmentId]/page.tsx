@@ -45,21 +45,21 @@ export default function DepartmentDetailPage() {
   const departmentId = params.departmentId as string;
   const [searchTerm, setSearchTerm] = useState("");
   
-  // Fetch department details
+  
   const { 
     data: department, 
     isLoading: isLoadingDepartment, 
     isError: isDepartmentError 
   } = useGetDepartment(departmentId);
   
-  // Fetch employees in this department
+  
   const { 
     data: employees, 
     isLoading: isLoadingEmployees, 
     isError: isEmployeesError 
   } = useGetEmployeesByDepartment(departmentId);
   console.log('employees',employees);
-  // Filter employees based on search term
+  
   const filteredEmployees = employees?.filter(
     (employee) => 
       employee.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -70,11 +70,11 @@ export default function DepartmentDetailPage() {
   const isLoading = isLoadingDepartment || isLoadingEmployees;
   const isError = isDepartmentError || isEmployeesError;
   
-  // Check user permissions
+  
   const isDirector = user?.role === EmployeeRole.Director;
   const isLeaderOrDirector = user?.role === EmployeeRole.Leader || user?.role === EmployeeRole.Director;
   
-  // Get role display name
+  
   const getRoleDisplay = (role: EmployeeRole): string => {
     switch (role) {
       case EmployeeRole.Director:
@@ -88,7 +88,7 @@ export default function DepartmentDetailPage() {
     }
   };
   
-  // Get role badge variant
+  
   const getRoleBadgeVariant = (role: EmployeeRole) => {
     switch (role) {
       case EmployeeRole.Director:

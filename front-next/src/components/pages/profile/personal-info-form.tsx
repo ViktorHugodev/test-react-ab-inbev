@@ -1,15 +1,18 @@
-import { useState, useEffect, useMemo } from "react";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarIcon, Pencil, PlusCircle, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import * as z from "zod";
+import { CalendarIcon, Pencil, PlusCircle, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
 
-import { Employee, EmployeeRole, PhoneType, UnifiedUserData, UserDataSource } from "@/types/employee";
-import { CurrentUserResponse } from "@/services/auth";
 import { normalizeUserData } from "@/lib/utils";
+import { PersonalInfoFormValues, personalInfoSchema } from "@/schemas/employee";
+import { CurrentUserResponse } from "@/services/auth";
+import { Employee, EmployeeRole, PhoneType, UnifiedUserData, UserDataSource } from "@/types/employee";
 
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -19,13 +22,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Select,
   SelectContent,
@@ -33,33 +34,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
-// Não usamos mais IDs no frontend para novos telefones
-// Deixamos a API gerar IDs apropriados no formato GUID
 
-// Personal information form schema
-const personalInfoSchema = z.object({
-  firstName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
-  lastName: z.string().min(2, "Sobrenome deve ter pelo menos 2 caracteres"),
-  email: z.string().email("Email inválido"),
-  birthDate: z.date({
-    required_error: "Data de nascimento é obrigatória",
-  }),
-  documentNumber: z.string().optional(),
-  age: z.number().nullable().optional(),
-  role: z.number().optional(),
-  department: z.string().optional(),
-  phoneNumbers: z.array(
-    z.object({
-      id: z.string().optional(),
-      number: z.string().min(8, "Número de telefone deve ter pelo menos 8 dígitos"),
-      type: z.nativeEnum(PhoneType),
-    })
-  ),
-});
-
-export type PersonalInfoFormValues = z.infer<typeof personalInfoSchema>;
 
 interface PersonalInfoFormProps {
   user: UserDataSource;
@@ -70,18 +46,18 @@ interface PersonalInfoFormProps {
 export function PersonalInfoForm({ user, onSubmit, isLoading }: PersonalInfoFormProps) {
   const [isEditing, setIsEditing] = useState(false);
 
-  // Usar a função utilitária para normalizar dados do usuário
+  
   const normalizedUser = useMemo(() => {
-    // Verificar se user é do tipo UnifiedUserData
+    
     if (user && 'id' in user && 'firstName' in user && 'lastName' in user && 'email' in user && 'fullName' in user) {
-      // Se já for UnifiedUserData, retornar diretamente
+      
       return user as UnifiedUserData;
     }
-    // Caso contrário, normalizar usando a função
+    
     return normalizeUserData(user as (Employee | CurrentUserResponse | null | undefined));
   }, [user]);
   
-  // Adaptar os dados normalizados para o formato do formulário
+  
   const userData = useMemo(() => {
     if (!normalizedUser) return null;
     
@@ -125,35 +101,35 @@ export function PersonalInfoForm({ user, onSubmit, isLoading }: PersonalInfoForm
       await onSubmit(data);
       setIsEditing(false);
     } catch (error) {
-      // Erro já tratado pelo componente pai
+      
       console.error("Erro ao submeter formulário:", error);
     }
   };
 
-  // Gerenciamento seguro de arrays no React Hook Form
+  
   const handleAddPhone = () => {
-    // Obter o valor atual dos telefones de forma segura
+    
     const currentPhones = form.getValues("phoneNumbers") || [];
     
-    // Criar um novo telefone com valores iniciais seguros
-    // SEM ID PARA PERMITIR QUE A API GERE UM GUID VÁLIDO
+    
+    
     const newPhone = {
       number: "",
       type: PhoneType.Mobile
     };
     
-    // Criar um novo array para evitar mutações
+    
     const newPhones = [...currentPhones, newPhone];
     
-    // Atualizar o formulário com o novo array
+    
     form.setValue("phoneNumbers", newPhones, { 
-      shouldValidate: false, // Não validar imediatamente para evitar erros
+      shouldValidate: false, 
       shouldDirty: true,
       shouldTouch: true
     });
     
-    // Focar no campo de número do novo telefone após um pequeno delay
-    // para garantir que o componente foi renderizado
+    
+    
     const newIndex = newPhones.length - 1;
     setTimeout(() => {
       form.setFocus(`phoneNumbers.${newIndex}.number`);
@@ -163,16 +139,16 @@ export function PersonalInfoForm({ user, onSubmit, isLoading }: PersonalInfoForm
   const handleRemovePhone = (index: number) => {
     const currentPhones = form.getValues("phoneNumbers") || [];
     
-    // Verificar se o índice é válido
+    
     if (index < 0 || index >= currentPhones.length) {
       console.error(`Índice inválido para remoção: ${index}, tamanho do array: ${currentPhones.length}`);
       return;
     }
     
-    // Verificar se o telefone tem um ID (existente no banco)
+    
     const phoneToRemove = currentPhones[index];
     
-    // Se o telefone já existe no banco (tem ID) e é o único, apenas limpar o número
+    
     if (phoneToRemove?.id && currentPhones.length === 1) {
       const resetPhone = { 
         id: phoneToRemove.id, 
@@ -181,19 +157,19 @@ export function PersonalInfoForm({ user, onSubmit, isLoading }: PersonalInfoForm
       };
       
       form.setValue("phoneNumbers", [resetPhone], {
-        shouldValidate: false, // Não validar imediatamente para evitar erros
+        shouldValidate: false, 
         shouldDirty: true,
         shouldTouch: true
       });
       return;
     }
     
-    // Caso contrário, remover normalmente
+    
     const newPhones = currentPhones.filter((_, i) => i !== index);
     
-    // Atualizar o formulário com o novo array
+    
     form.setValue("phoneNumbers", newPhones, {
-      shouldValidate: false, // Não validar imediatamente para evitar erros
+      shouldValidate: false, 
       shouldDirty: true,
       shouldTouch: true
     });
@@ -410,7 +386,7 @@ export function PersonalInfoForm({ user, onSubmit, isLoading }: PersonalInfoForm
               </div>
 
               {form.watch("phoneNumbers")?.map((phone, index) => {
-                // Usar índice estável como chave
+                
                 const phoneId = phone.id || `phone-${index}`;
                 
                 return (
