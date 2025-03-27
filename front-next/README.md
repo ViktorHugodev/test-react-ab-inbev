@@ -199,6 +199,3 @@ Este projeto está licenciado sob a licença MIT - veja o arquivo [LICENSE](LICE
 
 - Componentes base adaptados do shadcn/ui
 - Ícones de Lucide React
-
-  "email": "joao.silva@empresa.com",
-  "password": "Senha@123"
