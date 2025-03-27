@@ -1,127 +1,205 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { LoginForm } from '@/components/forms/login-form';
+import { LoginForm } from '@/components/features/authentication/login-form';
 import { useAuth } from '@/hooks/use-auth';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
-import { renderWithProviders } from '@/test/utils/test-utils';
 
-// Mock dependencies
+// Mock useAuth hook
 jest.mock('@/hooks/use-auth', () => ({
-  useAuth: jest.fn()
+  useAuth: jest.fn(),
 }));
 
-jest.mock('next/navigation', () => ({
-  useRouter: jest.fn()
-}));
+// Mock window.location
+const mockWindowLocation = {
+  href: '',
+};
 
-jest.mock('sonner', () => ({
-  toast: {
-    success: jest.fn(),
-    error: jest.fn()
-  }
-}));
+Object.defineProperty(window, 'location', {
+  value: mockWindowLocation,
+  writable: true,
+});
 
-describe('LoginForm', () => {
+describe('LoginForm Component', () => {
   // Setup mocks
   const mockLogin = jest.fn();
-  const mockPush = jest.fn();
+  const mockOnSuccess = jest.fn();
   
   beforeEach(() => {
     jest.clearAllMocks();
     
+    // Reset window.location.href
+    mockWindowLocation.href = '';
+    
     // Mock useAuth hook
     useAuth.mockReturnValue({
       login: mockLogin,
+      isLoading: false,
       user: null,
-      isLoading: false
-    });
-    
-    // Mock useRouter
-    useRouter.mockReturnValue({
-      push: mockPush
+      logout: jest.fn(),
+      canCreateRole: jest.fn(),
+      registerEmployee: jest.fn()
     });
   });
   
-  it('calls login function with correct credentials when submitted', async () => {
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+  
+  it('should render the login form correctly', () => {
+    render(<LoginForm />);
+    
+    // Check if the form elements are present
+    expect(screen.getByText(/login/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/senha/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /entrar/i })).toBeInTheDocument();
+  });
+  
+  it('should call login function with correct credentials when form is submitted', async () => {
     const user = userEvent.setup();
-    renderWithProviders(<LoginForm />);
+    render(<LoginForm />);
     
     // Fill form with valid data
-    const emailInput = screen.getByLabelText('E-mail');
-    const passwordInput = screen.getByLabelText('Senha');
-    const submitButton = screen.getByRole('button', { name: /entrar/i });
+    await user.type(screen.getByLabelText(/email/i), 'test@example.com');
+    await user.type(screen.getByLabelText(/senha/i), 'password123');
     
-    await user.type(emailInput, 'test@example.com');
-    await user.type(passwordInput, 'password123');
-    await user.click(submitButton);
+    // Submit form
+    await user.click(screen.getByRole('button', { name: /entrar/i }));
     
-    // Verify login was called with correct data
-    await waitFor(() => {
-      expect(mockLogin).toHaveBeenCalledWith('test@example.com', 'password123');
-    });
+    // Verify login function was called with correct data
+    expect(mockLogin).toHaveBeenCalledWith('test@example.com', 'password123');
   });
   
-  it('shows success toast and redirects on successful login', async () => {
+  it('should redirect to default URL after successful login when no onSuccess prop is provided', async () => {
     const user = userEvent.setup();
-    renderWithProviders(<LoginForm />);
+    render(<LoginForm />);
     
     // Mock successful login
     mockLogin.mockResolvedValueOnce(undefined);
     
-    // Fill and submit form
-    await user.type(screen.getByLabelText('E-mail'), 'test@example.com');
-    await user.type(screen.getByLabelText('Senha'), 'password123');
+    // Fill form and submit
+    await user.type(screen.getByLabelText(/email/i), 'test@example.com');
+    await user.type(screen.getByLabelText(/senha/i), 'password123');
     await user.click(screen.getByRole('button', { name: /entrar/i }));
     
-    // Verify success handling
+    // Verify redirect
     await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith('Login realizado com sucesso');
-      expect(mockPush).toHaveBeenCalledWith('/');
+      expect(window.location.href).toBe('/dashboard');
     });
   });
   
-  it('shows error toast on login failure', async () => {
+  it('should call onSuccess callback after successful login when provided', async () => {
     const user = userEvent.setup();
-    renderWithProviders(<LoginForm />);
+    render(<LoginForm onSuccess={mockOnSuccess} />);
     
-    // Mock login failure
-    const errorMessage = 'Email ou senha inválidos';
-    mockLogin.mockRejectedValueOnce(new Error(errorMessage));
+    // Mock successful login
+    mockLogin.mockResolvedValueOnce(undefined);
     
-    // Fill and submit form
-    await user.type(screen.getByLabelText('E-mail'), 'test@example.com');
-    await user.type(screen.getByLabelText('Senha'), 'wrong-password');
+    // Fill form and submit
+    await user.type(screen.getByLabelText(/email/i), 'test@example.com');
+    await user.type(screen.getByLabelText(/senha/i), 'password123');
     await user.click(screen.getByRole('button', { name: /entrar/i }));
     
-    // Verify error handling
+    // Verify onSuccess callback was called
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith(errorMessage);
-      expect(mockPush).not.toHaveBeenCalled();
+      expect(mockOnSuccess).toHaveBeenCalled();
+    });
+    
+    // Verify redirect didn't happen
+    expect(window.location.href).not.toBe('/dashboard');
+  });
+  
+  it('should redirect to custom URL when redirectUrl prop is provided', async () => {
+    const user = userEvent.setup();
+    render(<LoginForm redirectUrl="/profile" />);
+    
+    // Mock successful login
+    mockLogin.mockResolvedValueOnce(undefined);
+    
+    // Fill form and submit
+    await user.type(screen.getByLabelText(/email/i), 'test@example.com');
+    await user.type(screen.getByLabelText(/senha/i), 'password123');
+    await user.click(screen.getByRole('button', { name: /entrar/i }));
+    
+    // Verify redirect to custom URL
+    await waitFor(() => {
+      expect(window.location.href).toBe('/profile');
     });
   });
   
-  it('disables button and shows loading state during form submission', async () => {
+  it('should display loading state while login is in progress', () => {
+    // Mock loading state
+    useAuth.mockReturnValue({
+      login: mockLogin,
+      isLoading: true,
+      user: null,
+      logout: jest.fn(),
+      canCreateRole: jest.fn(),
+      registerEmployee: jest.fn()
+    });
+    
+    render(<LoginForm />);
+    
+    // Verify button is in loading state
+    const button = screen.getByRole('button');
+    expect(button).toBeDisabled();
+    expect(button).toHaveTextContent('Entrando...');
+  });
+  
+  it('should update email and password state when user types in inputs', async () => {
     const user = userEvent.setup();
-    renderWithProviders(<LoginForm />);
+    render(<LoginForm />);
     
-    // Add a delay to the login function to test loading state
-    mockLogin.mockImplementationOnce(() => new Promise(resolve => setTimeout(resolve, 100)));
+    // Type in email field
+    const emailInput = screen.getByLabelText(/email/i);
+    await user.type(emailInput, 'test@example.com');
+    expect(emailInput).toHaveValue('test@example.com');
     
-    // Fill and submit form
-    await user.type(screen.getByLabelText('E-mail'), 'test@example.com');
-    await user.type(screen.getByLabelText('Senha'), 'password123');
+    // Type in password field
+    const passwordInput = screen.getByLabelText(/senha/i);
+    await user.type(passwordInput, 'password123');
+    expect(passwordInput).toHaveValue('password123');
+  });
+  
+  it('should work with Enter key for form submission', async () => {
+    const user = userEvent.setup();
+    render(<LoginForm />);
+    
+    // Fill form fields
+    await user.type(screen.getByLabelText(/email/i), 'test@example.com');
+    await user.type(screen.getByLabelText(/senha/i), 'password123');
+    
+    // Simulate Enter key press
+    await user.keyboard('{Enter}');
+    
+    // Verify login function was called
+    expect(mockLogin).toHaveBeenCalledWith('test@example.com', 'password123');
+  });
+  
+  it('should handle login failures and not redirect', async () => {
+    const user = userEvent.setup();
+    mockLogin.mockRejectedValueOnce(new Error('Login error'));
+    
+    render(<LoginForm />);
+    
+    // Fill form and submit
+    await user.type(screen.getByLabelText(/email/i), 'test@example.com');
+    await user.type(screen.getByLabelText(/senha/i), 'wrong-password');
     await user.click(screen.getByRole('button', { name: /entrar/i }));
     
-    // Check loading state
-    expect(screen.getByRole('button')).toBeDisabled();
-    expect(screen.getByRole('button')).toHaveTextContent(/entrando/i);
+    // No redirect should happen on error
+    expect(window.location.href).toBe('');
+    expect(mockOnSuccess).not.toHaveBeenCalled();
+  });
+  
+  it('should prevent form submission when fields are empty', async () => {
+    const user = userEvent.setup();
+    render(<LoginForm />);
     
-    // Wait for completion and check button is re-enabled
-    await waitFor(() => {
-      expect(screen.getByRole('button')).not.toBeDisabled();
-      expect(screen.getByRole('button')).toHaveTextContent(/entrar/i);
-    });
+    // Submit form without filling fields
+    await user.click(screen.getByRole('button', { name: /entrar/i }));
+    
+    // Verify login was not called
+    expect(mockLogin).not.toHaveBeenCalled();
   });
 });
