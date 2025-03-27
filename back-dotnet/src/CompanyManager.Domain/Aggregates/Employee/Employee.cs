@@ -4,13 +4,15 @@ using CompanyManager.Domain.Enums;
 using CompanyManager.Domain.Exceptions;
 using CompanyManager.Domain.Interfaces;
 using CompanyManager.Domain.ValueObjects;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Text.Json;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CompanyManager.Domain.Aggregates.Employee
 {
     public class Employee : IHasTimestamps
     {
-        private readonly List<PhoneNumber> _phoneNumbers = new();
-
         // Propriedades
         public Guid Id { get; private set; }
         public string FirstName { get; private set; }
@@ -23,7 +25,31 @@ namespace CompanyManager.Domain.Aggregates.Employee
         public string Department { get; private set; }
         public Guid? ManagerId { get; private set; }
         public Employee Manager { get; private set; }
-        public IReadOnlyCollection<PhoneNumber> PhoneNumbers => _phoneNumbers.AsReadOnly();
+        
+        // Nova propriedade para armazenar os números de telefone como JSON
+        public string PhoneNumbersJson { get; private set; } = "[]";
+        
+        // Propriedade calculada para acesso aos números de telefone
+        [NotMapped]
+        public IReadOnlyCollection<PhoneNumber> PhoneNumbers 
+        { 
+            get 
+            {
+                if (string.IsNullOrEmpty(PhoneNumbersJson))
+                    return new List<PhoneNumber>().AsReadOnly();
+                    
+                try
+                {
+                    var phoneNumberDtos = JsonSerializer.Deserialize<List<PhoneNumberDto>>(PhoneNumbersJson) ?? new List<PhoneNumberDto>();
+                    var phoneNumbers = phoneNumberDtos.Select(PhoneNumber.FromDto).ToList();
+                    return phoneNumbers.AsReadOnly();
+                }
+                catch
+                {
+                    return new List<PhoneNumber>().AsReadOnly();
+                }
+            }
+        }
 
         // Propriedades de timestamps
         public DateTime CreatedAt { get; private set; }
@@ -111,16 +137,29 @@ namespace CompanyManager.Domain.Aggregates.Employee
         public void AddPhoneNumber(string number, PhoneType type)
         {
             var phoneNumber = PhoneNumber.Create(number, type);
-            _phoneNumbers.Add(phoneNumber);
+            
+            // Obter a lista atual de telefones
+            var phoneNumbers = JsonSerializer.Deserialize<List<PhoneNumberDto>>(PhoneNumbersJson) 
+                ?? new List<PhoneNumberDto>();
+
+            // Adicionar novo telefone como DTO
+            phoneNumbers.Add(phoneNumber.ToDto());
+
+            // Salvar de volta como JSON
+            PhoneNumbersJson = JsonSerializer.Serialize(phoneNumbers);
             UpdatedAt = DateTime.UtcNow;
         }
 
         public void RemovePhoneNumber(Guid phoneNumberId)
         {
-            var phoneNumber = _phoneNumbers.Find(p => p.Id == phoneNumberId);
-            if (phoneNumber != null)
+            var phoneNumbers = JsonSerializer.Deserialize<List<PhoneNumberDto>>(PhoneNumbersJson) 
+                ?? new List<PhoneNumberDto>();
+                
+            var phoneToRemove = phoneNumbers.FirstOrDefault(p => p.Id == phoneNumberId);
+            if (phoneToRemove != null)
             {
-                _phoneNumbers.Remove(phoneNumber);
+                phoneNumbers.Remove(phoneToRemove);
+                PhoneNumbersJson = JsonSerializer.Serialize(phoneNumbers);
                 UpdatedAt = DateTime.UtcNow;
             }
         }

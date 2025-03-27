@@ -1,43 +1,56 @@
-version: '3.8'
-
 services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: company-manager-db
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${DB_PASSWORD:-StrongPass123}
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    networks:
+      - company-network
+    restart: unless-stopped
+    command: /opt/mssql/bin/sqlservr
+
   api:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "5002:80"
-      - "5003:443"
+    container_name: company-manager-api
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
       - ConnectionStrings__DefaultConnection=Server=db;Database=CompanyManager;User=sa;Password=${DB_PASSWORD:-StrongPass123};TrustServerCertificate=True;
       - JWT_SECRET=${JWT_SECRET:-YourSuperSecretKeyForJwtTokenGenerationAndValidation}
-    volumes:
-      - data-protection-keys:/app/keys
-      - api-logs:/app/logs
+    ports:
+      - "5000:80"
     depends_on:
       - db
     networks:
       - company-network
+    restart: unless-stopped
 
-  db:
-    image: mcr.microsoft.com/mssql/server:2022-latest
+  frontend:
+    build:
+      context: ./front-next
+      dockerfile: Dockerfile
+    container_name: company-manager-frontend
     environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=${DB_PASSWORD:-StrongPass123}
-      - MSSQL_PID=Express
+      - NEXT_PUBLIC_API_URL=http://localhost:5000/api
     ports:
-      - "1434:1433"
-    volumes:
-      - sqlserver-data:/var/opt/mssql
+      - "3000:3000"
+    depends_on:
+      - api
     networks:
       - company-network
-
-volumes:
-  sqlserver-data:
-  data-protection-keys:
-  api-logs:
+    restart: unless-stopped
 
 networks:
   company-network:
     driver: bridge
+
+volumes:
+  sqlserver_data:

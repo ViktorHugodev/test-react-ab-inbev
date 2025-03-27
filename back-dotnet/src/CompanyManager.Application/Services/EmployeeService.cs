@@ -353,6 +353,52 @@ namespace CompanyManager.Application.Services
             return await _unitOfWork.Employees.ExistsByDocumentNumberAsync(documentNumber, cancellationToken);
         }
         
+        public async Task<EmployeeDto> UpdatePhoneNumbersAsync(
+            UpdatePhoneNumbersDto updatePhoneNumbersDto,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var employee = await _unitOfWork.Employees.GetByIdAsync(updatePhoneNumbersDto.Id, cancellationToken);
+                if (employee == null)
+                    throw new EntityNotFoundException("Funcionário", updatePhoneNumbersDto.Id.ToString());
+
+                // Limpa os telefones existentes e adiciona os novos
+                var existingPhones = employee.PhoneNumbers.ToList();
+                foreach (var phone in existingPhones)
+                {
+                    employee.RemovePhoneNumber(phone.Id);
+                }
+
+                // Adiciona os novos telefones
+                foreach (var phoneDto in updatePhoneNumbersDto.PhoneNumbers)
+                {
+                    employee.AddPhoneNumber(phoneDto.Number, phoneDto.Type);
+                }
+
+                // Persistência
+                await _unitOfWork.Employees.UpdateAsync(employee, cancellationToken);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                _logger.LogInformation("Números de telefone atualizados com sucesso para o funcionário: {EmployeeId} - {EmployeeName}",
+                    employee.Id, employee.FullName);
+
+                return MapToEmployeeDto(employee);
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                _logger.LogError(ex, "Erro de concorrência ao atualizar telefones do funcionário ID {EmployeeId}: {ErrorMessage}", 
+                    updatePhoneNumbersDto.Id, ex.Message);
+                throw new ApplicationException("Erro de concorrência: Os dados foram modificados por outro usuário. Por favor, recarregue e tente novamente.", ex);
+            }
+            catch (Exception ex) when (ex is not ApplicationException && ex is not DomainException)
+            {
+                _logger.LogError(ex, "Erro ao atualizar telefones do funcionário ID {EmployeeId}: {ErrorMessage}", 
+                    updatePhoneNumbersDto.Id, ex.Message);
+                throw new ApplicationException("Ocorreu um erro ao atualizar os telefones do funcionário. Por favor, tente novamente.", ex);
+            }
+        }
+
         public async Task<EmployeeDto> UpdatePartialAsync(
             EmployeePartialUpdateDto partialUpdateDto,
             CancellationToken cancellationToken = default)

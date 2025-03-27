@@ -323,6 +323,54 @@ namespace CompanyManager.API.Controllers
             }
         }
 
+        [HttpPut("{id:guid}/phones")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<EmployeeDto>> UpdatePhoneNumbers(
+            Guid id,
+            [FromBody] UpdatePhoneNumbersDto updatePhoneNumbersDto,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (id != updatePhoneNumbersDto.Id)
+                    return BadRequest(new { message = "O ID na URL não corresponde ao ID no corpo da requisição." });
+
+                // Obtém o funcionário atual
+                var currentEmployee = await _employeeService.GetByIdAsync(id, cancellationToken);
+                if (currentEmployee == null)
+                    return NotFound(new { message = $"Funcionário com ID {id} não encontrado." });
+
+                // Verifica permissões (usuário só pode editar os próprios telefones ou ser diretor/líder)
+                var currentUserRole = GetCurrentUserRole();
+                var currentUserId = GetCurrentUserId();
+
+                if (currentUserRole == Role.Director || 
+                    currentUserRole == Role.Leader || 
+                    currentUserId == id)
+                {
+                    var updatedEmployee = await _employeeService.UpdatePhoneNumbersAsync(updatePhoneNumbersDto, cancellationToken);
+                    return Ok(updatedEmployee);
+                }
+
+                return Forbid();
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (DomainException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (ApplicationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         // Métodos auxiliares para obter informações do usuário atual
         private Role GetCurrentUserRole()
         {

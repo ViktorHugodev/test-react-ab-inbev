@@ -2,17 +2,18 @@ using System;
 using System.Text.RegularExpressions;
 using CompanyManager.Domain.Enums;
 using CompanyManager.Domain.Exceptions;
+using CompanyManager.Domain.ValueObjects;
 
 namespace CompanyManager.Domain.ValueObjects
 {
     public class PhoneNumber
     {
-        public Guid Id { get; private set; }
-        public string Number { get; private set; }
-        public PhoneType Type { get; private set; }
-  public Guid EmployeeId { get; private set; } 
-        // Construtor privado para Entity Framework
-        private PhoneNumber() { }
+        public Guid Id { get; internal set; }
+        public string Number { get; internal set; }
+        public PhoneType Type { get; internal set; }
+  
+        // O EF Core e serialização JSON precisam deste construtor
+        internal PhoneNumber() { }
 
         // Factory method
         public static PhoneNumber Create(string number, PhoneType type)
@@ -24,6 +25,28 @@ namespace CompanyManager.Domain.ValueObjects
                 Id = Guid.NewGuid(),
                 Number = NormalizePhoneNumber(number),
                 Type = type
+            };
+        }
+
+        // Factory method para criar a partir de um DTO (usado na deserialização)
+        internal static PhoneNumber FromDto(PhoneNumberDto dto)
+        {
+            return new PhoneNumber
+            {
+                Id = dto.Id,
+                Number = dto.Number,
+                Type = (PhoneType)dto.Type
+            };
+        }
+
+        // Converte para DTO (usado para serialização)
+        internal PhoneNumberDto ToDto()
+        {
+            return new PhoneNumberDto
+            {
+                Id = Id,
+                Number = Number,
+                Type = (int)Type
             };
         }
 

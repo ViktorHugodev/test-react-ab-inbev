@@ -1,13 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using CompanyManager.API.Middlewares;
-using CompanyManager.Application.Interfaces;
-using CompanyManager.Application.Services;
-using CompanyManager.Domain.Interfaces;
-using CompanyManager.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -16,6 +14,14 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using CompanyManager.Application.Interfaces;
+using CompanyManager.Application.Services;
+using CompanyManager.Domain.Interfaces;
+using CompanyManager.Infrastructure.Data;
+using CompanyManager.Domain.Aggregates.Employee;
+using CompanyManager.Domain.Aggregates.Department;
+using CompanyManager.Domain.Enums;
+using CompanyManager.Domain.ValueObjects;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,7 +29,7 @@ var builder = WebApplication.CreateBuilder(args);
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
-    .WriteTo.Console()
+    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
     .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
@@ -46,20 +52,20 @@ var dataProtectionBuilder = builder.Services.AddDataProtection()
 var certPath = Path.Combine(builder.Environment.ContentRootPath, "certs", "cert.pfx");
 if (File.Exists(certPath))
 {
-    try
-    {
-        var certificate = new X509Certificate2(certPath, "CompanyManager123");
-        dataProtectionBuilder.ProtectKeysWithCertificate(certificate);
-        Log.Information("Proteção de chaves configurada com certificado X.509");
-    }
-    catch (Exception ex)
-    {
-        Log.Warning(ex, "Não foi possível carregar o certificado para proteção de chaves. As chaves serão armazenadas sem criptografia.");
-    }
+  try
+  {
+    var certificate = new X509Certificate2(certPath, "CompanyManager123");
+    dataProtectionBuilder.ProtectKeysWithCertificate(certificate);
+    Log.Information("Proteção de chaves configurada com certificado X.509");
+  }
+  catch (Exception ex)
+  {
+    Log.Warning(ex, "Não foi possível carregar o certificado para proteção de chaves. As chaves serão armazenadas sem criptografia.");
+  }
 }
 else
 {
-    Log.Warning("Certificado para proteção de chaves não encontrado em {CertPath}. As chaves serão armazenadas sem criptografia.", certPath);
+  Log.Warning("Certificado para proteção de chaves não encontrado em {CertPath}. As chaves serão armazenadas sem criptografia.", certPath);
 }
 
 // 3. Configuração do Entity Framework
@@ -68,24 +74,24 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
 if (!string.IsNullOrEmpty(dbPassword))
 {
-    connectionString = connectionString.Replace("StrongPass123", dbPassword);
+  connectionString = connectionString.Replace("StrongPass123", dbPassword);
 }
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    options.UseSqlServer(connectionString);
+  options.UseSqlServer(connectionString);
 });
 
 // 4. Configuração de CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("CorsPolicy", policy =>
-    {
-        policy.WithOrigins("http://localhost:3000", "http://localhost:5000", "http://frontend:3000", "http://company-manager-frontend:3000")
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-        // Remova .AllowCredentials() ou especifique origens específicas
-    });
+  options.AddPolicy("CorsPolicy", policy =>
+  {
+    policy.WithOrigins("http://localhost:3000", "http://localhost:5000", "http://frontend:3000", "http://company-manager-frontend:3000")
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    // Remova .AllowCredentials() ou especifique origens específicas
+  });
 });
 
 // 5. Lê configurações de JWT do appsettings.json
@@ -98,7 +104,7 @@ var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? jwtSettings[
 // Verifica se está vazio ou nulo
 if (string.IsNullOrWhiteSpace(jwtSecret))
 {
-    throw new Exception("JWT_SECRET não foi definido no ambiente ou JwtSettings:Secret no appsettings.json.");
+  throw new Exception("JWT_SECRET não foi definido no ambiente ou JwtSettings:Secret no appsettings.json.");
 }
 
 // Converte para bytes
@@ -107,24 +113,24 @@ var key = Encoding.UTF8.GetBytes(jwtSecret);
 // 7. Configuração de autenticação JWT
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+  options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+  options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = false;
-    options.SaveToken = true;
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidIssuer = jwtSettings["Issuer"],
-        ValidAudience = jwtSettings["Audience"],
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero
-    };
+  options.RequireHttpsMetadata = false;
+  options.SaveToken = true;
+  options.TokenValidationParameters = new TokenValidationParameters
+  {
+    ValidateIssuerSigningKey = true,
+    IssuerSigningKey = new SymmetricSecurityKey(key),
+    ValidateIssuer = true,
+    ValidateAudience = true,
+    ValidIssuer = jwtSettings["Issuer"],
+    ValidAudience = jwtSettings["Audience"],
+    ValidateLifetime = true,
+    ClockSkew = TimeSpan.Zero
+  };
 });
 
 // 8. Registro dos serviços da aplicação
@@ -137,24 +143,24 @@ builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "Company Manager API",
-        Version = "v1",
-        Description = "API para gerenciamento de funcionários"
-    });
+  c.SwaggerDoc("v1", new OpenApiInfo
+  {
+    Title = "Company Manager API",
+    Version = "v1",
+    Description = "API para gerenciamento de funcionários"
+  });
 
-    // Definição de Autenticação via JWT no Swagger
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Description = "JWT Authorization header usando o esquema Bearer. Exemplo: \"Authorization: Bearer {token}\"",
-        Name = "Authorization",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
-    });
+  // Definição de Autenticação via JWT no Swagger
+  c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+  {
+    Description = "JWT Authorization header usando o esquema Bearer. Exemplo: \"Authorization: Bearer {token}\"",
+    Name = "Authorization",
+    In = ParameterLocation.Header,
+    Type = SecuritySchemeType.ApiKey,
+    Scheme = "Bearer"
+  });
 
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+  c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
             new OpenApiSecurityScheme
@@ -178,8 +184,8 @@ app.UseMiddleware<ExceptionHandlerMiddleware>();
 // 11. Pipeline de requisições HTTP
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+  app.UseSwagger();
+  app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
@@ -193,40 +199,62 @@ app.MapControllers();
 // 12. Seed do banco de dados (opcional, p/ Dev)
 if (app.Environment.IsDevelopment())
 {
-    using var scope = app.Services.CreateScope();
-    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    var authService = scope.ServiceProvider.GetRequiredService<IAuthService>();
+  using var scope = app.Services.CreateScope();
+  var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+  var authService = scope.ServiceProvider.GetRequiredService<IAuthService>();
 
-    try
-    {
-        dbContext.Database.EnsureCreated();
-        dbContext.Database.Migrate();
-        SeedData.Initialize(dbContext, authService);
-    }
-    catch (Exception ex)
-    {
-        Log.Error(ex, "Ocorreu um erro durante a migração ou seed do banco de dados.");
-    }
-}
+  try
+  {
+    // Garante que o banco de dados exista e esteja acessível
+    Log.Information("Garantindo que o banco de dados existe...");
+    await dbContext.Database.EnsureCreatedAsync();
 
-app.Run();
-
-// Torna a classe Program pública para testes
-public partial class Program { }
-
-// 13. Classe para seed inicial de dados
-public static class SeedData
-{
-    public static void Initialize(ApplicationDbContext context, IAuthService authService)
-    {
-        // Certifique-se de que a tabela Departments existe
-        context.Database.ExecuteSqlRaw(@"
+    // Executa o script SQL customizado para criar as tabelas se necessário
+    var createTablesScript = @"
+            -- Criar a tabela de Employees se não existir
+            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Employees')
+            BEGIN
+                CREATE TABLE [Employees] (
+                    [Id] uniqueidentifier NOT NULL,
+                    [FirstName] nvarchar(50) NOT NULL,
+                    [LastName] nvarchar(50) NOT NULL,
+                    [Email] nvarchar(100) NOT NULL,
+                    [DocumentNumber] nvarchar(20) NOT NULL,
+                    [BirthDate] datetime2 NOT NULL,
+                    [PasswordHash] nvarchar(100) NOT NULL,
+                    [PhoneNumbersJson] nvarchar(max) NOT NULL DEFAULT '[]',
+                    [Role] int NOT NULL,
+                    [Department] nvarchar(50) NOT NULL,
+                    [ManagerId] uniqueidentifier NULL,
+                    [CreatedAt] datetime2 NOT NULL,
+                    [UpdatedAt] datetime2 NULL,
+                    CONSTRAINT [PK_Employees] PRIMARY KEY ([Id])
+                );
+                
+                CREATE UNIQUE INDEX [IX_Employees_Email] ON [Employees] ([Email]);
+                CREATE UNIQUE INDEX [IX_Employees_DocumentNumber] ON [Employees] ([DocumentNumber]);
+                
+                PRINT 'Tabela Employees criada com sucesso!';
+            END
+            ELSE
+            BEGIN
+                PRINT 'Tabela Employees já existe.';
+                
+                -- Verifica se a coluna PhoneNumbersJson existe
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE name = 'PhoneNumbersJson' AND object_id = OBJECT_ID('Employees'))
+                BEGIN
+                    ALTER TABLE [Employees] ADD [PhoneNumbersJson] nvarchar(max) NOT NULL DEFAULT '[]';
+                    PRINT 'Coluna PhoneNumbersJson adicionada à tabela Employees';
+                END
+            END;
+            
+            -- Criar a tabela de Departments se não existir
             IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Departments')
             BEGIN
                 CREATE TABLE [Departments] (
                     [Id] uniqueidentifier NOT NULL,
                     [Name] nvarchar(50) NOT NULL,
-                    [Description] nvarchar(200) NOT NULL,
+                    [Description] nvarchar(200) NULL,
                     [IsActive] bit NOT NULL,
                     [CreatedAt] datetime2 NOT NULL,
                     [UpdatedAt] datetime2 NULL,
@@ -234,216 +262,145 @@ public static class SeedData
                 );
                 
                 CREATE UNIQUE INDEX [IX_Departments_Name] ON [Departments] ([Name]);
-            END
-        ");
-        
-        // Limpa todos os dados existentes para garantir o seed completo
-        try 
-        {
-            // Verificar se o banco já tem dados
-            if (context.Employees.Any())
-            {
-                Console.WriteLine("Banco de dados já possui dados. Pulando seed...");
-                // Se já tem dados, não faz seed novamente
-                return;
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Erro ao verificar dados: {ex.Message}");
-        }
+                
+                PRINT 'Tabela Departments criada com sucesso!';
+            END;
+            
+            -- Adicionar relação de gerência se necessário
+            IF EXISTS (SELECT * FROM sys.tables WHERE name = 'Employees')
+                AND NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE name = 'FK_Employees_Employees_ManagerId')
+            BEGIN
+                ALTER TABLE [Employees] 
+                ADD CONSTRAINT [FK_Employees_Employees_ManagerId] 
+                FOREIGN KEY ([ManagerId]) REFERENCES [Employees] ([Id]);
+                
+                CREATE INDEX [IX_Employees_ManagerId] ON [Employees] ([ManagerId]);
+                
+                PRINT 'Relação de gerência adicionada à tabela Employees';
+            END;
+        ";
 
-        // Adicionar departamentos
-        var initialDepartments = new[]
-        {
-            CompanyManager.Domain.Aggregates.Department.Department.Create("Diretoria", "Departamento de Diretoria"),
-            CompanyManager.Domain.Aggregates.Department.Department.Create("RH", "Recursos Humanos"),
-            CompanyManager.Domain.Aggregates.Department.Department.Create("TI", "Tecnologia da Informação"),
-            CompanyManager.Domain.Aggregates.Department.Department.Create("Marketing", "Departamento de Marketing")
-        };
-        
-        context.Departments.AddRange(initialDepartments);
-        context.SaveChanges();
-        
-        // Criar usuário admin
-        var admin = CompanyManager.Domain.Aggregates.Employee.Employee.Create(
-            "Admin",
-            "Sistema",
-            "admin@companymanager.com",
-            "00000000000",
-            new DateTime(1980, 1, 1),
-            authService.HashPassword("Admin@123"),
-            CompanyManager.Domain.Enums.Role.Director,
-            "Diretoria"
-        );
-        
-        context.Employees.Add(admin);
-        context.SaveChanges();
-        
-        // Adicionar líderes para cada departamento
-        var leaders = new List<CompanyManager.Domain.Aggregates.Employee.Employee>();
-        
-        var leaderTI = CompanyManager.Domain.Aggregates.Employee.Employee.Create(
-            "João",
-            "Silva",
-            "joao.silva@companymanager.com",
-            "11111111111",
-            new DateTime(1985, 5, 15),
-            authService.HashPassword("Leader@123"),
-            CompanyManager.Domain.Enums.Role.Leader,
-            "TI"
-        );
-        
-        var leaderRH = CompanyManager.Domain.Aggregates.Employee.Employee.Create(
-            "Maria",
-            "Santos",
-            "maria.santos@companymanager.com",
-            "22222222222",
-            new DateTime(1982, 7, 20),
-            authService.HashPassword("Leader@123"),
-            CompanyManager.Domain.Enums.Role.Leader,
-            "RH"
-        );
-        
-        var leaderMarketing = CompanyManager.Domain.Aggregates.Employee.Employee.Create(
-            "Pedro",
-            "Oliveira", 
-            "pedro.oliveira@companymanager.com",
-            "33333333333",
-            new DateTime(1988, 3, 10),
-            authService.HashPassword("Leader@123"),
-            CompanyManager.Domain.Enums.Role.Leader,
-            "Marketing"
-        );
-        
-        var leaderDiretoria = CompanyManager.Domain.Aggregates.Employee.Employee.Create(
-            "Ana",
-            "Pereira",
-            "ana.pereira@companymanager.com", 
-            "44444444444",
-            new DateTime(1975, 9, 5),
-            authService.HashPassword("Leader@123"),
-            CompanyManager.Domain.Enums.Role.Leader,
-            "Diretoria"
-        );
-        
-        leaders.AddRange(new[] { leaderTI, leaderRH, leaderMarketing, leaderDiretoria });
-        context.Employees.AddRange(leaders);
-        context.SaveChanges();
-        
-        // Adicionar funcionários regulares
-        var employees = new List<CompanyManager.Domain.Aggregates.Employee.Employee>
-        {
-            // TI
-            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
-                "Lucas", "Ferreira", "lucas.ferreira@companymanager.com", "55555555555", 
-                new DateTime(1990, 6, 12), authService.HashPassword("Employee@123"),
-                CompanyManager.Domain.Enums.Role.Employee, "TI", leaderTI.Id),
-                
-            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
-                "Juliana", "Costa", "juliana.costa@companymanager.com", "66666666666", 
-                new DateTime(1993, 2, 25), authService.HashPassword("Employee@123"),
-                CompanyManager.Domain.Enums.Role.Employee, "TI", leaderTI.Id),
-                
-            // RH
-            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
-                "Roberto", "Almeida", "roberto.almeida@companymanager.com", "77777777777", 
-                new DateTime(1987, 11, 8), authService.HashPassword("Employee@123"),
-                CompanyManager.Domain.Enums.Role.Employee, "RH", leaderRH.Id),
-                
-            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
-                "Carla", "Vieira", "carla.vieira@companymanager.com", "88888888888", 
-                new DateTime(1991, 4, 17), authService.HashPassword("Employee@123"),
-                CompanyManager.Domain.Enums.Role.Employee, "RH", leaderRH.Id),
-                
-            // Marketing
-            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
-                "Felipe", "Souza", "felipe.souza@companymanager.com", "99999999999", 
-                new DateTime(1989, 8, 30), authService.HashPassword("Employee@123"),
-                CompanyManager.Domain.Enums.Role.Employee, "Marketing", leaderMarketing.Id),
-                
-            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
-                "Beatriz", "Lima", "beatriz.lima@companymanager.com", "10101010101", 
-                new DateTime(1992, 1, 22), authService.HashPassword("Employee@123"),
-                CompanyManager.Domain.Enums.Role.Employee, "Marketing", leaderMarketing.Id),
-                
-            // Diretoria
-            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
-                "Ricardo", "Machado", "ricardo.machado@companymanager.com", "12121212121", 
-                new DateTime(1984, 10, 15), authService.HashPassword("Employee@123"),
-                CompanyManager.Domain.Enums.Role.Employee, "Diretoria", leaderDiretoria.Id),
-                
-            // Novos funcionários adicionais com 2 telefones cada
-            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
-                "Amanda", "Santos", "amanda.santos@companymanager.com", "13131313131", 
-                new DateTime(1988, 3, 14), authService.HashPassword("Employee@123"),
-                CompanyManager.Domain.Enums.Role.Employee, "TI", leaderTI.Id),
-                
-            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
-                "Bruno", "Oliveira", "bruno.oliveira@companymanager.com", "14141414141", 
-                new DateTime(1991, 8, 27), authService.HashPassword("Employee@123"),
-                CompanyManager.Domain.Enums.Role.Employee, "RH", leaderRH.Id),
-                
-            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
-                "Carolina", "Pereira", "carolina.pereira@companymanager.com", "15151515151", 
-                new DateTime(1986, 5, 19), authService.HashPassword("Employee@123"),
-                CompanyManager.Domain.Enums.Role.Employee, "Marketing", leaderMarketing.Id),
-                
-            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
-                "Daniel", "Martins", "daniel.martins@companymanager.com", "16161616161", 
-                new DateTime(1990, 11, 3), authService.HashPassword("Employee@123"),
-                CompanyManager.Domain.Enums.Role.Employee, "TI", leaderTI.Id),
-                
-            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
-                "Eduarda", "Ribeiro", "eduarda.ribeiro@companymanager.com", "17171717171", 
-                new DateTime(1992, 7, 8), authService.HashPassword("Employee@123"),
-                CompanyManager.Domain.Enums.Role.Employee, "RH", leaderRH.Id),
-                
-            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
-                "Fábio", "Almeida", "fabio.almeida@companymanager.com", "18181818181", 
-                new DateTime(1989, 2, 12), authService.HashPassword("Employee@123"),
-                CompanyManager.Domain.Enums.Role.Employee, "Diretoria", leaderDiretoria.Id),
-                
-            // Mais 5 funcionários adicionais com 2 telefones cada
-            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
-                "Gabriela", "Moreira", "gabriela.moreira@companymanager.com", "19191919191", 
-                new DateTime(1993, 9, 21), authService.HashPassword("Employee@123"),
-                CompanyManager.Domain.Enums.Role.Employee, "Marketing", leaderMarketing.Id),
-                
-            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
-                "Henrique", "Gomes", "henrique.gomes@companymanager.com", "20202020202", 
-                new DateTime(1985, 12, 5), authService.HashPassword("Employee@123"),
-                CompanyManager.Domain.Enums.Role.Employee, "TI", leaderTI.Id),
-                
-            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
-                "Isabela", "Cardoso", "isabela.cardoso@companymanager.com", "21212121212", 
-                new DateTime(1990, 4, 28), authService.HashPassword("Employee@123"),
-                CompanyManager.Domain.Enums.Role.Employee, "RH", leaderRH.Id),
-                
-            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
-                "João Paulo", "Mendes", "joao.mendes@companymanager.com", "29292929292", 
-                new DateTime(1987, 6, 17), authService.HashPassword("Employee@123"),
-                CompanyManager.Domain.Enums.Role.Employee, "Diretoria", leaderDiretoria.Id),
-                
-            CompanyManager.Domain.Aggregates.Employee.Employee.Create(
-                "Karina", "Fernandes", "karina.fernandes@companymanager.com", "23232323232", 
-                new DateTime(1994, 2, 9), authService.HashPassword("Employee@123"),
-                CompanyManager.Domain.Enums.Role.Employee, "Marketing", leaderMarketing.Id)
-        };
-        
-        // Adicionar funcionários ao contexto
-        context.Employees.AddRange(employees);
-        context.SaveChanges();
-        
-        // Adicionar telefones para os funcionários
-        foreach (var employee in employees)
-        {
-            // Adicionar 2 telefones para cada funcionário
-            employee.AddPhoneNumber("119" + employee.DocumentNumber.Substring(0, 8), CompanyManager.Domain.ValueObjects.PhoneType.Mobile);
-            employee.AddPhoneNumber("113" + employee.DocumentNumber.Substring(0, 8), CompanyManager.Domain.ValueObjects.PhoneType.Home);
-        }
-        
-        // Atualizar os funcionários com os telefones
-        context.SaveChanges();
+    Log.Information("Executando script para criar/atualizar tabelas...");
+    await dbContext.Database.ExecuteSqlRawAsync(createTablesScript);
+
+    // Verificar se já existem registros
+    Log.Information("Verificando se é necessário fazer seed de dados...");
+    var employeesExist = await dbContext.Employees.AnyAsync();
+    var departmentsExist = await dbContext.Departments.AnyAsync();
+
+    if (!departmentsExist)
+    {
+      Log.Information("Criando departamentos...");
+      var departments = new List<Department>
+            {
+                Department.Create("Tecnologia", "Departamento de Tecnologia da Informação"),
+                Department.Create("RH", "Recursos Humanos"),
+                Department.Create("Financeiro", "Departamento Financeiro"),
+                Department.Create("Marketing", "Departamento de Marketing")
+            };
+
+      await dbContext.Departments.AddRangeAsync(departments);
+      await dbContext.SaveChangesAsync();
+      Log.Information("Departamentos criados com sucesso!");
     }
+
+    if (!employeesExist)
+    {
+      Log.Information("Criando funcionários...");
+
+      // Diretor
+      var director = Employee.Create(
+          "Admin",
+          "Sistema",
+          "admin@companymanager.com",
+          "123.456.789-00",
+          new DateTime(1980, 1, 1),
+          authService.HashPassword("Admin@123"),
+          Role.Director,
+          "Tecnologia",
+          null);
+
+      director.AddPhoneNumber("11987654321", PhoneType.Mobile);
+      director.AddPhoneNumber("1133334444", PhoneType.Work);
+
+      await dbContext.Employees.AddAsync(director);
+      await dbContext.SaveChangesAsync();
+
+
+      // Líderes
+      var leader1 = Employee.Create(
+          "Maria",
+          "Santos",
+          "maria.santos@empresa.com",
+          "987.654.321-00",
+          new DateTime(1985, 5, 15),
+          authService.HashPassword("Senha@123"),
+          Role.Leader,
+          "RH",
+          director.Id);
+
+      leader1.AddPhoneNumber("11976543210", PhoneType.Mobile);
+
+      var leader2 = Employee.Create(
+          "Carlos",
+          "Ferreira",
+          "carlos.ferreira@empresa.com",
+          "111.222.333-44",
+          new DateTime(1982, 8, 20),
+          authService.HashPassword("Senha@123"),
+          Role.Leader,
+          "Financeiro",
+          director.Id);
+
+      leader2.AddPhoneNumber("11955556666", PhoneType.Mobile);
+
+      await dbContext.Employees.AddRangeAsync(new[] { leader1, leader2 });
+      await dbContext.SaveChangesAsync();
+
+      // Funcionários regulares
+      var employee1 = Employee.Create(
+          "Ana",
+          "Oliveira",
+          "ana.oliveira@empresa.com",
+          "222.333.444-55",
+          new DateTime(1990, 3, 10),
+          authService.HashPassword("Senha@123"),
+          Role.Employee,
+          "RH",
+          leader1.Id);
+
+      employee1.AddPhoneNumber("11944445555", PhoneType.Mobile);
+
+      var employee2 = Employee.Create(
+          "Pedro",
+          "Costa",
+          "pedro.costa@empresa.com",
+          "333.444.555-66",
+          new DateTime(1992, 7, 25),
+          authService.HashPassword("Senha@123"),
+          Role.Employee,
+          "Financeiro",
+          leader2.Id);
+
+      employee2.AddPhoneNumber("11933334444", PhoneType.Mobile);
+
+      await dbContext.Employees.AddRangeAsync(new[] { employee1, employee2 });
+      await dbContext.SaveChangesAsync();
+
+      Log.Information("Funcionários criados com sucesso!");
+    }
+
+    Log.Information("Inicialização do banco de dados concluída com sucesso!");
+  }
+  catch (Exception ex)
+  {
+    Log.Error(ex, "Ocorreu um erro durante a inicialização do banco de dados.");
+  }
 }
+
+// Log que a aplicação está executando com endereço/porta
+Log.Information("Aplicação iniciada. API disponível em: http://localhost:5000");
+app.Run();
+
+// Torna a classe Program pública para testes
+public partial class Program { }

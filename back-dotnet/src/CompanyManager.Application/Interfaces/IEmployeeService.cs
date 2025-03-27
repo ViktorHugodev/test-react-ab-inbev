@@ -46,6 +46,10 @@ namespace CompanyManager.Application.Interfaces
         Task<bool> UpdatePasswordAsync(
             UpdatePasswordDto updatePasswordDto, 
             CancellationToken cancellationToken = default);
+            
+        Task<EmployeeDto> UpdatePhoneNumbersAsync(
+            UpdatePhoneNumbersDto updatePhoneNumbersDto,
+            CancellationToken cancellationToken = default);
         
         Task<bool> DeleteAsync(
             Guid id, 

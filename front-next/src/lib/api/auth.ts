@@ -11,6 +11,33 @@ export async function loginUser(credentials: LoginDTO): Promise<AuthResponseDTO>
     if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_MOCK === 'true') {
       await simulateNetworkDelay(Math.floor(Math.random() * 500) + 300);
       
+      // Credenciais de administrador
+      if (credentials.email === "admin@companymanager.com" && credentials.password === "Admin@123") {
+        const now = new Date();
+        const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 horas depois
+        
+        return {
+          token: "mock-admin-jwt-token",
+          expiresAt: expiresAt.toISOString(),
+          employee: {
+            id: "admin-123",
+            firstName: "Administrador",
+            lastName: "Sistema",
+            fullName: "Administrador Sistema",
+            email: credentials.email,
+            documentNumber: "98765432100",
+            birthDate: new Date("1985-01-01"),
+            age: 40,
+            role: 3, // Director (Administrador)
+            department: "Diretoria",
+            phoneNumbers: [
+              { id: "1", number: "11988888888", type: 1 }
+            ],
+            createdAt: new Date(),
+            updatedAt: new Date()
+          }
+        };
+      }
 
       if (credentials.email === "test@example.com" && credentials.password === "password123") {
         const now = new Date();
@@ -61,6 +88,18 @@ export async function getCurrentUser(): Promise<CurrentUserResponse> {
   try {
     if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_MOCK === 'true') {
       await simulateNetworkDelay(Math.floor(Math.random() * 300) + 200);
+      
+      // Verificar se o token é do administrador (simulação)
+      const token = typeof window !== 'undefined' ? localStorage.getItem("auth_token") : null;
+      
+      if (token === "mock-admin-jwt-token") {
+        return {
+          id: "admin-123",
+          email: "admin@companymanager.com",
+          name: "Administrador Sistema",
+          role: "Director"
+        };
+      }
       
       return {
         id: "123",

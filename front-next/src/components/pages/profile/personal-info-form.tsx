@@ -102,7 +102,7 @@ export function PersonalInfoForm({ user, onSubmit, isLoading }: PersonalInfoForm
     };
   }, [normalizedUser]);
 
-  // Form for personal information
+
   const form = useForm<PersonalInfoFormValues>({
     resolver: zodResolver(personalInfoSchema),
     defaultValues: {
@@ -113,8 +113,7 @@ export function PersonalInfoForm({ user, onSubmit, isLoading }: PersonalInfoForm
       phoneNumbers: [],
     },
   });
-  
-  // Atualizar o formulário quando os dados do usuário mudarem - apenas uma vez
+
   useEffect(() => {
     if (userData) {
       form.reset(userData);

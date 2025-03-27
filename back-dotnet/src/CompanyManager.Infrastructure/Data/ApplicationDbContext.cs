@@ -68,6 +68,11 @@ namespace CompanyManager.Infrastructure.Data
 
         entity.Property(e => e.UpdatedAt);
 
+        // Novo campo para armazenar números de telefone como JSON
+        entity.Property(e => e.PhoneNumbersJson)
+              .IsRequired()
+              .HasDefaultValue("[]");
+
         // Relacionamento auto-referenciante para gerentes
         entity.HasOne(e => e.Manager)
                   .WithMany(e => e.Subordinates)
@@ -75,28 +80,6 @@ namespace CompanyManager.Infrastructure.Data
                   .OnDelete(DeleteBehavior.Restrict); // Impede exclusão em cascata
       });
 
-      // Configuração para o Value Object PhoneNumber
-      modelBuilder.Entity<PhoneNumber>(entity =>
-      {
-        entity.ToTable("PhoneNumbers");
-
-        entity.HasKey(p => p.Id);
-
-        entity.Property(p => p.Number)
-                  .IsRequired()
-                  .HasMaxLength(20);
-
-        entity.Property(p => p.Type)
-                  .IsRequired();
-      });
-
-      // Relacionamentos explícitos
-  modelBuilder.Entity<Employee>()
-    .HasMany(e => e.PhoneNumbers)  // Especifique a propriedade de navegação
-    .WithOne()
-    .HasForeignKey("EmployeeId")
-    .OnDelete(DeleteBehavior.Cascade);
-      
       // Configuração da entidade Department
       modelBuilder.Entity<Department>(entity =>
       {
@@ -126,31 +109,52 @@ namespace CompanyManager.Infrastructure.Data
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-      // Atualiza os timestamps para entidades modificadas
-      var entries = ChangeTracker.Entries()
-          .Where(e => e.Entity is IHasTimestamps && 
-                 (e.State == EntityState.Added || e.State == EntityState.Modified));
-
-      foreach (var entry in entries)
+      try
       {
-        var entity = entry.Entity as IHasTimestamps;
-        
-        if (entity != null)
+        // Atualiza os timestamps para entidades modificadas
+        var entries = ChangeTracker.Entries()
+            .Where(e => e.Entity is IHasTimestamps && 
+                   (e.State == EntityState.Added || e.State == EntityState.Modified));
+
+        foreach (var entry in entries)
         {
-          if (entry.State == EntityState.Added)
+          var entity = entry.Entity as IHasTimestamps;
+          
+          if (entity != null)
           {
-            // Usa a interface para definir a data de criação
-            entity.SetCreatedAt(DateTime.UtcNow);
-          }
-          else if (entry.State == EntityState.Modified)
-          {
-            // Usa a interface para definir a data de atualização
-            entity.SetUpdatedAt(DateTime.UtcNow);
+            if (entry.State == EntityState.Added)
+            {
+              // Usa a interface para definir a data de criação
+              entity.SetCreatedAt(DateTime.UtcNow);
+            }
+            else if (entry.State == EntityState.Modified)
+            {
+              // Usa a interface para definir a data de atualização
+              entity.SetUpdatedAt(DateTime.UtcNow);
+            }
           }
         }
-      }
 
-      return base.SaveChangesAsync(cancellationToken);
+        // Aplicar regras de conexão mais tolerantes para minimizar erros de concorrência
+        this.Database.SetCommandTimeout(120); // 2 minutos de timeout
+        
+        return base.SaveChangesAsync(cancellationToken);
+      }
+      catch (DbUpdateConcurrencyException ex)
+      {
+        // Trata erros de concorrência para que o seed não falhe
+        Console.WriteLine($"Erro de concorrência ao salvar dados: {ex.Message}");
+        
+        // Atualiza as entradas com dados mais recentes do banco de dados
+        foreach (var entry in ex.Entries)
+        {
+          // Recarrega a entrada do banco de dados
+          entry.Reload();
+        }
+        
+        // Tenta novamente a operação
+        return this.SaveChangesAsync(cancellationToken);
+      }
     }
   }
 }

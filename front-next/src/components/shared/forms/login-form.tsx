@@ -174,6 +174,7 @@ export function LoginForm({
         </form>
       </Form>
       <div className="text-center text-sm text-muted-foreground mt-4">
+
         <p>Credenciais de exemplo: admin@companymanager.com / Admin@123</p>
       </div>
     </div>
