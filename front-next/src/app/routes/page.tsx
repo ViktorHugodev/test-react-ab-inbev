@@ -1,5 +1,4 @@
-// Página inicial alternativa - Componente Servidor
-import { HomeClient } from './home-client';
+import { HomeClient } from '@/components/pages/home/home-client';
 
 export default function HomePage() {
   return <HomeClient />;

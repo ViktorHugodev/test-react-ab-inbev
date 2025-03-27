@@ -39,11 +39,15 @@ export function LoginForm({ onSuccess, redirectUrl = '/dashboard' }: ILoginFormP
     
     try {
       await login(email, password);
-      if (onSuccess) {
-        onSuccess();
-      } else {
-        window.location.href = redirectUrl;
-      }
+      
+      // Adicionar um pequeno delay para garantir que o estado foi atualizado
+      setTimeout(() => {
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          window.location.href = redirectUrl;
+        }
+      }, 500);
     } catch (err) {
       console.error("🚀 ~ file: login-form.tsx:48 ~ handleSubmit ~ err:", err)
       setError('Credenciais inválidas. Por favor, tente novamente.');

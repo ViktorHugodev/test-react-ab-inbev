@@ -17,6 +17,9 @@ using Moq;
 using Xunit;
 using FluentAssertions;
 
+// Adicionando aliases para resolver ambiguidade do PhoneNumberDto
+using AppPhoneNumberDto = CompanyManager.Application.DTOs.PhoneNumberDto;
+
 namespace CompanyManager.UnitTests.API.Controllers
 {
     public class EmployeesControllerTests
@@ -70,7 +73,7 @@ namespace CompanyManager.UnitTests.API.Controllers
             var employees = new List<EmployeeListItemDto>
             {
                 new EmployeeListItemDto { Id = Guid.NewGuid(), FullName = "John Doe", Email = "john@example.com", Department = "IT", Role = Role.Employee },
-                new EmployeeListItemDto { Id = Guid.NewGuid(), FullName = "Jane Smith", Email = "jane@example.com", Department = "HR", Role = Role.Leader }
+                new EmployeeListItemDto { Id = Guid.NewGuid(), FullName = "Jane Smith", Email = "jane@example.com", Department = "HR", Role = Role.Director }
             };
 
             var pagedResult = new PagedResultDto<EmployeeListItemDto>
@@ -285,7 +288,7 @@ namespace CompanyManager.UnitTests.API.Controllers
                 Email = createDto.Email,
                 DocumentNumber = createDto.DocumentNumber,
                 BirthDate = createDto.BirthDate,
-                Role = createDto.Role,
+                Role = (Role)createDto.Role,
                 Department = createDto.Department
             };
 
@@ -388,8 +391,8 @@ namespace CompanyManager.UnitTests.API.Controllers
                 LastName = updateDto.LastName,
                 FullName = "John Doe Updated",
                 Email = updateDto.Email,
-                BirthDate = updateDto.BirthDate,
-                Role = updateDto.Role,
+                BirthDate = updateDto.BirthDate.HasValue ? updateDto.BirthDate.Value : DateTime.Now,
+                Role = updateDto.Role.HasValue ? updateDto.Role.Value : Role.Employee,
                 Department = updateDto.Department
             };
 
@@ -408,6 +411,12 @@ namespace CompanyManager.UnitTests.API.Controllers
             var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
             var returnValue = okResult.Value.Should().BeOfType<EmployeeDto>().Subject;
             returnValue.Should().BeEquivalentTo(updatedEmployee);
+
+            var actionResult = result as ActionResult<EmployeeDto>;
+            if (actionResult?.Value != null)
+            {
+                actionResult.Value.Id.Should().Be(employeeId);
+            }
         }
 
         [Fact]
@@ -695,10 +704,10 @@ namespace CompanyManager.UnitTests.API.Controllers
             var updatePhoneNumbersDto = new UpdatePhoneNumbersDto
             {
                 Id = employeeId,
-                PhoneNumbers = new List<PhoneNumberDto>
+                PhoneNumbers = new List<AppPhoneNumberDto>
                 {
-                    new PhoneNumberDto { Type = PhoneType.Mobile, Number = "11999999999" },
-                    new PhoneNumberDto { Type = PhoneType.Home, Number = "1134567890" }
+                    new AppPhoneNumberDto { Type = PhoneType.Mobile, Number = "11999999999" },
+                    new AppPhoneNumberDto { Type = PhoneType.Home, Number = "1134567890" }
                 }
             };
 

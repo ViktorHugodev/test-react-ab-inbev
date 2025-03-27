@@ -7,7 +7,7 @@
 
 ### Login com o diretor criado no seed
 # @name loginDirector
-POST {{baseUrl}}/api/Auth/login
+POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {

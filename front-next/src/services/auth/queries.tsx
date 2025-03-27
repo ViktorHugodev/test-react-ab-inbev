@@ -77,10 +77,22 @@ export const useLogout = () => {
   const queryClient = useQueryClient();
   const router = useRouter();
   return () => {
-
+    // Limpar dados de autenticação
     authService.logout();
     queryClient.removeQueries({ queryKey: ["currentUser"] });
+    queryClient.removeQueries({ queryKey: ["detailedUserInfo"] });
+    
+    // Mostrar mensagem de sucesso
     toast.success("Logout realizado com sucesso!");
-    router.push('/auth/login');
+    
+    // Forçar redirecionamento para página de login
+    if (typeof window !== 'undefined') {
+      // Usar ambos os métodos de redirecionamento para garantir que funcione
+      router.push('/auth/login');
+      // Esperar um curto período e usar window.location como fallback
+      setTimeout(() => {
+        window.location.href = '/auth/login';
+      }, 100);
+    }
   };
 };

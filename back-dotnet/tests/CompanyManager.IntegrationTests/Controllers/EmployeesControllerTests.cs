@@ -12,6 +12,9 @@ using CompanyManager.Domain.ValueObjects;
 using CompanyManager.IntegrationTests.Helpers;
 using FluentAssertions;
 
+// Adicionando aliases para resolver ambiguidade do PhoneNumberDto
+using AppPhoneNumberDto = CompanyManager.Application.DTOs.PhoneNumberDto;
+
 namespace CompanyManager.IntegrationTests.Controllers
 {
     [Collection("TestServerCollection")]
@@ -102,8 +105,14 @@ namespace CompanyManager.IntegrationTests.Controllers
             var allContent = await allResponse.Content.ReadAsStringAsync();
             var employees = JsonSerializer.Deserialize<List<EmployeeListItemDto>>(allContent, _jsonOptions);
             
-            var firstEmployee = employees.FirstOrDefault();
+            // Verificar se a resposta não é nula antes de acessar suas propriedades
+            var firstEmployee = employees?.FirstOrDefault();
             firstEmployee.Should().NotBeNull();
+            if (firstEmployee != null)
+            {
+                firstEmployee.Id.Should().NotBe(Guid.Empty);
+                firstEmployee.FullName.Should().NotBeNullOrEmpty();
+            }
             
             // Skip the test if there are no employees in the database
             if (firstEmployee == null)
@@ -288,10 +297,10 @@ namespace CompanyManager.IntegrationTests.Controllers
                 var updatePhoneNumbersDto = new UpdatePhoneNumbersDto
                 {
                     Id = createdEmployee.Id,
-                    PhoneNumbers = new List<PhoneNumberDto>
+                    PhoneNumbers = new List<AppPhoneNumberDto>
                     {
-                        new PhoneNumberDto { Type = PhoneType.Mobile, Number = "11999999999" },
-                        new PhoneNumberDto { Type = PhoneType.Home, Number = "1134567890" }
+                        new AppPhoneNumberDto { Type = PhoneType.Mobile, Number = "11999999999" },
+                        new AppPhoneNumberDto { Type = PhoneType.Home, Number = "1134567890" }
                     }
                 };
                 
@@ -531,8 +540,15 @@ namespace CompanyManager.IntegrationTests.Controllers
                 var smallPageResult = JsonSerializer.Deserialize<PagedResultDto<EmployeeListItemDto>>(pagedContent, _jsonOptions);
                 
                 smallPageResult.Should().NotBeNull();
-                smallPageResult.PageSize.Should().Be(1);
-                smallPageResult.Items.Should().HaveCount(1);
+                if (smallPageResult != null)
+                {
+                    smallPageResult.PageSize.Should().Be(1);
+                    smallPageResult.Items.Should().NotBeNull();
+                    if (smallPageResult.Items != null)
+                    {
+                        smallPageResult.Items.Should().HaveCount(1);
+                    }
+                }
             }
             finally
             {
@@ -637,10 +653,10 @@ namespace CompanyManager.IntegrationTests.Controllers
                 var updatePhoneNumbersDto = new UpdatePhoneNumbersDto
                 {
                     Id = createdEmployee.Id,
-                    PhoneNumbers = new List<PhoneNumberDto>
+                    PhoneNumbers = new List<AppPhoneNumberDto>
                     {
-                        new PhoneNumberDto { Type = PhoneType.Mobile, Number = "11999999999" },
-                        new PhoneNumberDto { Type = PhoneType.Home, Number = "1134567890" }
+                        new AppPhoneNumberDto { Type = PhoneType.Mobile, Number = "11999999999" },
+                        new AppPhoneNumberDto { Type = PhoneType.Home, Number = "1134567890" }
                     }
                 };
                 
@@ -651,20 +667,20 @@ namespace CompanyManager.IntegrationTests.Controllers
                 updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
                 
                 var updateContent = await updateResponse.Content.ReadAsStringAsync();
-                var updatedEmployee = JsonSerializer.Deserialize<EmployeeDto>(updateContent, _jsonOptions);
+                var employeeWithPhones = JsonSerializer.Deserialize<EmployeeDto>(updateContent, _jsonOptions);
                 
-                updatedEmployee.Should().NotBeNull();
-                updatedEmployee.PhoneNumbers.Should().NotBeNull();
-                updatedEmployee.PhoneNumbers.Should().HaveCount(2);
+                employeeWithPhones.Should().NotBeNull();
+                employeeWithPhones.PhoneNumbers.Should().NotBeNull();
+                employeeWithPhones.PhoneNumbers.Should().HaveCount(2);
                 
                 // Act - Update phone numbers (modify one, remove one, add one)
                 var updatePhoneNumbersDto2 = new UpdatePhoneNumbersDto
                 {
                     Id = createdEmployee.Id,
-                    PhoneNumbers = new List<PhoneNumberDto>
+                    PhoneNumbers = new List<AppPhoneNumberDto>
                     {
-                        new PhoneNumberDto { Type = PhoneType.Mobile, Number = "11988888888" }, // Changed
-                        new PhoneNumberDto { Type = PhoneType.Work, Number = "1145678901" }     // New
+                        new AppPhoneNumberDto { Type = PhoneType.Mobile, Number = "11988888888" }, // Changed
+                        new AppPhoneNumberDto { Type = PhoneType.Work, Number = "1145678901" }     // New
                     }
                 };
                 

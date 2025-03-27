@@ -141,6 +141,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
   const logout = (): void => {
     clearAuthToken();
     setUser(null);
+    
+    // Redirecionar para a página de login
+    if (typeof window !== 'undefined') {
+      window.location.href = '/auth/login';
+    }
   };
   
   const canCreateRole = (role: EmployeeRole): boolean => {
