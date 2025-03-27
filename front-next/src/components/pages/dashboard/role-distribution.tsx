@@ -3,6 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGetEmployees } from "@/services/employee/queries";
 import { EmployeeRole } from "@/types/employee";
+import { LoadingIndicator } from "@/components/shared/loading/loading-indicator";
 
 export function RoleDistribution() {
   const { data, isLoading, isError } = useGetEmployees({
@@ -65,7 +66,7 @@ export function RoleDistribution() {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="p-4 text-center">Carregando...</div>
+          <LoadingIndicator text="Carregando distribuição..." />
         ) : isError ? (
           <div className="p-4 text-center text-red-500">Erro ao carregar dados</div>
         ) : (

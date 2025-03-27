@@ -9,6 +9,7 @@ import { Toaster } from "sonner";
 import { TokenSync } from "@/components/shared/auth/token-sync";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { ThemeInitializer } from "@/components/shared/theme/theme-initializer";
 
 const poppins = Poppins({
   weight: ['300', '400', '500', '600', '700'],
@@ -34,6 +35,7 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <ReduxProvider>
+          <ThemeInitializer />
           <QueryProvider>
             <AuthProvider>
               {}

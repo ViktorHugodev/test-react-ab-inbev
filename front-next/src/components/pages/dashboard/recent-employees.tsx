@@ -6,6 +6,7 @@ import { EmployeeRole } from "@/types/employee";
 import { useGetEmployees } from "@/services/employee/queries";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { LoadingIndicator } from "@/components/shared/loading/loading-indicator";
 
 export function RecentEmployees() {
   const { data, isLoading, isError } = useGetEmployees({
@@ -50,7 +51,7 @@ export function RecentEmployees() {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="p-4 text-center">Carregando...</div>
+          <LoadingIndicator text="Carregando funcionários recentes..." />
         ) : isError ? (
           <div className="p-4 text-center text-red-500">Erro ao carregar dados</div>
         ) : (

@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGetEmployees } from '@/services/employee/queries';
-
+import { LoadingIndicator } from "@/components/shared/loading/loading-indicator";
 
 interface DepartmentCount {
   name: string;
@@ -70,7 +70,7 @@ export function DepartmentChart() {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="p-4 text-center">Carregando...</div>
+          <LoadingIndicator text="Carregando distribuição por departamento..." />
         ) : isError ? (
           <div className="p-4 text-center text-red-500">Erro ao carregar dados</div>
         ) : (
