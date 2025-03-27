@@ -3,6 +3,11 @@
 ## Overview
 Company Manager is a comprehensive system for managing company departments and employees. It consists of a .NET backend API and a Next.js frontend application that allows users to create, view, update, and delete departments and employees, manage user roles, and view dashboard statistics.
 
+## API Test
+
+There is an *api.http* file in the project root with all the endpoints
+
+
 ## Project Structure
 
 ### Backend (.NET)

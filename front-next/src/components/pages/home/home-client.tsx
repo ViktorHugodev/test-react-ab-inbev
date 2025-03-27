@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Users, LayoutDashboard, Building } from "lucide-react";
+import { LoadingIndicator } from "@/components/shared/loading/loading-indicator";
 
 export function HomeClient() {
   const { user, isLoading } = useAuth();
@@ -19,7 +20,11 @@ export function HomeClient() {
   }, [user, isLoading, router]);
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingIndicator size="xl" />
+      </div>
+    );
   }
 
   return (

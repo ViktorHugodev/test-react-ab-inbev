@@ -9,6 +9,7 @@ import {
 
 import { StatCard } from '@/components/shared/data-display/stat-card';
 import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingIndicator } from "@/components/shared/loading/loading-indicator";
 
 export interface StatsData {
   totalEmployees: number;
@@ -32,10 +33,8 @@ export function StatsOverview({
 }: StatsOverviewProps) {
   if (isLoadingEmployees || isLoadingDepartments) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {[...Array(6)].map((_, i) => (
-          <Skeleton key={i} className="h-[120px] w-full" />
-        ))}
+      <div className="flex justify-center py-12">
+        <LoadingIndicator text="Carregando estatísticas..." size="lg" />
       </div>
     );
   }

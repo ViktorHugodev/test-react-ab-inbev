@@ -1,8 +1,7 @@
-"use client";
-
 import React, { Suspense } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import LoginContent from "./login-content";
+import { LoadingIndicator } from "@/components/shared/loading/loading-indicator";
 
 
 export default function LoginPage() {
@@ -16,7 +15,7 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Suspense fallback={<div className="text-center py-4">Carregando...</div>}>
+          <Suspense fallback={<LoadingIndicator />}>
             <LoginContent />
           </Suspense>
         </CardContent>

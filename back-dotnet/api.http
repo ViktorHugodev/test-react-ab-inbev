@@ -1,6 +1,5 @@
 @baseUrl = http://localhost:5000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzNDAxYjM1Ni0yZDY0LTRiOGUtODMyZi1kMmQzODU5NDM3YzIiLCJlbWFpbCI6ImFkbWluQGNvbXBhbnltYW5hZ2VyLmNvbSIsImp0aSI6IjllZWE0OWIxLWY0ZTItNGUzYy04NjZhLTk3ZTM5NjM4MDQ5OCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJBZG1pbiBTaXN0ZW1hIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiRGlyZWN0b3IiLCJleHAiOjE3NDMwODM2NDksImlzcyI6IkNvbXBhbnlNYW5hZ2VyIiwiYXVkIjoiQ29tcGFueU1hbmFnZXJBcGkifQ.OOGz64Jj9hbUSsQx2F7EEJHo2totfbrAL7wbw6-fWKE
-
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMTY4MTJmYi1iOWMxLTQ4YTgtOWU5YS0xM2QxOGI2Mzg2YWUiLCJlbWFpbCI6ImFkbWluQGNvbXBhbnltYW5hZ2VyLmNvbSIsImp0aSI6ImQwNGY5MTQ3LTVhOTEtNGM2Yi1hNWYzLTZmM2Q0MzRhYWM3ZiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJBZG1pbiBTaXN0ZW1hIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiRGlyZWN0b3IiLCJleHAiOjE3NDMwOTU3MTAsImlzcyI6IkNvbXBhbnlNYW5hZ2VyIiwiYXVkIjoiQ29tcGFueU1hbmFnZXJBcGkifQ.untMAVivq_GSqIW4WNxV8XGJftcpC8lVV0iDiAIxvHs
 ########################
 # Autenticação
 ########################
@@ -213,7 +212,7 @@ Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "name": "Novo Departamento",
+  "name": "Saude",
   "description": "Descrição do novo departamento"
 }
 

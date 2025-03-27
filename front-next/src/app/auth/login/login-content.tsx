@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { LoginForm } from "@/components/shared/forms/login-form";
 import { toast } from "sonner";
+import { LoadingIndicator } from '@/components/shared/loading/loading-indicator';
 
 export default function LoginContent() {
   const { user, isLoading } = useAuth();
@@ -36,7 +37,7 @@ export default function LoginContent() {
   }, [user, isLoading, router, error, callbackUrl, formReady]);
 
   if (isLoading) {
-    return <div className="text-center py-4">Carregando...</div>;
+    return <LoadingIndicator />
   }
 
   return <LoginForm variant="card" />;

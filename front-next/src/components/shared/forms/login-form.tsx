@@ -33,6 +33,7 @@ export function LoginForm({
   onSuccess
 }: LoginFormProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
 
@@ -45,6 +46,9 @@ export function LoginForm({
   });
 
   async function onSubmit(values: LoginFormValues) {
+    if (isSubmitting) return; // Evita múltiplos envios
+    
+    setIsSubmitting(true);
     setIsLoading(true);
 
     try {
@@ -54,16 +58,25 @@ export function LoginForm({
       if (onSuccess) {
         onSuccess();
       } else {
-        
+        // Aumentando o tempo de redirecionamento para dar feedback visual ao usuário
         setTimeout(() => {
           router.push("/dashboard");
-        }, 500);
+        }, 1000);
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Email ou senha inválidos");
       console.error(error);
     } finally {
-      setIsLoading(false);
+      // Só resetamos os estados no catch, pois no caso de sucesso queremos manter o botão desabilitado durante o redirecionamento
+      if (!onSuccess) {
+        setTimeout(() => {
+          setIsSubmitting(false);
+          setIsLoading(false);
+        }, 1500); // Tempo ligeiramente maior que o redirecionamento para garantir que o botão permaneça desabilitado
+      } else {
+        setIsSubmitting(false);
+        setIsLoading(false);
+      }
     }
   }
 
@@ -72,7 +85,13 @@ export function LoginForm({
     return (
       <div className={containerClassName}>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form 
+            onSubmit={(e) => {
+              e.preventDefault();
+              form.handleSubmit(onSubmit)(e);
+            }} 
+            className="space-y-4"
+          >
             <FormField
               control={form.control}
               name="email"
@@ -99,8 +118,19 @@ export function LoginForm({
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Entrando..." : "Entrar"}
+            <Button 
+              type="submit" 
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300" 
+              disabled={isLoading || isSubmitting || form.formState.isSubmitting}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Entrando...
+                </>
+              ) : (
+                "Entrar"
+              )}
             </Button>
             <div className="text-center text-sm text-muted-foreground">
               <p>Credenciais de exemplo: admin@companymanager.com / Admin@123</p>
@@ -115,7 +145,13 @@ export function LoginForm({
   return (
     <div className={containerClassName}>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form 
+          onSubmit={(e) => {
+            e.preventDefault();
+            form.handleSubmit(onSubmit)(e);
+          }} 
+          className="space-y-4"
+        >
           <FormField
             control={form.control}
             name="email"
@@ -159,8 +195,8 @@ export function LoginForm({
           />
           <Button 
             type="submit" 
-            className="w-full rounded-xl bg-primary hover:bg-primary/90 transition-all duration-300" 
-            disabled={isLoading}
+            className="w-full rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300" 
+            disabled={isLoading || isSubmitting || form.formState.isSubmitting}
           >
             {isLoading ? (
               <>

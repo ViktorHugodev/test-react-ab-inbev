@@ -1,9 +1,10 @@
 "use client";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGetEmployees } from "@/services/employee/queries";
 import { EmployeeRole } from "@/types/employee";
+import { LoadingIndicator } from "@/components/shared/loading/loading-indicator";
 
 export function TopManagers() {
   const { data, isLoading, isError } = useGetEmployees({
@@ -63,7 +64,7 @@ export function TopManagers() {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="p-4 text-center">Carregando...</div>
+          <LoadingIndicator text="Carregando gerentes..." />
         ) : isError ? (
           <div className="p-4 text-center text-red-500">Erro ao carregar dados</div>
         ) : (
